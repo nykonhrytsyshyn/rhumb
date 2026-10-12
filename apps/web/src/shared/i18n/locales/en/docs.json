@@ -1,0 +1,39 @@
+{
+  "intro": "Describe the diagram in Mermaid-like text. Rhumb draws it as a block diagram that follows the selected standard.",
+  "syntax": {
+    "title": "Structure",
+    "header": "Start with flowchart (or graph) and a direction: TD, TB, BT, LR or RL.",
+    "chain": "Connect blocks with arrows. Chains work: A --> B --> C.",
+    "label": "Label a line with |text| or -- text -->.",
+    "comment": "Lines that start with %% are comments."
+  },
+  "blocks": {
+    "title": "Blocks",
+    "process": "Process",
+    "terminator": "Start or end",
+    "decision": "Decision",
+    "io": "Input or output",
+    "preparation": "Preparation, loop header",
+    "predefined": "Predefined process",
+    "connector": "Connector"
+  },
+  "lines": {
+    "title": "Lines",
+    "solid": "Line with an arrow",
+    "plain": "Line without an arrow",
+    "dashed": "Dashed line",
+    "thick": "Thick line"
+  },
+  "decisions": {
+    "title": "Decisions",
+    "text": "Label the branches Yes and No. The profile decides which corner each one leaves from; unlabeled branches use the free corners in order."
+  },
+  "loops": {
+    "title": "Loops",
+    "text": "A preparation block that the flow returns to becomes a loop header: the body leaves from the bottom, the return enters one side corner and the exit leaves from the opposite one."
+  },
+  "standards": {
+    "title": "Standards",
+    "text": "A standard is a JSON profile with block sizes, line widths, fonts and branch sides. Pick a built-in one on the Config tab or load your own."
+  }
+}

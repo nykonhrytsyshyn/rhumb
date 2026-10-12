@@ -1,0 +1,171 @@
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { ProfileRegistry } from "@rhumb/profiles";
+
+import { copyPng, exportPng, exportSvg } from "../../lib/export-diagram";
+import { EditorPanel, type EditorPanelProps } from "./editor-panel";
+
+vi.mock("./source-editor", () => ({
+  default: ({
+    value,
+    onChange,
+    label,
+  }: {
+    value: string;
+    onChange: (value: string) => void;
+    label: string;
+  }) => (
+    <textarea
+      aria-label={label}
+      value={value}
+      onChange={(event) => {
+        onChange(event.target.value);
+      }}
+    />
+  ),
+}));
+vi.mock("../../lib/export-diagram", () => ({
+  exportPng: vi.fn(() => Promise.resolve()),
+  exportSvg: vi.fn(() => Promise.resolve()),
+  copyPng: vi.fn(() => Promise.resolve()),
+  downloadProfile: vi.fn(),
+}));
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+const profiles = ProfileRegistry.withBuiltins().list();
+
+function renderPanel(overrides: Partial<EditorPanelProps> = {}) {
+  const props: EditorPanelProps = {
+    open: true,
+    onOpenChange: vi.fn(),
+    source: "flowchart TD\nA --> B",
+    onSourceChange: vi.fn(),
+    error: null,
+    profiles,
+    profile: profiles[0],
+    onProfileChange: vi.fn(),
+    onSampleSelect: vi.fn(),
+    ...overrides,
+  };
+
+  render(<EditorPanel {...props} />);
+
+  return props;
+}
+
+describe("EditorPanel", () => {
+  it("edits the source on the code tab", async () => {
+    const props = renderPanel();
+    const editor = await screen.findByLabelText("Diagram source");
+
+    fireEvent.change(editor, { target: { value: "flowchart LR" } });
+    expect(props.onSourceChange).toHaveBeenCalledWith("flowchart LR");
+  });
+
+  it("shows the syntax error under the editor", async () => {
+    renderPanel({ error: "Line 2: Expected a link" });
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Line 2: Expected a link",
+    );
+  });
+
+  it("switches between code, config and docs", async () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole("tab", { name: /Docs/ }));
+    expect(await screen.findByText("Blocks")).toBeDefined();
+    expect(screen.getByText("Loops")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("tab", { name: /Config/ }));
+    expect(await screen.findByText("Standard")).toBeDefined();
+  });
+
+  it("loads a sample into the editor", async () => {
+    const props = renderPanel();
+
+    fireEvent.click(screen.getByText("Sample diagrams"));
+    fireEvent.click(await screen.findByRole("button", { name: "Branching" }));
+    expect(props.onSampleSelect).toHaveBeenCalledOnce();
+    expect(vi.mocked(props.onSampleSelect).mock.calls[0]?.[0]).toContain(
+      "check{",
+    );
+  });
+
+  it("exports with the chosen options", async () => {
+    const props = renderPanel();
+
+    fireEvent.click(
+      screen.getByRole("switch", { name: "Transparent background" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /PNG/ }));
+    await waitFor(() => {
+      expect(exportPng).toHaveBeenCalledWith(props.source, profiles[0], {
+        transparent: true,
+      });
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /SVG/ }));
+    await waitFor(() => {
+      expect(exportSvg).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Copy image/ }));
+    expect(await screen.findByText("Copied")).toBeDefined();
+    expect(copyPng).toHaveBeenCalled();
+  });
+
+  it("shows why an export failed", async () => {
+    vi.mocked(exportSvg).mockRejectedValueOnce(new Error("no canvas"));
+    renderPanel();
+    fireEvent.click(screen.getByRole("button", { name: /SVG/ }));
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "Export failed: no canvas",
+    );
+
+    vi.mocked(exportPng).mockRejectedValueOnce("plain");
+    fireEvent.click(screen.getByRole("button", { name: /PNG/ }));
+    await waitFor(() => {
+      expect(screen.getByRole("alert").textContent).toBe(
+        "Export failed: plain",
+      );
+    });
+  });
+
+  it("disables exports without a profile", () => {
+    renderPanel({ profile: undefined });
+    expect(screen.getByRole("button", { name: /PNG/ })).toHaveProperty(
+      "disabled",
+      true,
+    );
+  });
+
+  it("reports whether the panel is open on its handle", () => {
+    renderPanel({ open: false });
+
+    const handle = screen.getByRole("button", { name: "Toggle panel" });
+
+    expect(handle.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("toggles from the keyboard", () => {
+    const props = renderPanel({ open: false });
+    const handle = screen.getByRole("button", { name: "Toggle panel" });
+
+    fireEvent.keyDown(handle, { key: "Enter" });
+    fireEvent.keyDown(handle, { key: " " });
+    fireEvent.keyDown(handle, { key: "a" });
+
+    expect(props.onOpenChange).toHaveBeenCalledTimes(2);
+    expect(props.onOpenChange).toHaveBeenLastCalledWith(true);
+  });
+});

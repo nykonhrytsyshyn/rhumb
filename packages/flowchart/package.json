@@ -1,0 +1,22 @@
+{
+  "name": "@rhumb/flowchart",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rhumb/kernel": "workspace:*",
+    "@rhumb/profiles": "workspace:*"
+  },
+  "devDependencies": {
+    "@rhumb/layout-elk": "workspace:*",
+    "@rhumb/source-mermaid": "workspace:*",
+    "vite": "^8.3.4",
+    "elkjs": "^0.12.0"
+  }
+}

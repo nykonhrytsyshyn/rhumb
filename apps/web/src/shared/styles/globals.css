@@ -1,0 +1,40 @@
+@import "./theme.css";
+
+@layer base {
+  ::-webkit-scrollbar {
+    @apply w-3;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full border-3 border-solid border-transparent bg-foreground/30 bg-clip-content;
+  }
+
+  ::selection {
+    @apply bg-foreground text-background;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  *:focus {
+    @apply outline-none;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}

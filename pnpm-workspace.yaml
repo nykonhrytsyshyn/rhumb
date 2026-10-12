@@ -1,0 +1,23 @@
+# ============================================================================ #
+#                         PNPM Workspace Configuration                         #
+# ============================================================================ #
+# This file defines the configuration for the pnpm workspace, which is a       #
+# package management tool for JavaScript projects.                             #
+#                                                                              #
+# See: https://pnpm.io/settings                                                #
+# ============================================================================ #
+
+minimumReleaseAge: 1440
+
+packages:
+  - "apps/*"
+  - "packages/*"
+
+update:
+  githubActions: true
+
+overrides:
+  zod-validation-error: "4.0.2"
+
+allowBuilds:
+  esbuild: true

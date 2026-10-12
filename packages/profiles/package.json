@@ -1,0 +1,19 @@
+{
+  "name": "@rhumb/profiles",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rhumb/kernel": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  }
+}

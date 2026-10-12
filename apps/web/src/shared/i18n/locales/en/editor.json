@@ -1,0 +1,28 @@
+{
+  "code": {
+    "label": "Diagram source"
+  },
+  "config": {
+    "standard": "Standard",
+    "description": "Block sizes, line widths, fonts and branch sides come from the selected profile.",
+    "upload": "Load profile",
+    "uploadHint": "Load a JSON profile to use your own standard.",
+    "download": "Download profile",
+    "downloadHint": "Save the current profile as JSON to use it as a template.",
+    "loadFailed": "Could not load the profile",
+    "loaded": "Profile loaded: {title}"
+  },
+  "samples": {
+    "algorithm": "Sum with loops",
+    "branching": "Branching",
+    "linear": "Linear flow"
+  },
+  "actions": {
+    "png": "PNG",
+    "svg": "SVG",
+    "copyImage": "Copy image",
+    "copied": "Copied",
+    "transparent": "Transparent background",
+    "failed": "Export failed"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "app": {
+    "name": "Rhumb",
+    "tagline": "Standard-conforming flowcharts from text"
+  },
+  "tabs": {
+    "code": "Code",
+    "config": "Config",
+    "docs": "Docs"
+  },
+  "sections": {
+    "samples": "Sample diagrams",
+    "actions": "Actions"
+  },
+  "panel": {
+    "open": "Open panel",
+    "close": "Close panel",
+    "handle": "Toggle panel"
+  },
+  "canvas": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit to screen",
+    "fullscreen": "Toggle fullscreen",
+    "grid": "Toggle grid",
+    "empty": "The diagram will appear here.",
+    "fixSource": "Fix the source to build the diagram.",
+    "updating": "Updating…",
+    "label": "Flowchart"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "mode": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    }
+  },
+  "language": {
+    "label": "Change language",
+    "heading": "Languages"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@rhumb/layout-elk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rhumb/kernel": "workspace:*",
+    "elkjs": "^0.12.0"
+  }
+}

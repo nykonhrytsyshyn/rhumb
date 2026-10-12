@@ -1,0 +1,74 @@
+{
+  "id": "gost-19.701-90",
+  "title": "ГОСТ 19.701-90 (ЕСПД)",
+  "description": "Черновые значения, сверить с текстом стандарта.",
+  "unit": "mm",
+  "grid": 5,
+  "padding": 1.5,
+  "spacing": {
+    "node": 10,
+    "layer": 10
+  },
+  "line": {
+    "width": 0.6,
+    "thickWidth": 1.2,
+    "dash": [3, 1.5],
+    "arrow": {
+      "style": "open",
+      "length": 3,
+      "width": 1.6
+    }
+  },
+  "font": {
+    "family": "'GOST type A', 'Arial', sans-serif",
+    "size": 3.5,
+    "lineHeight": 1.3
+  },
+  "shapes": {
+    "process": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "decision": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "terminator": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "io": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "preparation": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "predefinedProcess": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "connector": {
+      "minWidth": 10,
+      "minHeight": 10
+    }
+  },
+  "decision": {
+    "entry": "top",
+    "yes": {
+      "side": "bottom",
+      "labels": ["да", "yes", "y", "true", "+"]
+    },
+    "no": {
+      "side": "right",
+      "labels": ["нет", "no", "n", "false", "-"]
+    }
+  },
+  "loop": {
+    "entry": "top",
+    "body": "bottom",
+    "back": "left",
+    "exit": "right"
+  }
+}
