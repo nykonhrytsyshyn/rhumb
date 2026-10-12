@@ -38,11 +38,12 @@ export function LanguageSwitcher({
     <Select
       value={language}
       onValueChange={(value) => {
-        if (typeof value === "string" && isLanguage(value)) onChange(value);
+        if (typeof value === "string" && isLanguage(value)) {
+          onChange(value);
+        }
       }}
     >
       <SelectTrigger
-        size="sm"
         className="min-w-28 rounded-full bg-background"
         aria-label={label}
         aria-controls={contentId}

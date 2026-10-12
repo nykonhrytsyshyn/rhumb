@@ -7,6 +7,10 @@ export class Metrics {
   public readonly padding: number;
   public readonly nodeSpacing: number;
   public readonly layerSpacing: number;
+  public readonly clearance: number;
+  public readonly lineSpacing: number;
+  public readonly jumpRadius: number;
+  public readonly stub: number;
   public readonly lineWidth: number;
   public readonly thickWidth: number;
   public readonly dash: readonly number[];
@@ -24,6 +28,10 @@ export class Metrics {
     this.padding = profile.padding * scale;
     this.nodeSpacing = profile.spacing.node * scale;
     this.layerSpacing = profile.spacing.layer * scale;
+    this.clearance = profile.spacing.clearance * scale;
+    this.lineSpacing = profile.spacing.line * scale;
+    this.jumpRadius = profile.line.jump * scale;
+    this.stub = profile.line.stub * scale;
     this.lineWidth = profile.line.width * scale;
     this.thickWidth = profile.line.thickWidth * scale;
     this.dash = profile.line.dash.map((value) => value * scale);
@@ -45,7 +53,6 @@ export class Metrics {
   /** Smallest allowed size for a block of the given kind. */
   public minimum(kind: NodeKind): Size {
     const box = this.profile.shapes[kind];
-
     return {
       width: box.minWidth * this.scale,
       height: box.minHeight * this.scale,

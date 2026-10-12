@@ -154,7 +154,6 @@ export function DiagramCanvas({
         <Button
           variant="outline"
           size="icon-sm"
-          className="bg-background/80 backdrop-blur"
           aria-label={
             panelOpen ? t("common.panel.close") : t("common.panel.open")
           }
@@ -197,7 +196,7 @@ export function DiagramCanvas({
 
       <div className="absolute bottom-16 left-3 flex items-center gap-2 md:bottom-3">
         <Button
-          variant={grid ? "secondary" : "outline"}
+          variant={grid ? "ghost" : "outline"}
           size="icon-sm"
           className="bg-background/80 backdrop-blur"
           aria-label={t("common.canvas.grid")}

@@ -95,7 +95,7 @@ export function EditorPage(): JSX.Element {
               }}
             />
 
-            <span className="rounded-full border bg-background px-2.5 py-1 font-mono text-xs text-muted-foreground">
+            <span className="rounded-full border bg-background px-3 py-2 font-mono text-xs text-muted-foreground">
               v{SITE.version}
             </span>
           </>

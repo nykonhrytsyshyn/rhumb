@@ -43,7 +43,7 @@ export function CanvasToolbar({
   ];
 
   return (
-    <div className="flex items-center gap-1 rounded-full border bg-background/80 p-1 backdrop-blur">
+    <div className="flex items-center gap-1 rounded-full border bg-background p-1">
       {items.map((item) => (
         <Button
           key={item.label}

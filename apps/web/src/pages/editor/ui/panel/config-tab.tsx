@@ -74,7 +74,9 @@ export function ConfigTab({
         <Select
           value={profile?.id ?? null}
           onValueChange={(value) => {
-            if (typeof value === "string") onProfileChange(value);
+            if (typeof value === "string") {
+              onProfileChange(value);
+            }
           }}
         >
           <SelectTrigger id={selectId} className="w-full rounded-xl">
@@ -115,7 +117,9 @@ export function ConfigTab({
             variant="outline"
             disabled={profile === undefined}
             onClick={() => {
-              if (profile !== undefined) downloadProfile(profile);
+              if (profile !== undefined) {
+                downloadProfile(profile);
+              }
             }}
           >
             <IconDownload /> {t("editor.config.download")}

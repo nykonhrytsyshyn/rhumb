@@ -21,7 +21,7 @@ export function CodeTab({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="min-h-72 flex-1 overflow-hidden bg-card">
+      <div className="flex-1 overflow-hidden bg-card">
         <Suspense fallback={null}>
           <SourceEditor
             value={source}

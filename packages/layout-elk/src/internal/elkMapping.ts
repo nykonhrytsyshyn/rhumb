@@ -70,9 +70,12 @@ export function toElkGraph(request: LayoutRequest): ElkNode {
       "elk.padding": "[top=0,left=0,bottom=0,right=0]",
       "elk.spacing.nodeNode": String(request.nodeSpacing),
       "elk.layered.spacing.nodeNodeBetweenLayers": String(request.layerSpacing),
+      "elk.spacing.edgeNode": String(request.edgeClearance),
       "elk.layered.spacing.edgeNodeBetweenLayers": String(
-        request.layerSpacing / 2,
+        request.edgeClearance,
       ),
+      "elk.spacing.edgeEdge": String(request.edgeSpacing),
+      "elk.layered.spacing.edgeEdgeBetweenLayers": String(request.edgeSpacing),
     },
     children: request.nodes.map((node, index) => toElkNode(node, index)),
     edges: request.edges.map((edge) => toElkEdge(edge)),

@@ -11,7 +11,9 @@ import {
   svgNode,
 } from "@rhumb/kernel";
 
-import type { Appearance, RenderedDiagram } from "../api/render";
+import type { Appearance, RenderedDiagram } from "../api/render/types";
+import { CrossingFinder, type Hop, type RoutedEdge } from "./EdgeCrossings";
+import { buildEdgePath } from "./EdgePath";
 import type { Metrics } from "./Metrics";
 
 const ARROW_ID = "rhumb-arrow";
@@ -72,7 +74,6 @@ export class DiagramPainter {
       "stroke-width": this.metrics.lineWidth,
       "stroke-linejoin": "round",
     });
-
     return svgNode("defs", {}, [
       svgNode(
         "marker",
@@ -92,7 +93,8 @@ export class DiagramPainter {
   }
 
   private edgeLayer(diagram: FlowchartDiagram, layout: LayoutResult): SvgNode {
-    const lines: SvgNode[] = [];
+    const routed: RoutedEdge[] = [];
+
     for (const edge of diagram.edges) {
       const points = layout.edges.get(edge.id);
 
@@ -100,8 +102,20 @@ export class DiagramPainter {
         continue;
       }
 
-      lines.push(this.edgeLine(edge, points));
+      routed.push({ id: edge.id, from: edge.from, to: edge.to, points });
     }
+
+    const hops = new CrossingFinder(this.metrics.jumpRadius).find(routed);
+    const lines = diagram.edges.flatMap((edge) => {
+      const points = layout.edges.get(edge.id);
+
+      if (points === undefined || points.length < 2) {
+        return [];
+      }
+
+      return [this.edgeLine(edge, points, hops.get(edge.id) ?? [])];
+    });
+
     return svgNode(
       "g",
       { fill: "none", stroke: this.appearance.ink, "stroke-linejoin": "round" },
@@ -109,13 +123,14 @@ export class DiagramPainter {
     );
   }
 
-  private edgeLine(edge: DiagramEdge, points: readonly Point[]): SvgNode {
+  private edgeLine(
+    edge: DiagramEdge,
+    points: readonly Point[],
+    hops: readonly Hop[],
+  ): SvgNode {
     const attrs: Record<string, string | number> = {
-      points: points
-        .map(
-          (point) => `${String(roundTo(point.x))},${String(roundTo(point.y))}`,
-        )
-        .join(" "),
+      "data-edge": edge.id,
+      d: buildEdgePath(points, hops, this.metrics.jumpRadius),
       "stroke-width":
         edge.line === "thick"
           ? this.metrics.thickWidth
@@ -130,7 +145,7 @@ export class DiagramPainter {
       attrs["marker-end"] = `url(#${ARROW_ID})`;
     }
 
-    return svgNode("polyline", attrs);
+    return svgNode("path", attrs);
   }
 
   private nodeLayer(
@@ -224,7 +239,9 @@ export class DiagramPainter {
 
     const length = Math.hypot(next.x - start.x, next.y - start.y);
 
-    if (length === 0) return undefined;
+    if (length === 0) {
+      return undefined;
+    }
 
     const ux = (next.x - start.x) / length;
     const uy = (next.y - start.y) / length;

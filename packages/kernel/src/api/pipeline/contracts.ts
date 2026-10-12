@@ -35,6 +35,8 @@ export interface LayoutRequest {
   readonly direction: LayoutDirection;
   readonly nodeSpacing: number;
   readonly layerSpacing: number;
+  readonly edgeClearance: number;
+  readonly edgeSpacing: number;
   readonly nodes: readonly LayoutNodeInput[];
   readonly edges: readonly LayoutEdgeInput[];
 }

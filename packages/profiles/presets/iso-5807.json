@@ -7,7 +7,9 @@
   "padding": 1.5,
   "spacing": {
     "node": 10,
-    "layer": 10
+    "layer": 10,
+    "clearance": 5,
+    "line": 3
   },
   "line": {
     "width": 0.5,
@@ -17,7 +19,9 @@
       "style": "filled",
       "length": 3,
       "width": 1.6
-    }
+    },
+    "jump": 2,
+    "stub": 6
   },
   "font": {
     "family": "'Arial', 'Helvetica', sans-serif",
@@ -57,7 +61,7 @@
   "decision": {
     "entry": "top",
     "yes": {
-      "side": "bottom",
+      "side": "left",
       "labels": ["yes", "y", "true", "да", "+"]
     },
     "no": {

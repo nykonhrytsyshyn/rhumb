@@ -18,6 +18,8 @@ const request: LayoutRequest = {
   direction: "down",
   nodeSpacing: 40,
   layerSpacing: 40,
+  edgeClearance: 20,
+  edgeSpacing: 12,
   nodes: [
     { id: "A", size: { width: 80, height: 40 }, ports: allPorts(80, 40) },
     { id: "B", size: { width: 80, height: 40 }, ports: allPorts(80, 40) },

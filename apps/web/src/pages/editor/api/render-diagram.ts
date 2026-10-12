@@ -16,7 +16,7 @@ const PIXELS_PER_MM = 4;
 /** Follows the page: ink takes the text colour, blocks stay see-through. */
 export const PREVIEW_APPEARANCE: Appearance = {
   ink: "currentColor",
-  fill: "none",
+  fill: "var(--card)",
   background: null,
 };
 

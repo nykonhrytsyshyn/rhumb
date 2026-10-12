@@ -44,11 +44,17 @@ export function useRenderedDiagram(
     const timer = setTimeout(() => {
       renderDiagram(source, profile).then(
         (result) => {
-          if (cancelled) return;
+          if (cancelled) {
+            return;
+          }
+
           setSettled({ key, svg: result.svg, size: result.size, error: null });
         },
         (error: unknown) => {
-          if (cancelled) return;
+          if (cancelled) {
+            return;
+          }
+
           setSettled((previous) => ({
             ...previous,
             key,

@@ -1,7 +1,14 @@
 import ELK from "elkjs/lib/elk.bundled.js";
 import { describe, expect, it } from "vitest";
 
-import { ApproximateTextMeasurer, type SvgNode } from "@rhumb/kernel";
+import {
+  ApproximateTextMeasurer,
+  type LayoutEngine,
+  type LayoutResult,
+  type Point,
+  type Rect,
+  type SvgNode,
+} from "@rhumb/kernel";
 import { ElkLayoutEngine } from "@rhumb/layout-elk";
 import { ProfileRegistry } from "@rhumb/profiles";
 import { FlowchartParser } from "@rhumb/source-mermaid";
@@ -11,11 +18,27 @@ import type { Appearance } from "./types";
 
 const SOURCE = [
   "flowchart TD",
-  "start([Start]) --> read[/Input n/]",
+  "start([Начало]) --> read[/Ввод n/]",
   "read --> check{n > 0?}",
-  "check -->|Yes| work[Processing]",
-  "check -->|No| stop([End])",
+  "check -->|Да| work[Обработка]",
+  "check -->|Нет| stop([Конец])",
   "work -.-> stop",
+].join("\n");
+
+const LOOPS = [
+  "flowchart TD",
+  'A(["Start"]) --> B[/"Input<br/>N"/]',
+  'B --> C{{"From i = 0 to N - 1"}}',
+  'C --> D[/"Input<br/>a[i]"/]',
+  "D --> C",
+  'C --> E["sum = 0"]',
+  'E --> F{{"From p = a to a + N - 1"}}',
+  'F --> G{"(p - a) is even<br/>and *p is even"}',
+  'G -->|Yes| H["sum = sum + *p"]',
+  "G -->|No| F",
+  "H --> F",
+  'F --> I[/"Output<br/>sum"/]',
+  'I --> J(["Stop"])',
 ].join("\n");
 
 function descendants(node: SvgNode): readonly SvgNode[] {
@@ -33,6 +56,20 @@ function texts(node: SvgNode): readonly string[] {
   );
 }
 
+/** Lines of the drawing, one per diagram edge. */
+function edgePaths(nodes: readonly SvgNode[]): readonly SvgNode[] {
+  return nodes.filter((node) => node.attrs["data-edge"] !== undefined);
+}
+
+/** Corner points of a path; arch commands contribute their end point. */
+function cornersOf(path: SvgNode): readonly (readonly [number, number])[] {
+  return String(path.attrs.d)
+    .split(/(?=[MLA])/)
+    .map((command) => command.slice(1).trim().split(/[ ,]+/).map(Number))
+    .map((numbers) => numbers.slice(-2))
+    .map(([x, y]) => [x ?? 0, y ?? 0] as const);
+}
+
 function profileAt(index: number) {
   const profile = ProfileRegistry.withBuiltins().list()[index];
 
@@ -43,10 +80,14 @@ function profileAt(index: number) {
   return profile;
 }
 
-function rendererFor(index: number, appearance?: Partial<Appearance>) {
+function rendererFor(
+  index: number,
+  appearance?: Partial<Appearance>,
+  layoutEngine: LayoutEngine = new ElkLayoutEngine(new ELK()),
+) {
   return new FlowchartRenderer({
     profile: profileAt(index),
-    layoutEngine: new ElkLayoutEngine(new ELK()),
+    layoutEngine,
     measurer: new ApproximateTextMeasurer(),
     ...(appearance === undefined ? {} : { appearance }),
   });
@@ -60,6 +101,35 @@ async function render(index: number, source = SOURCE) {
   return { result, nodes: descendants(result.svg) };
 }
 
+/** Renders while keeping the layout the engine computed. */
+async function renderWithLayout(source: string) {
+  const elk = new ElkLayoutEngine(new ELK());
+  let layout: LayoutResult | undefined;
+  const engine: LayoutEngine = {
+    layout: async (request) => {
+      layout = await elk.layout(request);
+      return layout;
+    },
+  };
+
+  await rendererFor(0, undefined, engine).render(
+    new FlowchartParser().parse(source),
+  );
+
+  if (layout === undefined) {
+    throw new Error("No layout was computed");
+  }
+
+  return layout;
+}
+
+function distanceToRect(point: Point, rect: Rect): number {
+  const dx = Math.max(rect.x - point.x, 0, point.x - (rect.x + rect.width));
+  const dy = Math.max(rect.y - point.y, 0, point.y - (rect.y + rect.height));
+
+  return Math.hypot(dx, dy);
+}
+
 describe("FlowchartRenderer", () => {
   it("renders every block, line and label", async () => {
     const { result, nodes } = await render(0);
@@ -67,16 +137,16 @@ describe("FlowchartRenderer", () => {
     expect(result.size.width).toBeGreaterThan(0);
     expect(result.size.height).toBeGreaterThan(0);
     expect(result.svg.attrs.xmlns).toBe("http://www.w3.org/2000/svg");
-    expect(nodes.filter((node) => node.tag === "polyline")).toHaveLength(5);
+    expect(edgePaths(nodes)).toHaveLength(5);
     expect(nodes.some((node) => node.tag === "polygon")).toBe(true);
     expect(texts(result.svg)).toEqual(
-      expect.arrayContaining(["Start", "Yes", "No"]),
+      expect.arrayContaining(["Начало", "Да", "Нет"]),
     );
   });
 
   it("draws arrows and dashed lines", async () => {
     const { nodes } = await render(0);
-    const lines = nodes.filter((node) => node.tag === "polyline");
+    const lines = edgePaths(nodes);
 
     expect(nodes.some((node) => node.tag === "marker")).toBe(true);
     expect(lines.some((line) => line.attrs["marker-end"] !== undefined)).toBe(
@@ -92,7 +162,10 @@ describe("FlowchartRenderer", () => {
       const { nodes } = await render(index);
 
       return nodes.find(
-        (node) => node.tag === "path" && node.attrs.stroke !== undefined,
+        (node) =>
+          node.tag === "path" &&
+          node.attrs["data-edge"] === undefined &&
+          node.attrs.stroke !== undefined,
       );
     };
     const shapes = await Promise.all([arrowPath(0), arrowPath(1)]);
@@ -105,10 +178,10 @@ describe("FlowchartRenderer", () => {
     for (const direction of ["TD", "BT", "LR", "RL"]) {
       const { nodes } = await render(
         0,
-        `flowchart ${direction}\nA{Q} -->|Yes| B\nA -->|No| C`,
+        `flowchart ${direction}\nA{Q} -->|Да| B\nA -->|Нет| C`,
       );
 
-      expect(nodes.filter((node) => node.tag === "polyline")).toHaveLength(2);
+      expect(edgePaths(nodes)).toHaveLength(2);
     }
   });
 
@@ -163,13 +236,7 @@ describe("FlowchartRenderer", () => {
     const top = topLeft[1];
     const bottom = bottomRight[1];
 
-    const lines = nodes
-      .filter((node) => node.tag === "polyline")
-      .map((node) =>
-        String(node.attrs.points)
-          .split(" ")
-          .map((pair) => pair.split(",").map(Number) as [number, number]),
-      );
+    const lines = edgePaths(nodes).map(cornersOf);
     const starts = lines.map((points) => points[0]);
     const ends = lines.map((points) => points.at(-1));
     const near = (a: readonly number[] | undefined, b: readonly number[]) =>
@@ -181,5 +248,117 @@ describe("FlowchartRenderer", () => {
     expect(starts.some((start) => near(start, [centerX, bottom]))).toBe(true);
     expect(ends.some((end) => near(end, leftVertex))).toBe(true);
     expect(starts.some((start) => near(start, rightVertex))).toBe(true);
+  });
+
+  it("keeps a straight run next to every arrowhead and block exit", async () => {
+    const layout = await renderWithLayout(LOOPS);
+    const stub = profileAt(0).line.stub * 4;
+
+    for (const points of layout.edges.values()) {
+      const length = (a: Point | undefined, b: Point | undefined) =>
+        a === undefined || b === undefined
+          ? 0
+          : Math.hypot(b.x - a.x, b.y - a.y);
+
+      expect(length(points[0], points[1])).toBeGreaterThanOrEqual(stub - 0.5);
+      expect(length(points.at(-2), points.at(-1))).toBeGreaterThanOrEqual(
+        stub - 0.5,
+      );
+    }
+  });
+
+  it("keeps lines clear of the blocks they pass", async () => {
+    const layout = await renderWithLayout(LOOPS);
+    const clearance = profileAt(0).spacing.clearance * 4;
+    const diagram = new FlowchartParser().parse(LOOPS);
+    for (const edge of diagram.edges) {
+      const points = layout.edges.get(edge.id) ?? [];
+
+      for (const [id, rect] of layout.nodes) {
+        if (id === edge.from || id === edge.to) {
+          continue;
+        }
+
+        for (const [index, from] of points.slice(0, -1).entries()) {
+          const to = points[index + 1];
+
+          if (to === undefined) {
+            continue;
+          }
+
+          const steps = 20;
+
+          for (let step = 0; step <= steps; step += 1) {
+            const t = step / steps;
+            const sample = {
+              x: from.x + (to.x - from.x) * t,
+              y: from.y + (to.y - from.y) * t,
+            };
+
+            expect(distanceToRect(sample, rect)).toBeGreaterThanOrEqual(
+              clearance - 0.5,
+            );
+          }
+        }
+      }
+    }
+  });
+
+  it("arches lines that cross without belonging together", async () => {
+    const box = { width: 20, height: 20 };
+    const crossing: LayoutEngine = {
+      layout: () =>
+        Promise.resolve({
+          nodes: new Map([
+            ["A", { x: 0, y: 40, ...box }],
+            ["B", { x: 200, y: 40, ...box }],
+            ["C", { x: 90, y: 0, ...box }],
+            ["D", { x: 90, y: 100, ...box }],
+          ]),
+          edges: new Map([
+            [
+              "e0",
+              [
+                { x: 20, y: 50 },
+                { x: 200, y: 50 },
+              ],
+            ],
+            [
+              "e1",
+              [
+                { x: 100, y: 20 },
+                { x: 100, y: 100 },
+              ],
+            ],
+          ]),
+          size: { width: 220, height: 120 },
+        }),
+    };
+    const { svg } = await rendererFor(0, undefined, crossing).render(
+      new FlowchartParser().parse("flowchart TD\nA --> B\nC --> D"),
+    );
+    const [horizontal, vertical] = edgePaths(descendants(svg));
+
+    expect(String(horizontal?.attrs.d)).toContain(
+      `A${String(profileAt(0).line.jump * 4)},${String(profileAt(0).line.jump * 4)} 0 0 1`,
+    );
+    expect(String(vertical?.attrs.d)).not.toContain("A");
+  });
+
+  it("arches the line that crosses a loop body", async () => {
+    const { nodes } = await render(0, LOOPS);
+    const arched = edgePaths(nodes).filter((path) =>
+      String(path.attrs.d).includes("A"),
+    );
+
+    expect(arched.length).toBeGreaterThan(0);
+  });
+
+  it("draws no arches when nothing crosses", async () => {
+    const { nodes } = await render(0, SOURCE);
+
+    expect(
+      edgePaths(nodes).some((path) => String(path.attrs.d).includes("A")),
+    ).toBe(false);
   });
 });

@@ -25,7 +25,7 @@ export function PanelSection({
   return (
     <Collapsible
       defaultOpen={defaultOpen}
-      className="group/section border-t bg-card"
+      className="group/section z-40 border-t bg-background"
     >
       <CollapsibleTrigger className="flex w-full items-center gap-2 p-5 text-sm font-medium [&_svg]:size-4">
         {icon}
@@ -33,7 +33,7 @@ export function PanelSection({
         <IconChevronDown className="transition-transform group-data-open/section:rotate-180" />
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="px-3 pb-3">{children}</CollapsibleContent>
+      <CollapsibleContent className="px-3 pb-5">{children}</CollapsibleContent>
     </Collapsible>
   );
 }

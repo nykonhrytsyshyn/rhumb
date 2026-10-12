@@ -66,10 +66,6 @@ export function EditorPanel({
         {...handle}
       >
         <span className="h-1 w-10 rounded-full bg-foreground/25" />
-
-        <span className="text-xs tracking-wider text-muted-foreground uppercase">
-          {t("common.app.name")}
-        </span>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col md:min-w-96">
@@ -99,7 +95,6 @@ export function EditorPanel({
                 error={error}
               />
             </TabsContent>
-
             <TabsContent value="config">
               <ConfigTab
                 profiles={profiles}
@@ -107,12 +102,13 @@ export function EditorPanel({
                 onProfileChange={onProfileChange}
               />
             </TabsContent>
-
             <TabsContent value="docs">
               <DocsTab />
             </TabsContent>
 
-            <SamplesSection onSelect={onSampleSelect} />
+            {process.env.NODE_ENV === "development" && (
+              <SamplesSection onSelect={onSampleSelect} />
+            )}
             <ActionsSection source={source} profile={profile} />
           </div>
         </Tabs>

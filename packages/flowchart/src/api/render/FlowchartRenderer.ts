@@ -26,9 +26,7 @@ export interface FlowchartRendererOptions {
   readonly profile: StandardProfile;
   readonly layoutEngine: LayoutEngine;
   readonly measurer: TextMeasurer;
-  /** Pixels per millimetre of the profile. */
   readonly scale?: number;
-  /** Colours of the drawing; unspecified parts use the print appearance. */
   readonly appearance?: Partial<Appearance>;
 }
 
@@ -78,6 +76,8 @@ export class FlowchartRenderer {
       direction: LAYOUT_DIRECTIONS[diagram.direction],
       nodeSpacing: this.metrics.nodeSpacing,
       layerSpacing: this.metrics.layerSpacing,
+      edgeClearance: Math.max(this.metrics.clearance, this.metrics.stub),
+      edgeSpacing: this.metrics.lineSpacing,
       nodes: diagram.nodes.flatMap((node) => {
         const shape = shapes.get(node.id);
 
@@ -97,6 +97,7 @@ export class FlowchartRenderer {
       }),
       edges: diagram.edges.flatMap((edge) => {
         const planned = sides.get(edge.id);
+
         return planned === undefined
           ? []
           : [{ id: edge.id, from: edge.from, to: edge.to, ...planned }];

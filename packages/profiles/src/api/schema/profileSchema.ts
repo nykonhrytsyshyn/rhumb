@@ -3,6 +3,7 @@ import { z } from "zod";
 import { NODE_KINDS } from "@rhumb/kernel";
 
 const positive = z.number().positive();
+const nonnegative = z.number().nonnegative();
 
 const sideSchema = z.enum(["top", "right", "bottom", "left"]);
 
@@ -30,15 +31,23 @@ export const profileSchema = z
     spacing: z.object({
       node: positive,
       layer: positive,
+      /** Free space kept between a line and any block it passes. */
+      clearance: nonnegative.default(5),
+      /** Distance between parallel lines. */
+      line: nonnegative.default(3),
     }),
     line: z.object({
       width: positive,
       thickWidth: positive,
       dash: z.array(positive).min(1),
+      /** Radius of the arch drawn where unrelated lines cross. */
+      jump: nonnegative.default(2),
+      /** Straight run kept before an arrowhead and after a line leaves a block. */
+      stub: nonnegative.default(6),
       arrow: z.object({
         style: z.enum(["open", "filled"]),
-        length: positive,
-        width: positive,
+        length: nonnegative,
+        width: nonnegative,
       }),
     }),
     font: z.object({

@@ -33,6 +33,31 @@ describe("ProfileRegistry", () => {
     expect(() => new ProfileRegistry().register({ id: "broken" })).toThrow();
   });
 
+  it("fills in line spacing settings that older profiles lack", () => {
+    const [first] = ProfileRegistry.withBuiltins().list();
+
+    if (first === undefined) {
+      return;
+    }
+
+    const without = (value: object, ...keys: string[]) =>
+      Object.fromEntries(
+        Object.entries(value).filter(([key]) => !keys.includes(key)),
+      );
+    const spacing = without(first.spacing, "clearance", "line");
+    const line = without(first.line, "jump", "stub");
+    const registered = new ProfileRegistry().register({
+      ...first,
+      id: "legacy",
+      spacing,
+      line,
+    });
+    expect(registered.spacing.clearance).toBe(5);
+    expect(registered.spacing.line).toBe(3);
+    expect(registered.line.jump).toBe(2);
+    expect(registered.line.stub).toBe(6);
+  });
+
   it("lists readable issues with their paths", () => {
     try {
       new ProfileRegistry().register({ id: "broken", grid: -1 });
