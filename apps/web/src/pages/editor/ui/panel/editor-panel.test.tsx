@@ -39,6 +39,7 @@ vi.mock("../../lib/export-diagram", () => ({
 }));
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   cleanup();
   vi.clearAllMocks();
 });
@@ -90,7 +91,9 @@ describe("EditorPanel", () => {
     expect(await screen.findByText("Standard")).toBeDefined();
   });
 
-  it("loads a sample into the editor", async () => {
+  it("loads a sample into the editor in development", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+
     const props = renderPanel();
 
     fireEvent.click(screen.getByText("Sample diagrams"));

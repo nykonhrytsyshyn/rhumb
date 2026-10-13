@@ -17,6 +17,23 @@ const profile = (() => {
   return first;
 })();
 
+const SIDES = [Side.Top, Side.Right, Side.Bottom, Side.Left];
+
+/** Sides the profile prescribes for a decision, in the given flow direction. */
+function decisionSides(direction: "TB" | "LR" = "TB") {
+  const orientation = Orientation.of(direction);
+  const entry = orientation.mapProfileSide(profile.decision.entry);
+  const yes = orientation.mapProfileSide(profile.decision.yes.side);
+  const no = orientation.mapProfileSide(profile.decision.no.side);
+  const extra = SIDES.find((side) => ![entry, yes, no].includes(side));
+
+  if (extra === undefined) {
+    throw new Error("A decision always leaves one side free");
+  }
+
+  return { entry, yes, no, extra };
+}
+
 function plan(source: string, direction: "TB" | "LR" = "TB") {
   const diagram = new FlowchartParser().parse(source);
 
@@ -36,45 +53,47 @@ describe("PortPlanner", () => {
   it("sends yes and no branches to the profile sides", () => {
     const sides = plan("flowchart TD\nA{Q} -->|No| B\nA -->|Yes| C");
 
-    expect(sides.get("e0")?.fromSide).toBe(Side.Right);
-    expect(sides.get("e1")?.fromSide).toBe(Side.Bottom);
+    expect(sides.get("e0")?.fromSide).toBe(decisionSides().no);
+    expect(sides.get("e1")?.fromSide).toBe(decisionSides().yes);
   });
 
   it("matches labels case-insensitively and in other languages", () => {
     const sides = plan("flowchart TD\nA{Q} -->|YES| B\nA -->|no| C");
 
-    expect(sides.get("e0")?.fromSide).toBe(Side.Bottom);
-    expect(sides.get("e1")?.fromSide).toBe(Side.Right);
+    expect(sides.get("e0")?.fromSide).toBe(decisionSides().yes);
+    expect(sides.get("e1")?.fromSide).toBe(decisionSides().no);
   });
 
   it("fills unlabeled branches in yes, no, extra order", () => {
     const sides = plan("flowchart TD\nA{Q} --> B\nA --> C\nA --> D\nA --> E");
     const exits = ["e0", "e1", "e2", "e3"].map((id) => sides.get(id)?.fromSide);
 
-    expect(exits).toEqual([Side.Bottom, Side.Right, Side.Left, Side.Left]);
+    const { yes, no, extra } = decisionSides();
+
+    expect(exits).toEqual([yes, no, extra, extra]);
   });
 
   it("does not give two branches to the same labelled side", () => {
     const sides = plan("flowchart TD\nA{Q} -->|Yes| B\nA -->|Yes| C");
 
-    expect(sides.get("e0")?.fromSide).toBe(Side.Bottom);
-    expect(sides.get("e1")?.fromSide).toBe(Side.Right);
+    expect(sides.get("e0")?.fromSide).toBe(decisionSides().yes);
+    expect(sides.get("e1")?.fromSide).toBe(decisionSides().no);
   });
 
   it("enters a decision through its entry side", () => {
     const sides = plan("flowchart TD\nA --> B{Q}");
 
-    expect(sides.get("e0")?.toSide).toBe(Side.Top);
+    expect(sides.get("e0")?.toSide).toBe(decisionSides().entry);
   });
 
   it("rotates sides for a left-to-right flow", () => {
     const sides = plan("flowchart LR\nA{Q} -->|Yes| B\nA -->|No| C", "LR");
 
     expect(sides.get("e0")).toEqual({
-      fromSide: Side.Right,
+      fromSide: decisionSides("LR").yes,
       toSide: Side.Left,
     });
-    expect(sides.get("e1")?.fromSide).toBe(Side.Bottom);
+    expect(sides.get("e1")?.fromSide).toBe(decisionSides("LR").no);
   });
 
   describe("loops", () => {

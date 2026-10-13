@@ -13,7 +13,7 @@ import { CanvasTextMeasurer } from "../lib/canvas-text-measurer";
 
 const PIXELS_PER_MM = 4;
 
-/** Follows the page: ink takes the text colour, blocks stay see-through. */
+/** Follows the page: ink takes the text colour, blocks get a solid card fill. */
 export const PREVIEW_APPEARANCE: Appearance = {
   ink: "currentColor",
   fill: "var(--card)",

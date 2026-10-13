@@ -25,6 +25,20 @@ const SOURCE = [
   "work -.-> stop",
 ].join("\n");
 
+const STORE = [
+  "flowchart TD",
+  "Start([Visit online store]) --> Browse[Browse products]",
+  "Browse --> Cart[Add items to cart]",
+  "Cart --> Decide{Ready to check out?}",
+  "Decide -->|Keep shopping| Browse",
+  "Decide -->|Yes| Pay[Enter payment details]",
+  "Pay --> Valid{Payment accepted?}",
+  "Valid -->|No| Retry[Show error message]",
+  "Retry --> Pay",
+  "Valid -->|Yes| Confirm[Order confirmed]",
+  "Confirm --> Done([Email receipt])",
+].join("\n");
+
 const LOOPS = [
   "flowchart TD",
   'A(["Start"]) --> B[/"Input<br/>N"/]',
@@ -360,5 +374,41 @@ describe("FlowchartRenderer", () => {
     expect(
       edgePaths(nodes).some((path) => String(path.attrs.d).includes("A")),
     ).toBe(false);
+  });
+
+  it("keeps every piece of text inside the drawing", async () => {
+    const { result, nodes } = await render(
+      0,
+      `${STORE}\nValid -->|An unusually long explanation of this branch| Done`,
+    );
+    const group = nodes.find(
+      (node) => node.tag === "g" && node.attrs.transform !== undefined,
+    );
+    const shift = /translate\((-?[\d.]+) (-?[\d.]+)\)/.exec(
+      String(group?.attrs.transform),
+    );
+    const shiftX = Number(shift?.[1]);
+    const shiftY = Number(shift?.[2]);
+    const fontSize = profileAt(0).font.size * 4;
+    const glyph = fontSize * 0.6;
+
+    const spans = nodes.filter((node) => node.tag === "tspan");
+
+    expect(spans.length).toBeGreaterThan(10);
+
+    for (const span of spans) {
+      const text = span.children
+        .filter((child) => typeof child === "string")
+        .join("");
+      const x = Number(span.attrs.x) + shiftX;
+      const y = Number(span.attrs.y) + shiftY;
+
+      expect(x - (text.length * glyph) / 2).toBeGreaterThanOrEqual(0);
+      expect(x + (text.length * glyph) / 2).toBeLessThanOrEqual(
+        result.size.width,
+      );
+      expect(y - fontSize / 2).toBeGreaterThanOrEqual(0);
+      expect(y + fontSize / 2).toBeLessThanOrEqual(result.size.height);
+    }
   });
 });

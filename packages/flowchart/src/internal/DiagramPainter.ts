@@ -5,6 +5,7 @@ import {
   type NodeId,
   type Point,
   type Shape,
+  type Size,
   type SvgNode,
   type TextMeasurer,
   roundTo,
@@ -17,6 +18,21 @@ import { buildEdgePath } from "./EdgePath";
 import type { Metrics } from "./Metrics";
 
 const ARROW_ID = "rhumb-arrow";
+
+/** A line label whose position has been decided. */
+interface PlacedLabel {
+  readonly text: string;
+  readonly cx: number;
+  readonly cy: number;
+  readonly size: Size;
+}
+
+interface Extent {
+  readonly minX: number;
+  readonly minY: number;
+  readonly maxX: number;
+  readonly maxY: number;
+}
 
 /** Turns a computed layout into the final SVG tree. */
 export class DiagramPainter {
@@ -32,16 +48,20 @@ export class DiagramPainter {
     layout: LayoutResult,
   ): RenderedDiagram {
     const { margin } = this.metrics;
-    const width = roundTo(layout.size.width + margin * 2);
-    const height = roundTo(layout.size.height + margin * 2);
+    const labels = this.edgeLabels(diagram, layout);
+    const extent = DiagramPainter.extentOf(layout, labels);
+    const width = roundTo(extent.maxX - extent.minX + margin * 2);
+    const height = roundTo(extent.maxY - extent.minY + margin * 2);
+    const shiftX = roundTo(margin - extent.minX);
+    const shiftY = roundTo(margin - extent.minY);
 
     const content = svgNode(
       "g",
-      { transform: `translate(${String(margin)} ${String(margin)})` },
+      { transform: `translate(${String(shiftX)} ${String(shiftY)})` },
       [
         this.edgeLayer(diagram, layout),
         this.nodeLayer(diagram, shapes, layout),
-        this.textLayer(diagram, layout),
+        this.textLayer(diagram, layout, labels),
       ],
     );
     const { background } = this.appearance;
@@ -178,7 +198,44 @@ export class DiagramPainter {
     );
   }
 
-  private textLayer(diagram: FlowchartDiagram, layout: LayoutResult): SvgNode {
+  /** The area covered by blocks, lines and labels, labels included. */
+  private static extentOf(
+    layout: LayoutResult,
+    labels: readonly PlacedLabel[],
+  ): Extent {
+    let minX = 0;
+    let minY = 0;
+    let maxX = layout.size.width;
+    let maxY = layout.size.height;
+
+    for (const label of labels) {
+      minX = Math.min(minX, label.cx - label.size.width / 2);
+      minY = Math.min(minY, label.cy - label.size.height / 2);
+      maxX = Math.max(maxX, label.cx + label.size.width / 2);
+      maxY = Math.max(maxY, label.cy + label.size.height / 2);
+    }
+
+    return { minX, minY, maxX, maxY };
+  }
+
+  private edgeLabels(
+    diagram: FlowchartDiagram,
+    layout: LayoutResult,
+  ): readonly PlacedLabel[] {
+    return diagram.edges.flatMap((edge) => {
+      const points = layout.edges.get(edge.id);
+      const label =
+        points === undefined ? undefined : this.placeLabel(edge, points);
+
+      return label === undefined ? [] : [label];
+    });
+  }
+
+  private textLayer(
+    diagram: FlowchartDiagram,
+    layout: LayoutResult,
+    labels: readonly PlacedLabel[],
+  ): SvgNode {
     const texts: SvgNode[] = [];
 
     for (const node of diagram.nodes) {
@@ -197,14 +254,8 @@ export class DiagramPainter {
       );
     }
 
-    for (const edge of diagram.edges) {
-      const points = layout.edges.get(edge.id);
-      const label =
-        points === undefined ? undefined : this.edgeLabel(edge, points);
-
-      if (label !== undefined) {
-        texts.push(label);
-      }
+    for (const label of labels) {
+      texts.push(this.textBlock(label.text, label.cx, label.cy));
     }
 
     const { textStyle } = this.metrics;
@@ -227,10 +278,10 @@ export class DiagramPainter {
    * Puts a label beside the first segment of a line, close to its source and
    * on the side away from where the line turns, so that it never crosses it.
    */
-  private edgeLabel(
+  private placeLabel(
     edge: DiagramEdge,
     points: readonly Point[],
-  ): SvgNode | undefined {
+  ): PlacedLabel | undefined {
     const [start, next, after] = points;
 
     if (edge.label === undefined || start === undefined || next === undefined) {
@@ -263,11 +314,12 @@ export class DiagramPainter {
     const offset =
       Math.abs(nx) * (text.width / 2) + Math.abs(ny) * (text.height / 2) + gap;
 
-    return this.textBlock(
-      edge.label,
-      start.x + ux * along + nx * offset,
-      start.y + uy * along + ny * offset,
-    );
+    return {
+      text: edge.label,
+      cx: start.x + ux * along + nx * offset,
+      cy: start.y + uy * along + ny * offset,
+      size: text,
+    };
   }
 
   private textBlock(text: string, cx: number, cy: number): SvgNode {
