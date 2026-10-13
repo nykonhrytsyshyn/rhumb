@@ -194,7 +194,7 @@ export function DiagramCanvas({
         </div>
       )}
 
-      <div className="absolute bottom-16 left-3 flex items-center gap-2 md:bottom-3">
+      <div className="absolute bottom-12 left-3 flex items-center gap-2 md:bottom-3">
         <Button
           variant={grid ? "ghost" : "outline"}
           size="icon-sm"
@@ -216,7 +216,7 @@ export function DiagramCanvas({
         </p>
       </div>
 
-      <div className="absolute right-3 bottom-16 flex items-center gap-2 md:bottom-3">
+      <div className="absolute right-3 bottom-12 flex items-center gap-2 md:bottom-3">
         {footer}
       </div>
     </div>

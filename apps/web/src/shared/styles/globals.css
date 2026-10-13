@@ -2,7 +2,7 @@
 
 @layer base {
   ::-webkit-scrollbar {
-    @apply w-3;
+    @apply w-2;
   }
 
   ::-webkit-scrollbar-track {
@@ -10,7 +10,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full border-3 border-solid border-transparent bg-foreground/30 bg-clip-content;
+    @apply border-3 border-solid border-transparent bg-foreground/30 bg-clip-content;
   }
 
   ::selection {

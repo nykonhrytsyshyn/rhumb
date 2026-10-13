@@ -47,17 +47,18 @@ export function EditorPanel({
       className={cn(
         "z-30 flex flex-col overflow-hidden bg-background",
         // Phone: bottom sheet over the canvas
-        "fixed inset-x-0 bottom-0 h-14 border-t transition-[height] duration-300 data-[open=true]:h-[72dvh]",
+        "fixed inset-x-0 bottom-0 h-10 border-t transition-[height] duration-300 data-[open=true]:h-[72dvh]",
         // Wide screen: column on the left that slides shut
         "md:static md:h-full md:w-0 md:rounded-none md:border-t-0 md:border-r md:transition-[width] md:data-[open=false]:border-r-0 md:data-[open=true]:h-full md:data-[open=true]:w-1/3 md:data-[open=true]:max-w-xl md:data-[open=true]:min-w-96",
       )}
     >
+      {/* Handle for mobile bottom sheet */}
       <div
         role="button"
         tabIndex={0}
         aria-label={t("common.panel.handle")}
         aria-expanded={open}
-        className="flex h-10 shrink-0 touch-none flex-col items-center justify-start gap-1.5 p-4 md:hidden"
+        className="flex h-10 shrink-0 touch-none flex-col items-center justify-center gap-1.5 p-4 md:hidden"
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             onOpenChange(!open);
@@ -68,22 +69,26 @@ export function EditorPanel({
         <span className="h-1 w-10 rounded-full bg-foreground/25" />
       </div>
 
+      {/* Panel content */}
       <div className="flex min-h-0 flex-1 flex-col md:min-w-96">
         <Tabs
           defaultValue="code"
           className="flex min-h-0 flex-1 flex-col gap-0"
         >
-          <TabsList variant="line" className="m-2 w-auto justify-start">
-            <TabsTrigger value="code" className="flex-none">
-              <IconCode /> {t("common.tabs.code")}
+          <TabsList variant="line" className="h-12 w-auto max-md:border-t">
+            <TabsTrigger value="code">
+              <IconCode />
+              <span className="truncate">{t("common.tabs.code")}</span>
             </TabsTrigger>
 
-            <TabsTrigger value="config" className="flex-none">
-              <IconSettings /> {t("common.tabs.config")}
+            <TabsTrigger value="config">
+              <IconSettings />
+              <span className="truncate">{t("common.tabs.config")}</span>
             </TabsTrigger>
 
-            <TabsTrigger value="docs" className="ml-auto flex-none">
-              <IconBook /> {t("common.tabs.docs")}
+            <TabsTrigger value="docs">
+              <IconBook />
+              <span className="truncate">{t("common.tabs.docs")}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -95,6 +100,7 @@ export function EditorPanel({
                 error={error}
               />
             </TabsContent>
+
             <TabsContent value="config">
               <ConfigTab
                 profiles={profiles}
@@ -102,6 +108,7 @@ export function EditorPanel({
                 onProfileChange={onProfileChange}
               />
             </TabsContent>
+
             <TabsContent value="docs">
               <DocsTab />
             </TabsContent>
@@ -109,6 +116,7 @@ export function EditorPanel({
             {process.env.NODE_ENV === "development" && (
               <SamplesSection onSelect={onSampleSelect} />
             )}
+
             <ActionsSection source={source} profile={profile} />
           </div>
         </Tabs>
