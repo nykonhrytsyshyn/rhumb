@@ -60,7 +60,11 @@ export function LanguageSwitcher({
           <SelectLabel>{heading}</SelectLabel>
 
           {options.map((option) => (
-            <SelectItem key={option.code} value={option.code}>
+            <SelectItem
+              key={option.code}
+              value={option.code}
+              className="cursor-pointer"
+            >
               {option.label}
             </SelectItem>
           ))}

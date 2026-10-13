@@ -57,7 +57,7 @@ export function EditorPanel({
         tabIndex={0}
         aria-label={t("common.panel.handle")}
         aria-expanded={open}
-        className="flex h-14 shrink-0 touch-none flex-col items-center justify-center gap-1.5 md:hidden"
+        className="flex h-10 shrink-0 touch-none flex-col items-center justify-start gap-1.5 p-4 md:hidden"
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             onOpenChange(!open);

@@ -115,7 +115,7 @@ export function DiagramCanvas({
     <div
       ref={root}
       className={cn(
-        "relative h-full min-w-0 flex-1 overflow-hidden bg-background text-foreground",
+        "relative h-full min-w-0 flex-1 overflow-hidden text-foreground backdrop:bg-background",
         grid && "bg-drafting-grid",
       )}
     >
@@ -129,7 +129,7 @@ export function DiagramCanvas({
         wheel={{ step: SCALE_STEP }}
       >
         <TransformComponent
-          wrapperStyle={{ width: "100%", height: "100%" }}
+          wrapperClass="cursor-grab active:cursor-grabbing !w-full !h-full"
           contentStyle={{ padding: FIT_MARGIN / 2 }}
         >
           {svg !== null && (
@@ -187,7 +187,7 @@ export function DiagramCanvas({
       {error !== null && svg !== null && (
         <div
           role="status"
-          className="absolute top-16 left-1/2 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-full border border-destructive/40 bg-background/90 px-3 py-1.5 text-xs text-destructive backdrop-blur"
+          className="absolute top-16 left-1/2 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-full border border-destructive/40 bg-background/90 px-3 py-1.5 text-xs text-destructive backdrop-blur sm:top-5"
         >
           <IconAlertTriangle className="size-4 shrink-0" />
           <span className="truncate">{t("common.canvas.fixSource")}</span>
@@ -198,7 +198,6 @@ export function DiagramCanvas({
         <Button
           variant={grid ? "ghost" : "outline"}
           size="icon-sm"
-          className="bg-background/80 backdrop-blur"
           aria-label={t("common.canvas.grid")}
           aria-pressed={grid}
           title={t("common.canvas.grid")}
