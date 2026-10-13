@@ -1,11 +1,14 @@
 import type { JSX } from "react";
 import { useState } from "react";
 
+import { IconBrandGithub } from "@tabler/icons-react";
+
 import { ThemeToggler } from "@features/theme";
 
 import { SITE } from "@shared/config";
 import { LANGUAGE_OPTIONS, LanguageSwitcher, useI18n } from "@shared/i18n";
 import { usePersistedState } from "@shared/lib/use-persisted-state";
+import { Button } from "@shared/ui/button";
 
 import { sampleSource, translateSample } from "../config/samples";
 import { useProfiles } from "../model/use-profiles";
@@ -95,9 +98,24 @@ export function EditorPage(): JSX.Element {
               }}
             />
 
-            <span className="rounded-full border bg-background px-3 py-2 font-mono text-xs text-muted-foreground">
-              v{SITE.version}
-            </span>
+            <Button
+              variant="outline"
+              title={`v${SITE.version}`}
+              onClick={() => {
+                window.open(
+                  SITE.repositoryUrl,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+              className="gap-3"
+            >
+              <span className="font-mono text-xs text-muted-foreground">
+                v{SITE.version}
+              </span>
+
+              <IconBrandGithub />
+            </Button>
           </>
         }
       />
