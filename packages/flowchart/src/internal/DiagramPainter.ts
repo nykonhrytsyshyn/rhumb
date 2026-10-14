@@ -12,7 +12,11 @@ import {
   svgNode,
 } from "@rhumb/kernel";
 
-import type { Appearance, RenderedDiagram } from "../api/render/types";
+import type {
+  Appearance,
+  LabelStyle,
+  RenderedDiagram,
+} from "../api/render/types";
 import { CrossingFinder, type Hop, type RoutedEdge } from "./EdgeCrossings";
 import { buildEdgePath } from "./EdgePath";
 import type { Metrics } from "./Metrics";
@@ -25,6 +29,8 @@ interface PlacedLabel {
   readonly cx: number;
   readonly cy: number;
   readonly size: Size;
+  /** True when the label sits on its line and needs a backdrop. */
+  readonly inline: boolean;
 }
 
 interface Extent {
@@ -40,6 +46,7 @@ export class DiagramPainter {
     private readonly metrics: Metrics,
     private readonly measurer: TextMeasurer,
     private readonly appearance: Appearance,
+    private readonly labelStyle: LabelStyle,
   ) {}
 
   public paint(
@@ -49,7 +56,7 @@ export class DiagramPainter {
   ): RenderedDiagram {
     const { margin } = this.metrics;
     const labels = this.edgeLabels(diagram, layout);
-    const extent = DiagramPainter.extentOf(layout, labels);
+    const extent = this.extentOf(layout, labels);
     const width = roundTo(extent.maxX - extent.minX + margin * 2);
     const height = roundTo(extent.maxY - extent.minY + margin * 2);
     const shiftX = roundTo(margin - extent.minX);
@@ -61,6 +68,7 @@ export class DiagramPainter {
       [
         this.edgeLayer(diagram, layout),
         this.nodeLayer(diagram, shapes, layout),
+        ...this.labelBackdropLayer(labels),
         this.textLayer(diagram, layout, labels),
       ],
     );
@@ -199,7 +207,7 @@ export class DiagramPainter {
   }
 
   /** The area covered by blocks, lines and labels, labels included. */
-  private static extentOf(
+  private extentOf(
     layout: LayoutResult,
     labels: readonly PlacedLabel[],
   ): Extent {
@@ -209,10 +217,12 @@ export class DiagramPainter {
     let maxY = layout.size.height;
 
     for (const label of labels) {
-      minX = Math.min(minX, label.cx - label.size.width / 2);
-      minY = Math.min(minY, label.cy - label.size.height / 2);
-      maxX = Math.max(maxX, label.cx + label.size.width / 2);
-      maxY = Math.max(maxY, label.cy + label.size.height / 2);
+      const pad = label.inline ? this.metrics.padding / 2 : 0;
+
+      minX = Math.min(minX, label.cx - label.size.width / 2 - pad);
+      minY = Math.min(minY, label.cy - label.size.height / 2 - pad);
+      maxX = Math.max(maxX, label.cx + label.size.width / 2 + pad);
+      maxY = Math.max(maxY, label.cy + label.size.height / 2 + pad);
     }
 
     return { minX, minY, maxX, maxY };
@@ -229,6 +239,35 @@ export class DiagramPainter {
 
       return label === undefined ? [] : [label];
     });
+  }
+
+  /** Solid patches that keep a line from running through its own label. */
+  private labelBackdropLayer(
+    labels: readonly PlacedLabel[],
+  ): readonly SvgNode[] {
+    const inline = labels.filter((label) => label.inline);
+
+    if (inline.length === 0) {
+      return [];
+    }
+
+    const pad = this.metrics.padding / 2;
+
+    return [
+      svgNode(
+        "g",
+        { fill: this.appearance.labelBackground, stroke: "none" },
+        inline.map((label) =>
+          svgNode("rect", {
+            "data-label": label.text,
+            x: roundTo(label.cx - label.size.width / 2 - pad),
+            y: roundTo(label.cy - label.size.height / 2 - pad),
+            width: roundTo(label.size.width + pad * 2),
+            height: roundTo(label.size.height + pad * 2),
+          }),
+        ),
+      ),
+    ];
   }
 
   private textLayer(
@@ -274,17 +313,33 @@ export class DiagramPainter {
     );
   }
 
-  /**
-   * Puts a label beside the first segment of a line, close to its source and
-   * on the side away from where the line turns, so that it never crosses it.
-   */
   private placeLabel(
     edge: DiagramEdge,
     points: readonly Point[],
   ): PlacedLabel | undefined {
+    if (edge.label === undefined) {
+      return undefined;
+    }
+
+    const text = this.measurer.measure(edge.label, this.metrics.textStyle);
+
+    return this.labelStyle === "inline"
+      ? this.placeInline(edge, edge.label, points, text)
+      : this.placeBeside(edge.label, points, text);
+  }
+
+  /**
+   * Puts a label beside the first segment of a line, close to its source and
+   * on the side away from where the line turns, so that it never crosses it.
+   */
+  private placeBeside(
+    label: string,
+    points: readonly Point[],
+    text: Size,
+  ): PlacedLabel | undefined {
     const [start, next, after] = points;
 
-    if (edge.label === undefined || start === undefined || next === undefined) {
+    if (start === undefined || next === undefined) {
       return undefined;
     }
 
@@ -307,7 +362,6 @@ export class DiagramPainter {
       ny = -ny;
     }
 
-    const text = this.measurer.measure(edge.label, this.metrics.textStyle);
     const gap = this.metrics.padding;
     const along =
       Math.abs(ux) * (text.width / 2) + Math.abs(uy) * (text.height / 2) + gap;
@@ -315,10 +369,63 @@ export class DiagramPainter {
       Math.abs(nx) * (text.width / 2) + Math.abs(ny) * (text.height / 2) + gap;
 
     return {
-      text: edge.label,
+      text: label,
       cx: start.x + ux * along + nx * offset,
       cy: start.y + uy * along + ny * offset,
       size: text,
+      inline: false,
+    };
+  }
+
+  /**
+   * Centres a label on the longest segment of a line. Next to an arrowhead the
+   * label is pulled back so that it does not cover the arrow.
+   */
+  private placeInline(
+    edge: DiagramEdge,
+    label: string,
+    points: readonly Point[],
+    text: Size,
+  ): PlacedLabel | undefined {
+    const segments = points.slice(1).flatMap((to, index) => {
+      const from = points[index];
+
+      return from === undefined
+        ? []
+        : [{ from, to, length: Math.hypot(to.x - from.x, to.y - from.y) }];
+    });
+    const longest = segments.reduce<(typeof segments)[number] | undefined>(
+      (best, segment) =>
+        best === undefined || segment.length > best.length ? segment : best,
+      undefined,
+    );
+
+    if (longest === undefined || longest.length === 0) {
+      return undefined;
+    }
+
+    const ux = (longest.to.x - longest.from.x) / longest.length;
+    const uy = (longest.to.y - longest.from.y) / longest.length;
+    const half =
+      Math.abs(ux) * (text.width / 2) +
+      Math.abs(uy) * (text.height / 2) +
+      this.metrics.padding / 2;
+    let distance = longest.length / 2;
+
+    if (edge.arrow && longest === segments.at(-1)) {
+      const limit = longest.length - this.metrics.stub - half;
+
+      if (limit >= half) {
+        distance = Math.min(distance, limit);
+      }
+    }
+
+    return {
+      text: label,
+      cx: longest.from.x + ux * distance,
+      cy: longest.from.y + uy * distance,
+      size: text,
+      inline: true,
     };
   }
 

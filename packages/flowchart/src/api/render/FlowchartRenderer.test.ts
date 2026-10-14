@@ -14,7 +14,7 @@ import { ProfileRegistry } from "@rhumb/profiles";
 import { FlowchartParser } from "@rhumb/source-mermaid";
 
 import { FlowchartRenderer } from "./FlowchartRenderer";
-import type { Appearance } from "./types";
+import type { Appearance, RenderedDiagram } from "./types";
 
 const SOURCE = [
   "flowchart TD",
@@ -115,6 +115,22 @@ async function render(index: number, source = SOURCE) {
   return { result, nodes: descendants(result.svg) };
 }
 
+async function renderInline(source: string, appearance?: Partial<Appearance>) {
+  const result = await new FlowchartRenderer({
+    profile: profileAt(0),
+    layoutEngine: new ElkLayoutEngine(new ELK()),
+    measurer: new ApproximateTextMeasurer(),
+    labelStyle: "inline",
+    ...(appearance === undefined ? {} : { appearance }),
+  }).render(new FlowchartParser().parse(source));
+
+  return { result, nodes: descendants(result.svg) };
+}
+
+function backdrops(nodes: readonly SvgNode[]): readonly SvgNode[] {
+  return nodes.filter((node) => node.attrs["data-label"] !== undefined);
+}
+
 /** Renders while keeping the layout the engine computed. */
 async function renderWithLayout(source: string) {
   const elk = new ElkLayoutEngine(new ELK());
@@ -142,6 +158,41 @@ function distanceToRect(point: Point, rect: Rect): number {
   const dy = Math.max(rect.y - point.y, 0, point.y - (rect.y + rect.height));
 
   return Math.hypot(dx, dy);
+}
+
+function expectTextInside(
+  result: RenderedDiagram,
+  nodes: readonly SvgNode[],
+): void {
+  const group = nodes.find(
+    (node) => node.tag === "g" && node.attrs.transform !== undefined,
+  );
+  const shift = /translate\((-?[\d.]+) (-?[\d.]+)\)/.exec(
+    String(group?.attrs.transform),
+  );
+  const shiftX = Number(shift?.[1]);
+  const shiftY = Number(shift?.[2]);
+  const fontSize = profileAt(0).font.size * 4;
+  const glyph = fontSize * 0.6;
+
+  const spans = nodes.filter((node) => node.tag === "tspan");
+
+  expect(spans.length).toBeGreaterThan(10);
+
+  for (const span of spans) {
+    const text = span.children
+      .filter((child) => typeof child === "string")
+      .join("");
+    const x = Number(span.attrs.x) + shiftX;
+    const y = Number(span.attrs.y) + shiftY;
+
+    expect(x - (text.length * glyph) / 2).toBeGreaterThanOrEqual(0);
+    expect(x + (text.length * glyph) / 2).toBeLessThanOrEqual(
+      result.size.width,
+    );
+    expect(y - fontSize / 2).toBeGreaterThanOrEqual(0);
+    expect(y + fontSize / 2).toBeLessThanOrEqual(result.size.height);
+  }
 }
 
 describe("FlowchartRenderer", () => {
@@ -381,34 +432,72 @@ describe("FlowchartRenderer", () => {
       0,
       `${STORE}\nValid -->|An unusually long explanation of this branch| Done`,
     );
-    const group = nodes.find(
-      (node) => node.tag === "g" && node.attrs.transform !== undefined,
-    );
-    const shift = /translate\((-?[\d.]+) (-?[\d.]+)\)/.exec(
-      String(group?.attrs.transform),
-    );
-    const shiftX = Number(shift?.[1]);
-    const shiftY = Number(shift?.[2]);
-    const fontSize = profileAt(0).font.size * 4;
-    const glyph = fontSize * 0.6;
 
-    const spans = nodes.filter((node) => node.tag === "tspan");
+    expectTextInside(result, nodes);
+  });
 
-    expect(spans.length).toBeGreaterThan(10);
+  describe("label styles", () => {
+    it("keeps labels beside their lines, without backdrops, by default", async () => {
+      const { nodes } = await render(0, STORE);
 
-    for (const span of spans) {
-      const text = span.children
-        .filter((child) => typeof child === "string")
-        .join("");
-      const x = Number(span.attrs.x) + shiftX;
-      const y = Number(span.attrs.y) + shiftY;
+      expect(backdrops(nodes)).toHaveLength(0);
+    });
 
-      expect(x - (text.length * glyph) / 2).toBeGreaterThanOrEqual(0);
-      expect(x + (text.length * glyph) / 2).toBeLessThanOrEqual(
-        result.size.width,
+    it("puts labels on their lines over a backdrop of their own size", async () => {
+      const { nodes } = await renderInline(STORE);
+      const patches = backdrops(nodes);
+
+      expect(patches.map((patch) => patch.attrs["data-label"]).sort()).toEqual([
+        "Keep shopping",
+        "No",
+        "Yes",
+        "Yes",
+      ]);
+
+      const lines = edgePaths(nodes).map(cornersOf);
+      const onSomeLine = (x: number, y: number) =>
+        lines.some((corners) =>
+          corners.slice(1).some(([x2, y2], index) => {
+            const [x1, y1] = corners[index] ?? [0, 0];
+            const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+            const cross = Math.abs((x2 - x1) * (y1 - y) - (x1 - x) * (y2 - y1));
+            const within =
+              (x - x1) * (x2 - x1) + (y - y1) * (y2 - y1) >= 0 &&
+              (x - x2) * (x1 - x2) + (y - y2) * (y1 - y2) >= 0;
+
+            return cross / length < 0.5 && within;
+          }),
+        );
+
+      for (const patch of patches) {
+        const x = Number(patch.attrs.x) + Number(patch.attrs.width) / 2;
+        const y = Number(patch.attrs.y) + Number(patch.attrs.height) / 2;
+
+        expect(onSomeLine(x, y)).toBe(true);
+      }
+    });
+
+    it("fills backdrops with the label background colour", async () => {
+      const { nodes } = await renderInline(STORE, { labelBackground: "red" });
+      const group = nodes.find(
+        (node) =>
+          node.tag === "g" &&
+          node.children.some(
+            (child) =>
+              typeof child !== "string" &&
+              child.attrs["data-label"] !== undefined,
+          ),
       );
-      expect(y - fontSize / 2).toBeGreaterThanOrEqual(0);
-      expect(y + fontSize / 2).toBeLessThanOrEqual(result.size.height);
-    }
+
+      expect(group?.attrs.fill).toBe("red");
+    });
+
+    it("keeps inline labels inside the drawing", async () => {
+      const { result, nodes } = await renderInline(
+        `${STORE}\nValid -->|An unusually long explanation of this branch| Done`,
+      );
+
+      expectTextInside(result, nodes);
+    });
   });
 });

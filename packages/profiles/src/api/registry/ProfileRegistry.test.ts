@@ -9,6 +9,24 @@ describe("ProfileRegistry", () => {
     expect(registry.list().length).toBeGreaterThanOrEqual(2);
   });
 
+  it("marks exactly one built-in profile as the default", () => {
+    const defaults = ProfileRegistry.withBuiltins()
+      .list()
+      .filter((profile) => profile.default);
+
+    expect(defaults).toHaveLength(1);
+  });
+
+  it("treats a profile without the default flag as not default", () => {
+    const [first] = ProfileRegistry.withBuiltins().list();
+    if (first === undefined) return;
+    const rest = Object.fromEntries(
+      Object.entries(first).filter(([key]) => key !== "default"),
+    );
+
+    expect(new ProfileRegistry().register(rest).default).toBe(false);
+  });
+
   it("returns a registered profile by id", () => {
     const registry = ProfileRegistry.withBuiltins();
     const [first] = registry.list();

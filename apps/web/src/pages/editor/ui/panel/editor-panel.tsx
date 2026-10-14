@@ -2,12 +2,13 @@ import type { JSX } from "react";
 
 import { IconBook, IconCode, IconSettings } from "@tabler/icons-react";
 
-import type { StandardProfile } from "@rhumb/profiles";
+import type { LabelStyle } from "@rhumb/engine";
 
 import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 
+import type { ProfileEditor } from "../../model/use-profile-editor";
 import { ActionsSection } from "./actions-section";
 import { CodeTab } from "./code-tab";
 import { ConfigTab } from "./config-tab";
@@ -21,9 +22,10 @@ export interface EditorPanelProps {
   readonly source: string;
   readonly onSourceChange: (source: string) => void;
   readonly error: string | null;
-  readonly profiles: readonly StandardProfile[];
-  readonly profile: StandardProfile | undefined;
-  readonly onProfileChange: (id: string) => void;
+  readonly editor: ProfileEditor;
+  readonly onProfileSelect: (id: string) => void;
+  readonly labelStyle: LabelStyle;
+  readonly onLabelStyleChange: (style: LabelStyle) => void;
   readonly onSampleSelect: (source: string) => void;
 }
 
@@ -33,9 +35,10 @@ export function EditorPanel({
   source,
   onSourceChange,
   error,
-  profiles,
-  profile,
-  onProfileChange,
+  editor,
+  onProfileSelect,
+  labelStyle,
+  onLabelStyleChange,
   onSampleSelect,
 }: EditorPanelProps): JSX.Element {
   const t = useT();
@@ -103,9 +106,10 @@ export function EditorPanel({
 
             <TabsContent value="config">
               <ConfigTab
-                profiles={profiles}
-                profile={profile}
-                onProfileChange={onProfileChange}
+                editor={editor}
+                onProfileSelect={onProfileSelect}
+                labelStyle={labelStyle}
+                onLabelStyleChange={onLabelStyleChange}
               />
             </TabsContent>
 
@@ -116,8 +120,11 @@ export function EditorPanel({
             {process.env.NODE_ENV === "development" && (
               <SamplesSection onSelect={onSampleSelect} />
             )}
-
-            <ActionsSection source={source} profile={profile} />
+            <ActionsSection
+              source={source}
+              profile={editor.active}
+              labelStyle={labelStyle}
+            />
           </div>
         </Tabs>
       </div>

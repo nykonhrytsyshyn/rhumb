@@ -7,9 +7,11 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ProfileRegistry } from "@rhumb/profiles";
+import { memoryStorage } from "@shared/lib/testing/memory-storage";
 
 import { copyPng, exportPng, exportSvg } from "../../lib/export-diagram";
+import { ProfileCatalog } from "../../model/profile-catalog";
+import { useProfileEditor } from "../../model/use-profile-editor";
 import { EditorPanel, type EditorPanelProps } from "./editor-panel";
 
 vi.mock("./source-editor", () => ({
@@ -44,23 +46,32 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const profiles = ProfileRegistry.withBuiltins().list();
+const catalog = new ProfileCatalog(memoryStorage());
+const defaultProfile = catalog.getSnapshot()[0];
 
-function renderPanel(overrides: Partial<EditorPanelProps> = {}) {
-  const props: EditorPanelProps = {
+type PanelProps = Omit<EditorPanelProps, "editor">;
+
+function Harness(props: PanelProps) {
+  const editor = useProfileEditor(catalog);
+
+  return <EditorPanel {...props} editor={editor} />;
+}
+
+function renderPanel(overrides: Partial<PanelProps> = {}) {
+  const props: PanelProps = {
     open: true,
     onOpenChange: vi.fn(),
     source: "flowchart TD\nA --> B",
     onSourceChange: vi.fn(),
     error: null,
-    profiles,
-    profile: profiles[0],
-    onProfileChange: vi.fn(),
+    onProfileSelect: vi.fn(),
+    labelStyle: "beside",
+    onLabelStyleChange: vi.fn(),
     onSampleSelect: vi.fn(),
     ...overrides,
   };
 
-  render(<EditorPanel {...props} />);
+  render(<Harness {...props} />);
 
   return props;
 }
@@ -112,8 +123,9 @@ describe("EditorPanel", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /PNG/ }));
     await waitFor(() => {
-      expect(exportPng).toHaveBeenCalledWith(props.source, profiles[0], {
+      expect(exportPng).toHaveBeenCalledWith(props.source, defaultProfile, {
         transparent: true,
+        labelStyle: "beside",
       });
     });
 
@@ -142,14 +154,6 @@ describe("EditorPanel", () => {
         "Export failed: plain",
       );
     });
-  });
-
-  it("disables exports without a profile", () => {
-    renderPanel({ profile: undefined });
-    expect(screen.getByRole("button", { name: /PNG/ })).toHaveProperty(
-      "disabled",
-      true,
-    );
   });
 
   it("reports whether the panel is open on its handle", () => {

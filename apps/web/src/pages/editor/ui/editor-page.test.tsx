@@ -88,6 +88,7 @@ describe("EditorPage", () => {
       expect(mocked).toHaveBeenLastCalledWith(
         "flowchart LR\nA --> B",
         expect.anything(),
+        expect.anything(),
       );
     });
     expect(window.localStorage.getItem("rhumb:source")).toBe(
@@ -101,6 +102,7 @@ describe("EditorPage", () => {
     await waitFor(() => {
       expect(mocked).toHaveBeenCalledWith(
         "flowchart BT\nX --> Y",
+        expect.anything(),
         expect.anything(),
       );
     });
@@ -133,5 +135,31 @@ describe("EditorPage", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
       "Rhumb",
     );
+  });
+
+  it("draws with the label style saved on the previous visit", async () => {
+    window.localStorage.setItem("rhumb:label-style", "inline");
+    renderPage();
+
+    await waitFor(() => {
+      expect(mocked).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.anything(),
+        { labelStyle: "inline" },
+      );
+    });
+  });
+
+  it("falls back to labels beside lines for an unknown saved style", async () => {
+    window.localStorage.setItem("rhumb:label-style", "diagonal");
+    renderPage();
+
+    await waitFor(() => {
+      expect(mocked).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.anything(),
+        { labelStyle: "beside" },
+      );
+    });
   });
 });

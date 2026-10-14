@@ -3,6 +3,8 @@ import { useState } from "react";
 
 import { IconBrandGithub } from "@tabler/icons-react";
 
+import { LABEL_STYLES, type LabelStyle } from "@rhumb/engine";
+
 import { ThemeToggler } from "@features/theme";
 
 import { SITE } from "@shared/config";
@@ -11,13 +13,13 @@ import { usePersistedState } from "@shared/lib/use-persisted-state";
 import { Button } from "@shared/ui/button";
 
 import { sampleSource, translateSample } from "../config/samples";
-import { useProfiles } from "../model/use-profiles";
+import { useProfileEditor } from "../model/use-profile-editor";
 import { useRenderedDiagram } from "../model/use-rendered-diagram";
 import { DiagramCanvas } from "./canvas";
 import { EditorPanel } from "./panel";
 
 const SOURCE_KEY = "rhumb:source";
-const PROFILE_KEY = "rhumb:profile";
+const LABEL_STYLE_KEY = "rhumb:label-style";
 const WIDE_SCREEN = "(min-width: 768px)";
 
 function startsOpen(): boolean {
@@ -29,18 +31,22 @@ function startsOpen(): boolean {
 
 export function EditorPage(): JSX.Element {
   const { t, language, setLanguage } = useI18n();
-  const profiles = useProfiles();
+  const editor = useProfileEditor();
   const [source, setSource] = usePersistedState(
     SOURCE_KEY,
     sampleSource("algorithm", language),
   );
-  const [profileId, setProfileId] = usePersistedState(PROFILE_KEY, "");
+  const [storedLabelStyle, setStoredLabelStyle] = usePersistedState(
+    LABEL_STYLE_KEY,
+    "beside",
+  );
   const [panelOpen, setPanelOpen] = useState(startsOpen);
   const [fitKey, setFitKey] = useState(0);
 
-  const profile =
-    profiles.find((candidate) => candidate.id === profileId) ?? profiles[0];
-  const rendered = useRenderedDiagram(source, profile);
+  const labelStyle: LabelStyle =
+    LABEL_STYLES.find((candidate) => candidate === storedLabelStyle) ??
+    "beside";
+  const rendered = useRenderedDiagram(source, editor.active, labelStyle);
 
   return (
     <main className="relative flex h-dvh w-full overflow-hidden">
@@ -54,10 +60,11 @@ export function EditorPage(): JSX.Element {
         source={source}
         onSourceChange={setSource}
         error={rendered.error}
-        profiles={profiles}
-        profile={profile}
-        onProfileChange={(id) => {
-          setProfileId(id);
+        editor={editor}
+        labelStyle={labelStyle}
+        onLabelStyleChange={setStoredLabelStyle}
+        onProfileSelect={(id) => {
+          editor.select(id);
           setFitKey((key) => key + 1);
         }}
         onSampleSelect={(next) => {

@@ -7,9 +7,15 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ProfileRegistry } from "@rhumb/profiles";
+import { memoryStorage } from "@shared/lib/testing/memory-storage";
 
 import { downloadProfile } from "../../lib/export-diagram";
+import {
+  CUSTOM_PROFILE_ID,
+  CUSTOM_PROFILE_STORAGE_KEY,
+  ProfileCatalog,
+} from "../../model/profile-catalog";
+import { useProfileEditor } from "../../model/use-profile-editor";
 import { ConfigTab } from "./config-tab";
 
 vi.mock("../../lib/export-diagram", () => ({ downloadProfile: vi.fn() }));
@@ -17,13 +23,45 @@ vi.mock("../../lib/export-diagram", () => ({ downloadProfile: vi.fn() }));
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  window.localStorage.clear();
 });
 
-const profiles = ProfileRegistry.withBuiltins().list();
-const first = profiles[0];
+interface HarnessProps {
+  readonly catalog: ProfileCatalog;
+  readonly onProfileSelect?: (id: string) => void;
+  readonly labelStyle?: "beside" | "inline";
+}
 
-if (first === undefined) {
-  throw new Error("Missing profile");
+function Harness({
+  catalog,
+  onProfileSelect = vi.fn(),
+  labelStyle = "beside",
+}: HarnessProps) {
+  const editor = useProfileEditor(catalog);
+
+  return (
+    <ConfigTab
+      editor={editor}
+      onProfileSelect={onProfileSelect}
+      labelStyle={labelStyle}
+      onLabelStyleChange={vi.fn()}
+    />
+  );
+}
+
+function renderTab(options: { custom?: boolean } = {}) {
+  const storage = memoryStorage();
+  const catalog = new ProfileCatalog(storage);
+
+  if (options.custom === true) {
+    window.localStorage.setItem("rhumb:profile", CUSTOM_PROFILE_ID);
+  }
+
+  const onProfileSelect = vi.fn();
+
+  render(<Harness catalog={catalog} onProfileSelect={onProfileSelect} />);
+
+  return { catalog, storage, onProfileSelect };
 }
 
 function pick(file: File): void {
@@ -32,74 +70,127 @@ function pick(file: File): void {
   });
 }
 
+function gridField(): HTMLInputElement {
+  const field = screen.getByLabelText(/Grid step/);
+
+  if (!(field instanceof HTMLInputElement)) {
+    throw new Error("The grid field is not an input");
+  }
+
+  return field;
+}
+
 describe("ConfigTab", () => {
-  it("shows the selected standard", () => {
-    render(
-      <ConfigTab
-        profiles={profiles}
-        profile={first}
-        onProfileChange={vi.fn()}
-      />,
-    );
-    expect(screen.getByRole("combobox").textContent).toContain(first.title);
-  });
+  it("starts on the default standard and locks its values", () => {
+    const { catalog } = renderTab();
+    const [standard] = catalog.getSnapshot();
 
-  it("downloads the current profile", () => {
-    render(
-      <ConfigTab
-        profiles={profiles}
-        profile={first}
-        onProfileChange={vi.fn()}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: /Download profile/ }));
-    expect(downloadProfile).toHaveBeenCalledWith(first);
-  });
-
-  it("disables the download without a profile", () => {
-    render(
-      <ConfigTab
-        profiles={profiles}
-        profile={undefined}
-        onProfileChange={vi.fn()}
-      />,
-    );
     expect(
-      screen.getByRole("button", { name: /Download profile/ }),
-    ).toHaveProperty("disabled", true);
+      screen.getByRole("combobox", { name: "Standard" }).textContent,
+    ).toContain(standard?.title);
+    expect(gridField().value).toBe(String(standard?.grid));
+    expect(gridField().disabled).toBe(true);
+    expect(screen.getByText(/Built-in standards are read-only/)).toBeDefined();
+    expect(screen.getByRole("button", { name: /Save/ })).toHaveProperty(
+      "disabled",
+      true,
+    );
   });
 
-  it("loads a valid profile, selects it and says so", async () => {
-    const onProfileChange = vi.fn();
+  it("unlocks the values of the custom standard", () => {
+    renderTab({ custom: true });
 
-    render(
-      <ConfigTab
-        profiles={profiles}
-        profile={first}
-        onProfileChange={onProfileChange}
-      />,
+    expect(gridField().disabled).toBe(false);
+    expect(screen.getByText(/Changes are drawn right away/)).toBeDefined();
+    expect(
+      screen.getByRole("combobox", { name: "Standard" }).textContent,
+    ).toContain("Custom");
+  });
+
+  it("flags invalid input and blocks saving until it is fixed", () => {
+    renderTab({ custom: true });
+    const save = screen.getByRole("button", { name: /Save/ });
+
+    fireEvent.change(gridField(), { target: { value: "abc" } });
+
+    expect(gridField().getAttribute("aria-invalid")).toBe("true");
+    expect(screen.getByText("Enter a number")).toBeDefined();
+    expect(save).toHaveProperty("disabled", true);
+
+    fireEvent.change(gridField(), { target: { value: "0" } });
+    expect(screen.getByText("Must be greater than zero")).toBeDefined();
+
+    fireEvent.change(gridField(), { target: { value: "6" } });
+    expect(screen.queryByText("Must be greater than zero")).toBeNull();
+    expect(gridField().getAttribute("aria-invalid")).toBe("false");
+    expect(save).toHaveProperty("disabled", false);
+  });
+
+  it("saves the edited values and says so", async () => {
+    const { catalog, storage } = renderTab({ custom: true });
+
+    fireEvent.change(gridField(), { target: { value: "8" } });
+    expect(screen.getByText("Unsaved changes")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: /Save/ }));
+
+    expect((await screen.findByRole("status")).textContent).toBe("Saved");
+    expect(catalog.getSnapshot().at(-1)?.grid).toBe(8);
+    expect(storage.getItem(CUSTOM_PROFILE_STORAGE_KEY)).toContain('"grid":8');
+    expect(screen.queryByText("Unsaved changes")).toBeNull();
+  });
+
+  it("puts the saved values back when changes are reset", () => {
+    const { catalog } = renderTab({ custom: true });
+    const original = catalog.getSnapshot().at(-1)?.grid;
+
+    fireEvent.change(gridField(), { target: { value: "8" } });
+    fireEvent.click(screen.getByRole("button", { name: /Reset changes/ }));
+
+    expect(gridField().value).toBe(String(original));
+  });
+
+  it("opens the groups of fields on demand", async () => {
+    renderTab({ custom: true });
+
+    expect(screen.queryByLabelText(/Line width/)).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /Lines and arrows/ }));
+
+    expect(await screen.findByLabelText(/Line width/)).toBeDefined();
+  });
+
+  it("downloads the profile that is being drawn", () => {
+    const { catalog } = renderTab();
+
+    fireEvent.click(screen.getByRole("button", { name: /Download profile/ }));
+
+    expect(downloadProfile).toHaveBeenCalledWith(catalog.getSnapshot()[0]);
+  });
+
+  it("loads a valid profile file into the custom standard", async () => {
+    const { catalog, onProfileSelect } = renderTab();
+    const [first] = catalog.getSnapshot();
+
+    pick(
+      new File(
+        [JSON.stringify({ ...first, id: "other", grid: 12 })],
+        "mine.json",
+      ),
     );
-
-    const custom = { ...first, id: "uploaded", title: "Uploaded standard" };
-
-    pick(new File([JSON.stringify(custom)], "profile.json"));
 
     await waitFor(() => {
-      expect(onProfileChange).toHaveBeenCalledWith("uploaded");
+      expect(onProfileSelect).toHaveBeenCalledWith(CUSTOM_PROFILE_ID);
     });
     expect((await screen.findByRole("status")).textContent).toBe(
-      "Profile loaded: Uploaded standard",
+      "Profile loaded: mine.json",
     );
+    expect(gridField().value).toBe("12");
   });
 
   it("reports broken JSON and schema problems", async () => {
-    render(
-      <ConfigTab
-        profiles={profiles}
-        profile={first}
-        onProfileChange={vi.fn()}
-      />,
-    );
+    renderTab();
+
     pick(new File(["{"], "bad.json"));
     expect((await screen.findByRole("alert")).textContent).toContain(
       "Could not load the profile",
@@ -114,19 +205,26 @@ describe("ConfigTab", () => {
   });
 
   it("ignores an empty selection", () => {
-    const onProfileChange = vi.fn();
+    const { onProfileSelect } = renderTab();
 
-    render(
-      <ConfigTab
-        profiles={profiles}
-        profile={first}
-        onProfileChange={onProfileChange}
-      />,
-    );
     fireEvent.change(screen.getByLabelText("Load profile"), {
       target: { files: [] },
     });
-    expect(onProfileChange).not.toHaveBeenCalled();
+
+    expect(onProfileSelect).not.toHaveBeenCalled();
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("shows the current label style", () => {
+    render(
+      <Harness
+        catalog={new ProfileCatalog(memoryStorage())}
+        labelStyle="inline"
+      />,
+    );
+
+    expect(
+      screen.getByRole("combobox", { name: "Line labels" }).textContent,
+    ).toContain("On the line");
   });
 });

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import type { LabelStyle } from "@rhumb/engine";
 import type { Size } from "@rhumb/kernel";
 import type { StandardProfile } from "@rhumb/profiles";
 
@@ -30,10 +31,12 @@ function messageOf(error: unknown): string {
 export function useRenderedDiagram(
   source: string,
   profile: StandardProfile | undefined,
+  labelStyle: LabelStyle = "beside",
   delayMs = 250,
 ): RenderState {
   const [settled, setSettled] = useState<Settled>(EMPTY);
-  const key = profile === undefined ? "" : `${profile.id}\n${source}`;
+  const key =
+    profile === undefined ? "" : `${profile.id}\n${labelStyle}\n${source}`;
 
   useEffect(() => {
     if (profile === undefined) {
@@ -42,7 +45,7 @@ export function useRenderedDiagram(
 
     let cancelled = false;
     const timer = setTimeout(() => {
-      renderDiagram(source, profile).then(
+      renderDiagram(source, profile, { labelStyle }).then(
         (result) => {
           if (cancelled) {
             return;
@@ -68,7 +71,7 @@ export function useRenderedDiagram(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [source, profile, key, delayMs]);
+  }, [source, profile, labelStyle, key, delayMs]);
 
   return {
     svg: settled.svg,

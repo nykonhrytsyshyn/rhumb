@@ -28,7 +28,9 @@ describe("useRenderedDiagram", () => {
   it("is pending until the first render completes", async () => {
     mocked.mockResolvedValue({ svg: "<svg/>", size: { width: 10, height: 5 } });
 
-    const { result } = renderHook(() => useRenderedDiagram("a", profile, 0));
+    const { result } = renderHook(() =>
+      useRenderedDiagram("a", profile, "beside", 0),
+    );
 
     expect(result.current.pending).toBe(true);
     await waitFor(() => {
@@ -44,7 +46,7 @@ describe("useRenderedDiagram", () => {
     });
 
     const { result, rerender } = renderHook(
-      ({ source }) => useRenderedDiagram(source, profile, 0),
+      ({ source }) => useRenderedDiagram(source, profile, "beside", 0),
       { initialProps: { source: "ok" } },
     );
 
@@ -64,7 +66,9 @@ describe("useRenderedDiagram", () => {
   it("describes non-Error failures", async () => {
     mocked.mockRejectedValueOnce("plain");
 
-    const { result } = renderHook(() => useRenderedDiagram("a", profile, 0));
+    const { result } = renderHook(() =>
+      useRenderedDiagram("a", profile, "beside", 0),
+    );
 
     await waitFor(() => {
       expect(result.current.error).toBe("plain");
@@ -91,7 +95,7 @@ describe("useRenderedDiagram", () => {
     });
 
     const { result, rerender } = renderHook(
-      ({ source }) => useRenderedDiagram(source, profile, 0),
+      ({ source }) => useRenderedDiagram(source, profile, "beside", 0),
       { initialProps: { source: "first" } },
     );
 
@@ -110,8 +114,31 @@ describe("useRenderedDiagram", () => {
     expect(result.current.svg).toBe("<second/>");
   });
 
+  it("passes the label style on and redraws when it changes", async () => {
+    mocked.mockResolvedValue({ svg: "<svg/>", size: { width: 1, height: 1 } });
+    const { rerender } = renderHook(
+      ({ style }: { style: "beside" | "inline" }) =>
+        useRenderedDiagram("a", profile, style, 0),
+      { initialProps: { style: "beside" } },
+    );
+    await waitFor(() => {
+      expect(mocked).toHaveBeenLastCalledWith("a", profile, {
+        labelStyle: "beside",
+      });
+    });
+
+    rerender({ style: "inline" });
+    await waitFor(() => {
+      expect(mocked).toHaveBeenLastCalledWith("a", profile, {
+        labelStyle: "inline",
+      });
+    });
+  });
+
   it("does nothing without a profile", () => {
-    const { result } = renderHook(() => useRenderedDiagram("a", undefined, 0));
+    const { result } = renderHook(() =>
+      useRenderedDiagram("a", undefined, "beside", 0),
+    );
 
     expect(result.current).toEqual({
       svg: null,

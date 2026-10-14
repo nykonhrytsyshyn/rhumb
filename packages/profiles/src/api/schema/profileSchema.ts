@@ -23,6 +23,8 @@ export const profileSchema = z
     id: z.string().min(1),
     title: z.string().min(1),
     description: z.string().optional(),
+    /** The profile selected when the user has not chosen one. */
+    default: z.boolean().default(false),
     /** All lengths in the profile are expressed in millimetres. */
     unit: z.literal("mm"),
     grid: positive,
