@@ -1,0 +1,5 @@
+Canonical: https://rhumb.nykon.me/.well-known/security.txt
+Contact: mailto:security@nykon.me
+Expires: 2030-01-01T12:00:00Z
+Policy: https://git.nykon.me/rhumb/security
+Preferred-Languages: en, uk, ru

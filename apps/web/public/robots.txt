@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /assets/
+
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+
+Sitemap: https://rhumb.nykon.me/sitemap.xml
