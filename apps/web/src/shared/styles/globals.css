@@ -6,7 +6,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    @apply border-l border-border bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -36,5 +36,13 @@
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     @apply cursor-pointer;
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in oklab, var(--foreground) 30%, transparent)
+        transparent;
+    }
   }
 }
