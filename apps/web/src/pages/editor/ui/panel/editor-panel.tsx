@@ -89,10 +89,20 @@ export function EditorPanel({
       data-open={open}
       className={cn(
         "z-30 flex flex-col overflow-hidden bg-background",
-        // Phone: bottom sheet over the canvas
-        "fixed inset-x-0 bottom-0 h-10 border-t transition-[height] duration-300 data-[open=true]:h-[72dvh]",
-        // Wide screen: column on the left that slides shut
-        "md:static md:h-full md:w-0 md:rounded-none md:border-t-0 md:border-r md:transition-[width] md:data-[open=false]:border-r-0 md:data-[open=true]:h-full md:data-[open=true]:w-1/3 md:data-[open=true]:max-w-xl md:data-[open=true]:min-w-96",
+
+        // Mobile: keep a fixed height and slide up from the bottom.
+        "fixed inset-x-0 bottom-0 h-10 border-t",
+        "transition-[height] duration-300 ease-out",
+        "data-[open=true]:h-[72dvh]",
+        "motion-reduce:transition-none",
+
+        // Desktop: keep a fixed width and slide in from the right.
+        "md:static md:h-full md:w-0",
+        "md:rounded-none md:border-t-0 md:border-r",
+        "md:transition-[width] md:duration-300 md:ease-out",
+        "md:data-[open=false]:border-r-0",
+        "md:data-[open=true]:h-full md:data-[open=true]:w-1/3 md:data-[open=true]:max-w-xl",
+        "md:motion-reduce:transition-none",
       )}
     >
       {/* Handle for mobile bottom sheet */}
@@ -113,7 +123,7 @@ export function EditorPanel({
       </div>
 
       {/* Panel content */}
-      <div className="flex min-h-0 flex-1 flex-col md:min-w-96">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col md:w-[min(33.333vw,36rem)] md:shrink-0">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}

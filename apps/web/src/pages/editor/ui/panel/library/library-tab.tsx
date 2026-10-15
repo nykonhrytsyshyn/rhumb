@@ -103,7 +103,7 @@ export function LibraryTab({
 
           <Button
             type="submit"
-            className="h-full w-48 shrink-0 rounded-2xl"
+            className="h-full w-[40%] shrink-0 rounded-2xl"
             disabled={source.trim() === ""}
           >
             <IconDeviceFloppy />
