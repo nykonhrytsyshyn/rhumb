@@ -1,6 +1,11 @@
-import type { JSX } from "react";
+import { type CSSProperties, type JSX, useState } from "react";
 
-import { IconBook, IconCode, IconSettings } from "@tabler/icons-react";
+import {
+  IconBook,
+  IconBookmarks,
+  IconCode,
+  IconSettings,
+} from "@tabler/icons-react";
 
 import type { LabelStyle } from "@rhumb/engine";
 
@@ -8,11 +13,13 @@ import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 
+import type { DiagramStore, SavedDiagram } from "../../model/diagram-store";
 import type { ProfileEditor } from "../../model/use-profile-editor";
 import { ActionsSection } from "./actions-section";
 import { CodeTab } from "./code-tab";
 import { ConfigTab } from "./config-tab";
 import { DocsTab } from "./docs-tab";
+import { LibraryTab } from "./library/library-tab";
 import { SamplesSection } from "./samples-section";
 import { useSheetGestures } from "./use-sheet-gestures";
 
@@ -27,6 +34,12 @@ export interface EditorPanelProps {
   readonly labelStyle: LabelStyle;
   readonly onLabelStyleChange: (style: LabelStyle) => void;
   readonly onSampleSelect: (source: string) => void;
+  /** Where saved diagrams live; the browser's storage unless a test says so. */
+  readonly libraryStore?: DiagramStore;
+  /** The saved diagram open in the editor, if any. */
+  readonly currentDiagramId: string | null;
+  readonly onCurrentDiagramChange: (id: string | null) => void;
+  readonly onOpenDiagram: (diagram: SavedDiagram) => void;
 }
 
 export function EditorPanel({
@@ -40,9 +53,36 @@ export function EditorPanel({
   labelStyle,
   onLabelStyleChange,
   onSampleSelect,
+  libraryStore,
+  currentDiagramId,
+  onCurrentDiagramChange,
+  onOpenDiagram,
 }: EditorPanelProps): JSX.Element {
   const t = useT();
   const handle = useSheetGestures(open, onOpenChange);
+  const [activeTab, setActiveTab] = useState("code");
+
+  const tabGridTemplateColumns = ["code", "config", "library", "docs"]
+    .map((value) => (value === activeTab ? "9fr" : "5fr"))
+    .join(" ");
+
+  const getTabTriggerClassName = (value: string): string =>
+    cn(
+      "min-w-0 justify-center px-2",
+      "max-2xl:transition-[gap] max-2xl:duration-400 max-2xl:ease-in-out max-2xl:motion-reduce:transition-none 2xl:gap-1",
+      "motion-reduce:transition-none 2xl:gap-1",
+      activeTab === value ? "max-2xl:gap-1" : "max-2xl:gap-0",
+    );
+
+  const getTabLabelClassName = (value: string): string =>
+    cn(
+      "block min-w-0 truncate overflow-hidden whitespace-nowrap",
+      "max-2xl:transition-[max-width,opacity] max-2xl:duration-400 max-2xl:ease-in-out max-2xl:motion-reduce:transition-none",
+      "motion-reduce:transition-none",
+      activeTab === value
+        ? "max-2xl:max-w-32 max-2xl:opacity-100 2xl:max-w-none 2xl:opacity-100"
+        : "max-2xl:max-w-0 max-2xl:opacity-0 2xl:max-w-none 2xl:opacity-100",
+    );
 
   return (
     <aside
@@ -75,23 +115,62 @@ export function EditorPanel({
       {/* Panel content */}
       <div className="flex min-h-0 flex-1 flex-col md:min-w-96">
         <Tabs
-          defaultValue="code"
+          value={activeTab}
+          onValueChange={setActiveTab}
           className="flex min-h-0 flex-1 flex-col gap-0"
         >
-          <TabsList variant="line" className="h-12 w-auto max-md:border-t">
-            <TabsTrigger value="code">
-              <IconCode />
-              <span className="truncate">{t("common.tabs.code")}</span>
+          <TabsList
+            variant="line"
+            className={cn(
+              "grid h-12 w-full grid-cols-4 max-md:border-t",
+              "max-2xl:grid-cols-(--tab-grid-template-columns)",
+              "max-2xl:transition-[grid-template-columns] max-2xl:duration-400 max-2xl:ease-in-out",
+              "max-2xl:motion-reduce:transition-none",
+            )}
+            style={
+              {
+                "--tab-grid-template-columns": tabGridTemplateColumns,
+              } as CSSProperties
+            }
+          >
+            <TabsTrigger
+              value="code"
+              className={getTabTriggerClassName("code")}
+            >
+              <IconCode className="shrink-0" />
+              <span className={getTabLabelClassName("code")}>
+                {t("common.tabs.code")}
+              </span>
             </TabsTrigger>
 
-            <TabsTrigger value="config">
-              <IconSettings />
-              <span className="truncate">{t("common.tabs.config")}</span>
+            <TabsTrigger
+              value="config"
+              className={getTabTriggerClassName("config")}
+            >
+              <IconSettings className="shrink-0" />
+              <span className={getTabLabelClassName("config")}>
+                {t("common.tabs.config")}
+              </span>
             </TabsTrigger>
 
-            <TabsTrigger value="docs">
-              <IconBook />
-              <span className="truncate">{t("common.tabs.docs")}</span>
+            <TabsTrigger
+              value="library"
+              className={getTabTriggerClassName("library")}
+            >
+              <IconBookmarks className="shrink-0" />
+              <span className={getTabLabelClassName("library")}>
+                {t("common.tabs.library")}
+              </span>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="docs"
+              className={getTabTriggerClassName("docs")}
+            >
+              <IconBook className="shrink-0" />
+              <span className={getTabLabelClassName("docs")}>
+                {t("common.tabs.docs")}
+              </span>
             </TabsTrigger>
           </TabsList>
 
@@ -113,6 +192,18 @@ export function EditorPanel({
               />
             </TabsContent>
 
+            <TabsContent value="library">
+              <LibraryTab
+                {...(libraryStore === undefined ? {} : { store: libraryStore })}
+                source={source}
+                labelStyle={labelStyle}
+                profileId={editor.selected.id}
+                currentId={currentDiagramId}
+                onCurrentChange={onCurrentDiagramChange}
+                onOpen={onOpenDiagram}
+              />
+            </TabsContent>
+
             <TabsContent value="docs">
               <DocsTab />
             </TabsContent>
@@ -120,6 +211,7 @@ export function EditorPanel({
             {process.env.NODE_ENV === "development" && (
               <SamplesSection onSelect={onSampleSelect} />
             )}
+
             <ActionsSection
               source={source}
               profile={editor.active}

@@ -68,6 +68,9 @@ function renderPanel(overrides: Partial<PanelProps> = {}) {
     labelStyle: "beside",
     onLabelStyleChange: vi.fn(),
     onSampleSelect: vi.fn(),
+    currentDiagramId: null,
+    onCurrentDiagramChange: vi.fn(),
+    onOpenDiagram: vi.fn(),
     ...overrides,
   };
 

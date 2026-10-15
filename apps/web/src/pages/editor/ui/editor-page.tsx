@@ -13,6 +13,7 @@ import { usePersistedState } from "@shared/lib/use-persisted-state";
 import { Button } from "@shared/ui/button";
 
 import { sampleSource, translateSample } from "../config/samples";
+import type { DiagramStore, SavedDiagram } from "../model/diagram-store";
 import { useProfileEditor } from "../model/use-profile-editor";
 import { useRenderedDiagram } from "../model/use-rendered-diagram";
 import { DiagramCanvas } from "./canvas";
@@ -20,6 +21,7 @@ import { EditorPanel } from "./panel";
 
 const SOURCE_KEY = "rhumb:source";
 const LABEL_STYLE_KEY = "rhumb:label-style";
+const CURRENT_DIAGRAM_KEY = "rhumb:current-diagram";
 const WIDE_SCREEN = "(min-width: 768px)";
 
 function startsOpen(): boolean {
@@ -29,7 +31,12 @@ function startsOpen(): boolean {
   );
 }
 
-export function EditorPage(): JSX.Element {
+export interface EditorPageProps {
+  /** Where saved diagrams live; the browser's storage by default. */
+  readonly libraryStore?: DiagramStore;
+}
+
+export function EditorPage({ libraryStore }: EditorPageProps): JSX.Element {
   const { t, language, setLanguage } = useI18n();
   const editor = useProfileEditor();
   const [source, setSource] = usePersistedState(
@@ -40,6 +47,10 @@ export function EditorPage(): JSX.Element {
     LABEL_STYLE_KEY,
     "beside",
   );
+  const [storedCurrent, setStoredCurrent] = usePersistedState(
+    CURRENT_DIAGRAM_KEY,
+    "",
+  );
   const [panelOpen, setPanelOpen] = useState(startsOpen);
   const [fitKey, setFitKey] = useState(0);
 
@@ -47,6 +58,17 @@ export function EditorPage(): JSX.Element {
     LABEL_STYLES.find((candidate) => candidate === storedLabelStyle) ??
     "beside";
   const rendered = useRenderedDiagram(source, editor.active, labelStyle);
+
+  function openDiagram(diagram: SavedDiagram): void {
+    setSource(diagram.source);
+    setStoredLabelStyle(diagram.labelStyle);
+
+    if (editor.profiles.some((profile) => profile.id === diagram.profileId)) {
+      editor.select(diagram.profileId);
+    }
+
+    setFitKey((key) => key + 1);
+  }
 
   return (
     <main className="relative flex h-dvh w-full overflow-hidden">
@@ -63,6 +85,12 @@ export function EditorPage(): JSX.Element {
         editor={editor}
         labelStyle={labelStyle}
         onLabelStyleChange={setStoredLabelStyle}
+        {...(libraryStore === undefined ? {} : { libraryStore })}
+        currentDiagramId={storedCurrent === "" ? null : storedCurrent}
+        onCurrentDiagramChange={(id) => {
+          setStoredCurrent(id ?? "");
+        }}
+        onOpenDiagram={openDiagram}
         onProfileSelect={(id) => {
           editor.select(id);
           setFitKey((key) => key + 1);

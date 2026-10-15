@@ -96,5 +96,32 @@
     "copied": "Copied",
     "transparent": "Transparent background",
     "failed": "Export failed"
+  },
+  "library": {
+    "loading": "Loading…",
+    "empty": "Nothing saved yet. Save the current diagram to find it here later.",
+    "namePlaceholder": "Name of the diagram",
+    "nameLabel": "Name",
+    "saveNew": "Save as new",
+    "update": "Update “{name}”",
+    "search": "Search saved diagrams",
+    "noMatches": "No diagrams match your search.",
+    "open": "Open {name}",
+    "current": "Open now",
+    "rename": "Rename",
+    "renameLabel": "New name",
+    "duplicate": "Duplicate",
+    "copyName": "{name} (copy)",
+    "download": "Download source",
+    "delete": "Delete",
+    "deleteTitle": "Delete “{name}”?",
+    "deleteText": "The diagram will be removed from this browser. This cannot be undone.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete",
+    "updated": "Updated {date}",
+    "actions": "Actions for {name}",
+    "previewFailed": "Cannot draw this diagram",
+    "untitled": "Untitled diagram",
+    "storageFailed": "The browser storage did not work"
   }
 }
