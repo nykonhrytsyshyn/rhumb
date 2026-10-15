@@ -1,4 +1,10 @@
-import { type CSSProperties, type JSX, useState } from "react";
+import {
+  type CSSProperties,
+  type JSX,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import {
   IconBook,
@@ -60,6 +66,7 @@ export function EditorPanel({
 }: EditorPanelProps): JSX.Element {
   const t = useT();
   const handle = useSheetGestures(open, onOpenChange);
+  const panelRef = useRef<HTMLElement>(null);
   const [activeTab, setActiveTab] = useState("code");
 
   const tabGridTemplateColumns = ["code", "config", "library", "docs"]
@@ -84,24 +91,45 @@ export function EditorPanel({
         : "max-2xl:max-w-0 max-2xl:opacity-0 2xl:max-w-none 2xl:opacity-100",
     );
 
+  useEffect(() => {
+    if (open) {
+      return;
+    }
+
+    const panel = panelRef.current;
+    const focusedElement = document.activeElement;
+
+    if (
+      panel !== null &&
+      focusedElement instanceof HTMLElement &&
+      panel.contains(focusedElement)
+    ) {
+      focusedElement.blur();
+    }
+  }, [open]);
+
   return (
     <aside
+      ref={panelRef}
       data-open={open}
       className={cn(
-        "z-30 flex flex-col overflow-hidden bg-background",
+        "z-30 flex shrink-0 flex-col overflow-hidden bg-background",
 
-        // Mobile: keep a fixed height and slide up from the bottom.
-        "fixed inset-x-0 bottom-0 h-10 border-t",
-        "transition-[height] duration-300 ease-out",
-        "data-[open=true]:h-[72dvh]",
+        // Mobile: fixed height, reveal the panel by translating it.
+        "fixed inset-x-0 bottom-0 h-[72dvh] border-t",
+        "translate-y-[calc(100%-2.5rem)]",
+        "transition-transform duration-300 ease-out",
+        "data-[open=true]:translate-y-0",
         "motion-reduce:transition-none",
 
-        // Desktop: keep a fixed width and slide in from the right.
-        "md:static md:h-full md:w-0",
+        // Desktop: static height, reveal the panel by changing its width.
+        "md:static md:h-full md:w-0 md:translate-y-0",
         "md:rounded-none md:border-t-0 md:border-r",
         "md:transition-[width] md:duration-300 md:ease-out",
         "md:data-[open=false]:border-r-0",
-        "md:data-[open=true]:h-full md:data-[open=true]:w-1/3 md:data-[open=true]:max-w-xl",
+        "md:data-[open=true]:h-full",
+        "md:data-[open=true]:w-1/3",
+        "md:data-[open=true]:max-w-xl",
         "md:motion-reduce:transition-none",
       )}
     >
