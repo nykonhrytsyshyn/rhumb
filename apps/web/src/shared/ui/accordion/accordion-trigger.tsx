@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
-import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import { cn } from "@shared/lib/cn";
 
@@ -25,11 +25,12 @@ export function AccordionTrigger({
         {children}
         <IconChevronDown
           data-slot="accordion-trigger-icon"
-          className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
-        />
-        <IconChevronUp
-          data-slot="accordion-trigger-icon"
-          className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"
+          className={cn(
+            "pointer-events-none shrink-0",
+            "transition-transform duration-200 ease-in-out",
+            "group-aria-expanded/accordion-trigger:rotate-180",
+            "motion-reduce:transition-none",
+          )}
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>

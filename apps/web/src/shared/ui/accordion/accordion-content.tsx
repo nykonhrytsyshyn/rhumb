@@ -14,12 +14,20 @@ export function AccordionContent({
   return (
     <AccordionPrimitive.Panel
       data-slot="accordion-content"
-      className="overflow-hidden px-4 text-sm data-closed:animate-accordion-up data-open:animate-accordion-down"
+      className={cn(
+        "h-(--accordion-panel-height) overflow-hidden text-sm",
+        "transition-[height] duration-300 ease-in-out",
+        "data-ending-style:h-0 data-starting-style:h-0",
+        "motion-reduce:transition-none",
+      )}
       {...props}
     >
       <div
         className={cn(
-          "h-(--accordion-panel-height) pt-0 pb-4 data-ending-style:h-0 data-starting-style:h-0 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+          "px-4 pt-0 pb-4",
+          "[&_a]:underline [&_a]:underline-offset-3",
+          "[&_a]:hover:text-foreground",
+          "[&_p:not(:last-child)]:mb-4",
           className,
         )}
       >
