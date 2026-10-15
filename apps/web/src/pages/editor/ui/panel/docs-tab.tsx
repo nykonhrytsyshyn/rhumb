@@ -52,6 +52,18 @@ export function DocsTab(): JSX.Element {
 
   return (
     <div className="flex flex-col gap-5 p-4 text-sm">
+      <img
+        src="/assets/logo/logo-text-light.png"
+        alt={t("common.app.name")}
+        className="block h-auto w-full object-contain dark:hidden"
+      />
+
+      <img
+        src="/assets/logo/logo-text-dark.png"
+        alt={t("common.app.name")}
+        className="hidden h-auto w-full object-contain dark:block"
+      />
+
       <p className="text-muted-foreground">{t("docs.intro")}</p>
 
       <section className="flex flex-col gap-2">
