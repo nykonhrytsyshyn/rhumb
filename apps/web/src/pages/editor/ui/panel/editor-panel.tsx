@@ -69,7 +69,7 @@ export function EditorPanel({
   const panelRef = useRef<HTMLElement>(null);
   const [activeTab, setActiveTab] = useState("code");
 
-  const tabGridTemplateColumns = ["code", "config", "library", "docs"]
+  const tabGridTemplateColumns = ["code", "library", "docs", "config"]
     .map((value) => (value === activeTab ? "9fr" : "5fr"))
     .join(" ");
 
@@ -182,16 +182,6 @@ export function EditorPanel({
             </TabsTrigger>
 
             <TabsTrigger
-              value="config"
-              className={getTabTriggerClassName("config")}
-            >
-              <IconSettings className="shrink-0" />
-              <span className={getTabLabelClassName("config")}>
-                {t("common.tabs.config")}
-              </span>
-            </TabsTrigger>
-
-            <TabsTrigger
               value="library"
               className={getTabTriggerClassName("library")}
             >
@@ -208,6 +198,16 @@ export function EditorPanel({
               <IconBook className="shrink-0" />
               <span className={getTabLabelClassName("docs")}>
                 {t("common.tabs.docs")}
+              </span>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="config"
+              className={getTabTriggerClassName("config")}
+            >
+              <IconSettings className="shrink-0" />
+              <span className={getTabLabelClassName("config")}>
+                {t("common.tabs.config")}
               </span>
             </TabsTrigger>
           </TabsList>
