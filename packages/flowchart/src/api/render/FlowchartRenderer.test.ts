@@ -117,10 +117,12 @@ async function render(index: number, source = SOURCE) {
 
 async function renderInline(source: string, appearance?: Partial<Appearance>) {
   const result = await new FlowchartRenderer({
-    profile: profileAt(0),
+    profile: {
+      ...profileAt(0),
+      line: { ...profileAt(0).line, labelStyle: "inline" },
+    },
     layoutEngine: new ElkLayoutEngine(new ELK()),
     measurer: new ApproximateTextMeasurer(),
-    labelStyle: "inline",
     ...(appearance === undefined ? {} : { appearance }),
   }).render(new FlowchartParser().parse(source));
 

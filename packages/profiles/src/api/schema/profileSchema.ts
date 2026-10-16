@@ -3,6 +3,11 @@ import { z } from "zod";
 import { NODE_KINDS } from "@rhumb/kernel";
 
 const positive = z.number().positive();
+
+/** Where a line's label goes: next to the line, or on it over a backdrop. */
+export const LABEL_STYLES = ["beside", "inline"] as const;
+
+export type LabelStyle = (typeof LABEL_STYLES)[number];
 const nonnegative = z.number().nonnegative();
 
 const sideSchema = z.enum(["top", "right", "bottom", "left"]);
@@ -42,6 +47,8 @@ export const profileSchema = z
       width: positive,
       thickWidth: positive,
       dash: z.array(positive).min(1),
+      /** Placement of the text that labels a line. */
+      labelStyle: z.enum(LABEL_STYLES).default("beside"),
       /** Radius of the arch drawn where unrelated lines cross. */
       jump: nonnegative.default(2),
       /** Straight run kept before an arrowhead and after a line leaves a block. */

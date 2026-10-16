@@ -90,7 +90,6 @@ describe("EditorPage", () => {
       expect(mocked).toHaveBeenLastCalledWith(
         "flowchart LR\nA --> B",
         expect.anything(),
-        expect.anything(),
       );
     });
     expect(window.localStorage.getItem("rhumb:source")).toBe(
@@ -104,7 +103,6 @@ describe("EditorPage", () => {
     await waitFor(() => {
       expect(mocked).toHaveBeenCalledWith(
         "flowchart BT\nX --> Y",
-        expect.anything(),
         expect.anything(),
       );
     });
@@ -139,39 +137,12 @@ describe("EditorPage", () => {
     );
   });
 
-  it("draws with the label style saved on the previous visit", async () => {
-    window.localStorage.setItem("rhumb:label-style", "inline");
-    renderPage();
-
-    await waitFor(() => {
-      expect(mocked).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.anything(),
-        { labelStyle: "inline" },
-      );
-    });
-  });
-
-  it("falls back to labels beside lines for an unknown saved style", async () => {
-    window.localStorage.setItem("rhumb:label-style", "diagonal");
-    renderPage();
-
-    await waitFor(() => {
-      expect(mocked).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.anything(),
-        { labelStyle: "beside" },
-      );
-    });
-  });
-
   describe("saved diagrams", () => {
     const keep = {
       id: "keep",
       name: "Kept scheme",
       source: "flowchart LR\nK --> L",
       profileId: "gost-19.701-90",
-      labelStyle: "inline" as const,
       createdAt: 1,
       updatedAt: 1,
     };
@@ -180,7 +151,7 @@ describe("EditorPage", () => {
       fireEvent.click(screen.getByRole("tab", { name: /Saved/ }));
     }
 
-    it("opens a saved diagram with its standard and label style", async () => {
+    it("opens a saved diagram with its standard", async () => {
       renderPage(new MemoryDiagramStore([keep]));
 
       openSavedTab();
@@ -192,14 +163,12 @@ describe("EditorPage", () => {
         expect(mocked).toHaveBeenLastCalledWith(
           "flowchart LR\nK --> L",
           expect.objectContaining({ id: "gost-19.701-90" }),
-          { labelStyle: "inline" },
         );
       });
       expect(window.localStorage.getItem("rhumb:current-diagram")).toBe("keep");
       expect(window.localStorage.getItem("rhumb:source")).toBe(
         "flowchart LR\nK --> L",
       );
-      expect(window.localStorage.getItem("rhumb:label-style")).toBe("inline");
     });
 
     it("keeps the current standard when the saved one is gone", async () => {
@@ -214,7 +183,6 @@ describe("EditorPage", () => {
         expect(mocked).toHaveBeenLastCalledWith(
           "flowchart LR\nK --> L",
           expect.objectContaining({ default: true }),
-          { labelStyle: "inline" },
         );
       });
     });

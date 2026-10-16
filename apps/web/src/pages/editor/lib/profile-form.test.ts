@@ -149,6 +149,25 @@ describe("profile form", () => {
     );
   });
 
+  it("reads the label style like any other setting of the profile", () => {
+    const state = writeField(toFormState(profile), "line.labelStyle", "inline");
+
+    expect(readField(state, "line.labelStyle")).toBe("inline");
+    expect(parseForm(state, profile).profile?.line.labelStyle).toBe("inline");
+  });
+
+  it("rejects a label style that does not exist", () => {
+    const parsed = parseForm(
+      writeField(toFormState(profile), "line.labelStyle", "diagonal"),
+      profile,
+    );
+
+    expect(parsed.profile).toBeUndefined();
+    expect(parsed.errors.get("line.labelStyle")).toBe(
+      "editor.config.errors.invalid",
+    );
+  });
+
   it("keeps the identity of the base profile", () => {
     const parsed = parseForm(toFormState(profile), {
       ...profile,

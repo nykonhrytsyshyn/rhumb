@@ -11,12 +11,6 @@
     "downloadHint": "Save the current profile as JSON to use it as a template.",
     "loadFailed": "Could not load the profile",
     "loaded": "Profile loaded: {title}",
-    "labelStyle": {
-      "title": "Line labels",
-      "hint": "Put the text of a branch next to its line, or on the line over a backdrop, like Mermaid does.",
-      "beside": "Beside the line",
-      "inline": "On the line"
-    },
     "custom": "Custom",
     "lockedHint": "Built-in standards are read-only. Choose Custom to change the values.",
     "customHint": "Changes are drawn right away. Save them to keep them after a reload.",
@@ -62,7 +56,8 @@
       "labelsHint": "Separate with commas",
       "body": "Body side",
       "back": "Return side",
-      "exit": "Exit side"
+      "exit": "Exit side",
+      "labelStyle": "Line labels"
     },
     "arrow": {
       "open": "Open",
@@ -82,6 +77,10 @@
       "decisionSides": "Entry, yes and no must use different sides",
       "loopSides": "Entry, body, return and exit must use different sides",
       "invalid": "Invalid value"
+    },
+    "labelStyleOptions": {
+      "beside": "Beside the line",
+      "inline": "On the line"
     }
   },
   "samples": {

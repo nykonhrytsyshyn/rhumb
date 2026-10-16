@@ -2,8 +2,6 @@ import { type JSX, useState } from "react";
 
 import { IconDeviceFloppy, IconSearch } from "@tabler/icons-react";
 
-import type { LabelStyle } from "@rhumb/engine";
-
 import { useI18n } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
 import { Input } from "@shared/ui/input";
@@ -23,7 +21,6 @@ export interface LibraryTabProps {
   /** Where diagrams are kept; the browser's own storage by default. */
   readonly store?: DiagramStore;
   readonly source: string;
-  readonly labelStyle: LabelStyle;
   readonly profileId: string;
   /** The saved diagram that is open in the editor, if any. */
   readonly currentId: string | null;
@@ -34,7 +31,6 @@ export interface LibraryTabProps {
 export function LibraryTab({
   store = diagramStore,
   source,
-  labelStyle,
   profileId,
   currentId,
   onCurrentChange,
@@ -59,7 +55,6 @@ export function LibraryTab({
       name: trimmed === "" ? t("editor.library.untitled") : trimmed,
       source,
       profileId,
-      labelStyle,
     });
 
     if (created !== undefined) {
@@ -119,7 +114,6 @@ export function LibraryTab({
               void library.update(current.id, {
                 source,
                 profileId,
-                labelStyle,
               });
             }}
           >

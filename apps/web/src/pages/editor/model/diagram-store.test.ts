@@ -14,7 +14,6 @@ function diagram(overrides: Partial<SavedDiagram> = {}): SavedDiagram {
     name: "First",
     source: "flowchart TD\nA --> B",
     profileId: "iso",
-    labelStyle: "beside",
     createdAt: 1,
     updatedAt: 1,
     ...overrides,
@@ -94,13 +93,15 @@ describe("IndexedDbDiagramStore", () => {
 });
 
 describe("isSavedDiagram", () => {
+  it("still accepts records saved when the label style was kept apart", () => {
+    expect(isSavedDiagram({ ...diagram(), labelStyle: "inline" })).toBe(true);
+  });
+
   it("accepts a complete record and rejects anything else", () => {
     expect(isSavedDiagram(diagram())).toBe(true);
     expect(isSavedDiagram(null)).toBe(false);
     expect(isSavedDiagram("text")).toBe(false);
-    expect(isSavedDiagram({ ...diagram(), labelStyle: "sideways" })).toBe(
-      false,
-    );
+    expect(isSavedDiagram({ ...diagram(), name: 4 })).toBe(false);
     expect(isSavedDiagram({ ...diagram(), createdAt: "yesterday" })).toBe(
       false,
     );

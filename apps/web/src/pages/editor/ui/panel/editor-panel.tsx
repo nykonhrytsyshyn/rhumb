@@ -1,10 +1,5 @@
-import {
-  type CSSProperties,
-  type JSX,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import type { CSSProperties, JSX } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   IconBook,
@@ -12,8 +7,6 @@ import {
   IconCode,
   IconSettings,
 } from "@tabler/icons-react";
-
-import type { LabelStyle } from "@rhumb/engine";
 
 import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
@@ -37,8 +30,6 @@ export interface EditorPanelProps {
   readonly error: string | null;
   readonly editor: ProfileEditor;
   readonly onProfileSelect: (id: string) => void;
-  readonly labelStyle: LabelStyle;
-  readonly onLabelStyleChange: (style: LabelStyle) => void;
   readonly onSampleSelect: (source: string) => void;
   /** Where saved diagrams live; the browser's storage unless a test says so. */
   readonly libraryStore?: DiagramStore;
@@ -56,8 +47,6 @@ export function EditorPanel({
   error,
   editor,
   onProfileSelect,
-  labelStyle,
-  onLabelStyleChange,
   onSampleSelect,
   libraryStore,
   currentDiagramId,
@@ -222,19 +211,13 @@ export function EditorPanel({
             </TabsContent>
 
             <TabsContent value="config">
-              <ConfigTab
-                editor={editor}
-                onProfileSelect={onProfileSelect}
-                labelStyle={labelStyle}
-                onLabelStyleChange={onLabelStyleChange}
-              />
+              <ConfigTab editor={editor} onProfileSelect={onProfileSelect} />
             </TabsContent>
 
             <TabsContent value="library">
               <LibraryTab
                 {...(libraryStore === undefined ? {} : { store: libraryStore })}
                 source={source}
-                labelStyle={labelStyle}
                 profileId={editor.selected.id}
                 currentId={currentDiagramId}
                 onCurrentChange={onCurrentDiagramChange}
@@ -250,11 +233,7 @@ export function EditorPanel({
               <SamplesSection onSelect={onSampleSelect} />
             )}
 
-            <ActionsSection
-              source={source}
-              profile={editor.active}
-              labelStyle={labelStyle}
-            />
+            <ActionsSection source={source} profile={editor.active} />
           </div>
         </Tabs>
       </div>

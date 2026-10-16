@@ -18,7 +18,6 @@ import { PortPlanner } from "../../internal/PortPlanner";
 import { ShapeFactory } from "../../internal/shapes";
 import {
   type Appearance,
-  type LabelStyle,
   PRINT_APPEARANCE,
   type RenderedDiagram,
 } from "./types";
@@ -29,8 +28,6 @@ export interface FlowchartRendererOptions {
   readonly measurer: TextMeasurer;
   readonly scale?: number;
   readonly appearance?: Partial<Appearance>;
-  /** Placement of line labels; defaults to beside the line. */
-  readonly labelStyle?: LabelStyle;
 }
 
 const LAYOUT_DIRECTIONS: Readonly<Record<Direction, LayoutDirection>> = {
@@ -49,12 +46,10 @@ export class FlowchartRenderer {
   public constructor(private readonly options: FlowchartRendererOptions) {
     this.metrics = new Metrics(options.profile, options.scale ?? 4);
     this.sizer = new NodeSizer(this.metrics, options.measurer);
-    this.painter = new DiagramPainter(
-      this.metrics,
-      options.measurer,
-      { ...PRINT_APPEARANCE, ...options.appearance },
-      options.labelStyle ?? "beside",
-    );
+    this.painter = new DiagramPainter(this.metrics, options.measurer, {
+      ...PRINT_APPEARANCE,
+      ...options.appearance,
+    });
   }
 
   public async render(diagram: FlowchartDiagram): Promise<RenderedDiagram> {

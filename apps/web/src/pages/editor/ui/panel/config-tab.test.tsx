@@ -29,24 +29,12 @@ afterEach(() => {
 interface HarnessProps {
   readonly catalog: ProfileCatalog;
   readonly onProfileSelect?: (id: string) => void;
-  readonly labelStyle?: "beside" | "inline";
 }
 
-function Harness({
-  catalog,
-  onProfileSelect = vi.fn(),
-  labelStyle = "beside",
-}: HarnessProps) {
+function Harness({ catalog, onProfileSelect = vi.fn() }: HarnessProps) {
   const editor = useProfileEditor(catalog);
 
-  return (
-    <ConfigTab
-      editor={editor}
-      onProfileSelect={onProfileSelect}
-      labelStyle={labelStyle}
-      onLabelStyleChange={vi.fn()}
-    />
-  );
+  return <ConfigTab editor={editor} onProfileSelect={onProfileSelect} />;
 }
 
 function renderTab(options: { custom?: boolean } = {}) {
@@ -215,16 +203,25 @@ describe("ConfigTab", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("shows the current label style", () => {
-    render(
-      <Harness
-        catalog={new ProfileCatalog(memoryStorage())}
-        labelStyle="inline"
-      />,
-    );
+  it("keeps the label style among the other settings of the standard", async () => {
+    renderTab({ custom: true });
 
-    expect(
-      screen.getByRole("combobox", { name: "Line labels" }).textContent,
-    ).toContain("On the line");
+    expect(screen.queryByRole("combobox", { name: "Line labels" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /Lines and arrows/ }));
+    const style = await screen.findByRole("combobox", { name: "Line labels" });
+
+    expect(style.textContent).toContain("Beside the line");
+    expect(style).toHaveProperty("disabled", false);
+  });
+
+  it("shows the label style of a built-in standard, locked", async () => {
+    renderTab();
+
+    fireEvent.click(screen.getByRole("button", { name: /Lines and arrows/ }));
+    const style = await screen.findByRole("combobox", { name: "Line labels" });
+
+    expect(style.textContent).toContain("Beside the line");
+    expect(style.hasAttribute("disabled")).toBe(true);
   });
 });

@@ -65,8 +65,6 @@ function renderPanel(overrides: Partial<PanelProps> = {}) {
     onSourceChange: vi.fn(),
     error: null,
     onProfileSelect: vi.fn(),
-    labelStyle: "beside",
-    onLabelStyleChange: vi.fn(),
     onSampleSelect: vi.fn(),
     currentDiagramId: null,
     onCurrentDiagramChange: vi.fn(),
@@ -128,7 +126,6 @@ describe("EditorPanel", () => {
     await waitFor(() => {
       expect(exportPng).toHaveBeenCalledWith(props.source, defaultProfile, {
         transparent: true,
-        labelStyle: "beside",
       });
     });
 

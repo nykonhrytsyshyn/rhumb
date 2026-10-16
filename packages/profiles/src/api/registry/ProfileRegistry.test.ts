@@ -76,6 +76,30 @@ describe("ProfileRegistry", () => {
     expect(registered.line.stub).toBe(6);
   });
 
+  it("defaults the label style and rejects an unknown one", () => {
+    const [first] = ProfileRegistry.withBuiltins().list();
+    if (first === undefined) return;
+    const without = (value: object, ...keys: string[]) =>
+      Object.fromEntries(
+        Object.entries(value).filter(([key]) => !keys.includes(key)),
+      );
+
+    const legacy = new ProfileRegistry().register({
+      ...first,
+      id: "legacy",
+      line: without(first.line, "labelStyle"),
+    });
+
+    expect(legacy.line.labelStyle).toBe("beside");
+    expect(() =>
+      new ProfileRegistry().register({
+        ...first,
+        id: "odd",
+        line: { ...first.line, labelStyle: "diagonal" },
+      }),
+    ).toThrow(/labelStyle/);
+  });
+
   it("lists readable issues with their paths", () => {
     try {
       new ProfileRegistry().register({ id: "broken", grid: -1 });

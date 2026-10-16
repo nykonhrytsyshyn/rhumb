@@ -7,7 +7,6 @@ import {
   IconUpload,
 } from "@tabler/icons-react";
 
-import { LABEL_STYLES, type LabelStyle } from "@rhumb/engine";
 import type { StandardProfile } from "@rhumb/profiles";
 
 import { useT } from "@shared/i18n";
@@ -29,8 +28,6 @@ import { ProfileFields } from "./profile-form/profile-fields";
 export interface ConfigTabProps {
   readonly editor: ProfileEditor;
   readonly onProfileSelect: (id: string) => void;
-  readonly labelStyle: LabelStyle;
-  readonly onLabelStyleChange: (style: LabelStyle) => void;
 }
 
 interface Notice {
@@ -41,12 +38,9 @@ interface Notice {
 export function ConfigTab({
   editor,
   onProfileSelect,
-  labelStyle,
-  onLabelStyleChange,
 }: ConfigTabProps): JSX.Element {
   const t = useT();
   const selectId = useId();
-  const labelSelectId = useId();
   const input = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
 
@@ -124,45 +118,6 @@ export function ConfigTab({
 
         <p className="text-xs text-muted-foreground">
           {t("editor.config.description")}
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={labelSelectId} className="text-xs uppercase">
-          {t("editor.config.labelStyle.title")}
-        </Label>
-
-        <Select
-          value={labelStyle}
-          onValueChange={(value) => {
-            const next = LABEL_STYLES.find((style) => style === value);
-
-            if (next !== undefined) {
-              onLabelStyleChange(next);
-            }
-          }}
-        >
-          <SelectTrigger id={labelSelectId} className="w-full rounded-xl">
-            <SelectValue>
-              {(value: string | null) =>
-                LABEL_STYLES.some((style) => style === value)
-                  ? t(`editor.config.labelStyle.${labelStyle}`)
-                  : value
-              }
-            </SelectValue>
-          </SelectTrigger>
-
-          <SelectContent>
-            {LABEL_STYLES.map((style) => (
-              <SelectItem key={style} value={style}>
-                {t(`editor.config.labelStyle.${style}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <p className="text-xs text-muted-foreground">
-          {t("editor.config.labelStyle.hint")}
         </p>
       </div>
 

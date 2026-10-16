@@ -95,11 +95,7 @@ export function LibraryCard({
         className="absolute inset-0 pb-12 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         onClick={onOpen}
       >
-        <DiagramThumbnail
-          source={diagram.source}
-          profile={profile}
-          labelStyle={diagram.labelStyle}
-        />
+        <DiagramThumbnail source={diagram.source} profile={profile} />
       </button>
 
       {/* Current badge */}

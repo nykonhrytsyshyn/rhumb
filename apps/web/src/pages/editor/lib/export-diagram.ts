@@ -1,8 +1,4 @@
-import {
-  type EngineResult,
-  type LabelStyle,
-  PRINT_APPEARANCE,
-} from "@rhumb/engine";
+import { type EngineResult, PRINT_APPEARANCE } from "@rhumb/engine";
 import { CanvasRasterizer, PngExporter } from "@rhumb/export";
 import type { StandardProfile } from "@rhumb/profiles";
 
@@ -13,21 +9,19 @@ const PNG_SCALE = 2;
 
 export interface ExportOptions {
   readonly transparent: boolean;
-  readonly labelStyle: LabelStyle;
 }
 
 /** Exports are always drawn in black ink so they print and embed well. */
 async function renderForExport(
   source: string,
   profile: StandardProfile,
-  { transparent, labelStyle }: ExportOptions,
+  { transparent }: ExportOptions,
 ): Promise<EngineResult> {
   return renderDiagram(source, profile, {
     appearance: {
       ...PRINT_APPEARANCE,
       background: transparent ? null : PRINT_APPEARANCE.background,
     },
-    labelStyle,
   });
 }
 

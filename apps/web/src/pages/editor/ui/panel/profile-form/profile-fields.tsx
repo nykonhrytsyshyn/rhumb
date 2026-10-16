@@ -1,6 +1,7 @@
 import type { JSX, ReactNode } from "react";
 
 import { NODE_KINDS, type NodeKind } from "@rhumb/kernel";
+import { LABEL_STYLES } from "@rhumb/profiles";
 
 import { type TranslateFn, useT } from "@shared/i18n";
 import type { TranslationKey } from "@shared/i18n";
@@ -185,6 +186,18 @@ export function ProfileFields({
               { value: "open", label: t("editor.config.arrow.open") },
               { value: "filled", label: t("editor.config.arrow.filled") },
             ]}
+            disabled={disabled}
+            onChange={onChange}
+          />,
+          <ChoiceField
+            key="line.labelStyle"
+            path="line.labelStyle"
+            label={t("editor.config.fields.labelStyle")}
+            value={readField(values, "line.labelStyle")}
+            options={LABEL_STYLES.map((style) => ({
+              value: style,
+              label: t(`editor.config.labelStyleOptions.${style}`),
+            }))}
             disabled={disabled}
             onChange={onChange}
           />,

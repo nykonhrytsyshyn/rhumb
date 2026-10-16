@@ -61,6 +61,7 @@ export function toFormState(profile: StandardProfile): FormState {
       thickWidth: String(profile.line.thickWidth),
       dashLength: String(dashLength ?? ""),
       dashGap: String(dashGap ?? dashLength ?? ""),
+      labelStyle: profile.line.labelStyle,
       jump: String(profile.line.jump),
       stub: String(profile.line.stub),
       arrowStyle: profile.line.arrow.style,
@@ -194,6 +195,7 @@ export function parseForm(state: FormState, base: StandardProfile): ParsedForm {
       width: number("line.width"),
       thickWidth: number("line.thickWidth"),
       dash: [number("line.dashLength"), number("line.dashGap")],
+      labelStyle: text("line.labelStyle"),
       jump: number("line.jump"),
       stub: number("line.stub"),
       arrow: {

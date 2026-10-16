@@ -1,12 +1,9 @@
-import { LABEL_STYLES, type LabelStyle } from "@rhumb/engine";
-
 /** A diagram the user has kept, together with how it was drawn. */
 export interface SavedDiagram {
   readonly id: string;
   readonly name: string;
   readonly source: string;
   readonly profileId: string;
-  readonly labelStyle: LabelStyle;
   readonly createdAt: number;
   readonly updatedAt: number;
 }
@@ -33,7 +30,6 @@ export function isSavedDiagram(value: unknown): value is SavedDiagram {
     typeof record.name === "string" &&
     typeof record.source === "string" &&
     typeof record.profileId === "string" &&
-    LABEL_STYLES.some((style) => style === record.labelStyle) &&
     typeof record.createdAt === "number" &&
     typeof record.updatedAt === "number"
   );

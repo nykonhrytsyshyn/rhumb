@@ -12,11 +12,7 @@ import {
   svgNode,
 } from "@rhumb/kernel";
 
-import type {
-  Appearance,
-  LabelStyle,
-  RenderedDiagram,
-} from "../api/render/types";
+import type { Appearance, RenderedDiagram } from "../api/render/types";
 import { CrossingFinder, type Hop, type RoutedEdge } from "./EdgeCrossings";
 import { buildEdgePath } from "./EdgePath";
 import type { Metrics } from "./Metrics";
@@ -46,7 +42,6 @@ export class DiagramPainter {
     private readonly metrics: Metrics,
     private readonly measurer: TextMeasurer,
     private readonly appearance: Appearance,
-    private readonly labelStyle: LabelStyle,
   ) {}
 
   public paint(
@@ -323,7 +318,7 @@ export class DiagramPainter {
 
     const text = this.measurer.measure(edge.label, this.metrics.textStyle);
 
-    return this.labelStyle === "inline"
+    return this.metrics.labelStyle === "inline"
       ? this.placeInline(edge, edge.label, points, text)
       : this.placeBeside(edge.label, points, text);
   }

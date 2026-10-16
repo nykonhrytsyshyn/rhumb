@@ -28,7 +28,6 @@ function saved(id: string, name: string, updatedAt: number): SavedDiagram {
     name,
     source: `flowchart TD\n${id} --> Z`,
     profileId: "iso-5807",
-    labelStyle: "beside",
     createdAt: updatedAt,
     updatedAt,
   };
@@ -54,7 +53,6 @@ function renderTab(
   const props: LibraryTabProps = {
     store,
     source: "flowchart TD\nA --> B",
-    labelStyle: "inline",
     profileId: "gost-19.701-90",
     currentId: null,
     onCurrentChange: vi.fn(),
@@ -105,14 +103,13 @@ describe("LibraryTab", () => {
     expect(container.querySelector("li")?.className).toContain("aspect-square");
   });
 
-  it("draws each tile with the standard and label style it was saved with", async () => {
+  it("draws each tile with the standard it was saved with", async () => {
     renderTab([saved("a", "Alpha", 1)]);
 
     await waitFor(() => {
       expect(renderDiagram).toHaveBeenCalledWith(
         "flowchart TD\na --> Z",
         expect.objectContaining({ default: true }),
-        { labelStyle: "beside" },
       );
     });
   });
@@ -140,7 +137,6 @@ describe("LibraryTab", () => {
       name: "My scheme",
       source: props.source,
       profileId: "gost-19.701-90",
-      labelStyle: "inline",
     });
     expect(props.onCurrentChange).toHaveBeenCalledWith(stored?.id);
     expect(screen.getByLabelText("Name")).toHaveProperty("value", "");
@@ -181,7 +177,6 @@ describe("LibraryTab", () => {
     expect((await store.list())[0]).toMatchObject({
       name: "Alpha",
       profileId: "gost-19.701-90",
-      labelStyle: "inline",
     });
   });
 

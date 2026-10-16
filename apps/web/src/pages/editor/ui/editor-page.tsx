@@ -3,8 +3,6 @@ import { useState } from "react";
 
 import { IconBrandGithub } from "@tabler/icons-react";
 
-import { LABEL_STYLES, type LabelStyle } from "@rhumb/engine";
-
 import { ThemeToggler } from "@features/theme";
 
 import { SITE } from "@shared/config";
@@ -20,7 +18,6 @@ import { DiagramCanvas } from "./canvas";
 import { EditorPanel } from "./panel";
 
 const SOURCE_KEY = "rhumb:source";
-const LABEL_STYLE_KEY = "rhumb:label-style";
 const CURRENT_DIAGRAM_KEY = "rhumb:current-diagram";
 const WIDE_SCREEN = "(min-width: 768px)";
 
@@ -43,10 +40,6 @@ export function EditorPage({ libraryStore }: EditorPageProps): JSX.Element {
     SOURCE_KEY,
     sampleSource("algorithm", language),
   );
-  const [storedLabelStyle, setStoredLabelStyle] = usePersistedState(
-    LABEL_STYLE_KEY,
-    "beside",
-  );
   const [storedCurrent, setStoredCurrent] = usePersistedState(
     CURRENT_DIAGRAM_KEY,
     "",
@@ -54,14 +47,10 @@ export function EditorPage({ libraryStore }: EditorPageProps): JSX.Element {
   const [panelOpen, setPanelOpen] = useState(startsOpen);
   const [fitKey, setFitKey] = useState(0);
 
-  const labelStyle: LabelStyle =
-    LABEL_STYLES.find((candidate) => candidate === storedLabelStyle) ??
-    "beside";
-  const rendered = useRenderedDiagram(source, editor.active, labelStyle);
+  const rendered = useRenderedDiagram(source, editor.active);
 
   function openDiagram(diagram: SavedDiagram): void {
     setSource(diagram.source);
-    setStoredLabelStyle(diagram.labelStyle);
 
     if (editor.profiles.some((profile) => profile.id === diagram.profileId)) {
       editor.select(diagram.profileId);
@@ -83,8 +72,6 @@ export function EditorPage({ libraryStore }: EditorPageProps): JSX.Element {
         onSourceChange={setSource}
         error={rendered.error}
         editor={editor}
-        labelStyle={labelStyle}
-        onLabelStyleChange={setStoredLabelStyle}
         {...(libraryStore === undefined ? {} : { libraryStore })}
         currentDiagramId={storedCurrent === "" ? null : storedCurrent}
         onCurrentDiagramChange={(id) => {

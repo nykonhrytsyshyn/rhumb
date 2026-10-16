@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 
-import type { LabelStyle } from "@rhumb/engine";
-
 import {
   type DiagramStore,
   type SavedDiagram,
@@ -13,7 +11,6 @@ export interface DiagramInput {
   readonly name: string;
   readonly source: string;
   readonly profileId: string;
-  readonly labelStyle: LabelStyle;
 }
 
 export interface DiagramLibrary {

@@ -72,7 +72,6 @@ describe("export-diagram", () => {
   it("draws exports in print colours with a white page", async () => {
     await exportSvg("src", profile, {
       transparent: false,
-      labelStyle: "beside",
     });
     expect(renderDiagram).toHaveBeenCalledWith("src", profile, {
       appearance: {
@@ -81,7 +80,6 @@ describe("export-diagram", () => {
         background: "#ffffff",
         labelBackground: "#ffffff",
       },
-      labelStyle: "beside",
     });
 
     const { blob, name } = lastDownload();
@@ -93,18 +91,15 @@ describe("export-diagram", () => {
   it("drops the page for transparent exports", async () => {
     await exportSvg("src", profile, {
       transparent: true,
-      labelStyle: "inline",
     });
     expect(vi.mocked(renderDiagram).mock.calls[0]?.[2]).toMatchObject({
       appearance: { background: null },
-      labelStyle: "inline",
     });
   });
 
   it("downloads a PNG with the matching background", async () => {
     await exportPng("src", profile, {
       transparent: true,
-      labelStyle: "inline",
     });
 
     const { blob, name } = lastDownload();
@@ -128,7 +123,7 @@ describe("export-diagram", () => {
       },
     );
 
-    await copyPng("src", profile, { transparent: false, labelStyle: "beside" });
+    await copyPng("src", profile, { transparent: false });
     expect(write).toHaveBeenCalledOnce();
   });
 

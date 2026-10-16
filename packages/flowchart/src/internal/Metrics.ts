@@ -1,5 +1,5 @@
 import { type NodeKind, type Size, type TextStyle } from "@rhumb/kernel";
-import type { StandardProfile } from "@rhumb/profiles";
+import type { LabelStyle, StandardProfile } from "@rhumb/profiles";
 
 /** A profile converted from millimetres to drawing units (pixels). */
 export class Metrics {
@@ -11,6 +11,7 @@ export class Metrics {
   public readonly lineSpacing: number;
   public readonly jumpRadius: number;
   public readonly stub: number;
+  public readonly labelStyle: LabelStyle;
   public readonly lineWidth: number;
   public readonly thickWidth: number;
   public readonly dash: readonly number[];
@@ -32,6 +33,7 @@ export class Metrics {
     this.lineSpacing = profile.spacing.line * scale;
     this.jumpRadius = profile.line.jump * scale;
     this.stub = profile.line.stub * scale;
+    this.labelStyle = profile.line.labelStyle;
     this.lineWidth = profile.line.width * scale;
     this.thickWidth = profile.line.thickWidth * scale;
     this.dash = profile.line.dash.map((value) => value * scale);

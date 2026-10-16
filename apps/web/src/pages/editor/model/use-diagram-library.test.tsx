@@ -17,7 +17,6 @@ function saved(id: string, updatedAt: number): SavedDiagram {
     name: id,
     source: "flowchart TD\nA --> B",
     profileId: "iso",
-    labelStyle: "beside",
     createdAt: updatedAt,
     updatedAt,
   };
@@ -41,7 +40,6 @@ const input = {
   name: "New",
   source: "flowchart LR\nX --> Y",
   profileId: "gost",
-  labelStyle: "inline" as const,
 };
 
 describe("useDiagramLibrary", () => {

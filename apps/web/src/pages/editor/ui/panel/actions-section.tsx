@@ -7,7 +7,6 @@ import {
   IconUpload,
 } from "@tabler/icons-react";
 
-import type { LabelStyle } from "@rhumb/engine";
 import type { StandardProfile } from "@rhumb/profiles";
 
 import { useT } from "@shared/i18n";
@@ -21,7 +20,6 @@ import { PanelSection } from "./panel-section";
 export interface ActionsSectionProps {
   readonly source: string;
   readonly profile: StandardProfile | undefined;
-  readonly labelStyle: LabelStyle;
 }
 
 type Action = "png" | "svg" | "copy";
@@ -29,7 +27,6 @@ type Action = "png" | "svg" | "copy";
 export function ActionsSection({
   source,
   profile,
-  labelStyle,
 }: ActionsSectionProps): JSX.Element {
   const t = useT();
   const switchId = useId();
@@ -43,7 +40,7 @@ export function ActionsSection({
       return;
     }
 
-    const options = { transparent, labelStyle };
+    const options = { transparent };
 
     setBusy(action);
     setFailure(null);

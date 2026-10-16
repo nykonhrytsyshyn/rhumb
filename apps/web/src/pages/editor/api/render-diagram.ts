@@ -5,7 +5,6 @@ import {
   type Appearance,
   DiagramEngine,
   type EngineResult,
-  type LabelStyle,
 } from "@rhumb/engine";
 import { ElkLayoutEngine } from "@rhumb/layout-elk";
 import type { StandardProfile } from "@rhumb/profiles";
@@ -37,7 +36,6 @@ function getEngine(): DiagramEngine {
 export interface RenderOptions {
   /** Colours; defaults to the preview colours that follow the page theme. */
   readonly appearance?: Partial<Appearance>;
-  readonly labelStyle?: LabelStyle;
 }
 
 export function renderDiagram(
@@ -49,8 +47,5 @@ export function renderDiagram(
     profile,
     scale: PIXELS_PER_MM,
     appearance: options.appearance ?? PREVIEW_APPEARANCE,
-    ...(options.labelStyle === undefined
-      ? {}
-      : { labelStyle: options.labelStyle }),
   });
 }
