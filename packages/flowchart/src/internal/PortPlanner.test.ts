@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { Side } from "@rhumb/kernel";
-import { ProfileRegistry } from "@rhumb/profiles";
+import {
+  ProfileRegistry,
+  type SideChoice,
+  type StandardProfile,
+} from "@rhumb/profiles";
 import { FlowchartParser } from "@rhumb/source-mermaid";
 
 import { Orientation } from "./Orientation";
@@ -19,12 +23,36 @@ const profile = (() => {
 
 const SIDES = [Side.Top, Side.Right, Side.Bottom, Side.Left];
 
-/** Sides the profile prescribes for a decision, in the given flow direction. */
+/** The profile with the sides of its decision blocks replaced. */
+function withDecision(sides: {
+  readonly entry: SideChoice;
+  readonly yes: SideChoice;
+  readonly no: SideChoice;
+}): StandardProfile {
+  const { decision } = profile;
+
+  return {
+    ...profile,
+    decision: {
+      entry: sides.entry,
+      yes: { ...decision.yes, side: sides.yes },
+      no: { ...decision.no, side: sides.no },
+    },
+  };
+}
+
+/** Every side of a decision is named, so nothing is left to the planner. */
+const FIXED = withDecision({ entry: "top", yes: "left", no: "right" });
+
+/** Yes and no may each take the left or the right side. */
+const OPEN = withDecision({ entry: "top", yes: "side", no: "side" });
+
+/** Sides a fixed profile prescribes for a decision, in the flow direction. */
 function decisionSides(direction: "TB" | "LR" = "TB") {
   const orientation = Orientation.of(direction);
-  const entry = orientation.mapProfileSide(profile.decision.entry);
-  const yes = orientation.mapProfileSide(profile.decision.yes.side);
-  const no = orientation.mapProfileSide(profile.decision.no.side);
+  const entry = orientation.mapProfileSide("top");
+  const yes = orientation.mapProfileSide("left");
+  const no = orientation.mapProfileSide("right");
   const extra = SIDES.find((side) => ![entry, yes, no].includes(side));
 
   if (extra === undefined) {
@@ -34,10 +62,14 @@ function decisionSides(direction: "TB" | "LR" = "TB") {
   return { entry, yes, no, extra };
 }
 
-function plan(source: string, direction: "TB" | "LR" = "TB") {
+function plan(
+  source: string,
+  direction: "TB" | "LR" | "BT" = "TB",
+  using: StandardProfile = FIXED,
+) {
   const diagram = new FlowchartParser().parse(source);
 
-  return new PortPlanner(profile, Orientation.of(direction)).plan(diagram);
+  return new PortPlanner(using, Orientation.of(direction)).plan(diagram);
 }
 
 describe("PortPlanner", () => {
@@ -94,6 +126,105 @@ describe("PortPlanner", () => {
       toSide: Side.Left,
     });
     expect(sides.get("e1")?.fromSide).toBe(decisionSides("LR").no);
+  });
+
+  describe("open side choices", () => {
+    it("lets yes take the left and no the right when nothing says otherwise", () => {
+      const sides = plan(
+        "flowchart TD\nA{Q} -->|No| B\nA -->|Yes| C",
+        "TB",
+        OPEN,
+      );
+
+      expect(sides.get("e0")?.fromSide).toBe(Side.Right);
+      expect(sides.get("e1")?.fromSide).toBe(Side.Left);
+    });
+
+    it("never gives two branches the same side", () => {
+      const sides = plan(
+        "flowchart TD\nA{Q} -->|Yes| B\nA -->|Yes| C",
+        "TB",
+        OPEN,
+      );
+
+      expect(sides.get("e0")?.fromSide).not.toBe(sides.get("e1")?.fromSide);
+    });
+
+    it("sends a branch that goes back to a preparation block to its return side", () => {
+      const sides = plan(
+        [
+          "flowchart TD",
+          "L{{for}} --> D{ok?}",
+          "D -->|Yes| W[work]",
+          "D -->|No| L",
+          "W --> L",
+          "L --> E[end]",
+        ].join("\n"),
+        "TB",
+        OPEN,
+      );
+
+      expect(sides.get("e2")?.fromSide).toBe(Side.Left);
+      expect(sides.get("e1")?.fromSide).toBe(Side.Right);
+      expect(sides.get("e2")?.toSide).toBe(Side.Left);
+    });
+
+    it("gives the returning branch the return side even when it is labelled yes", () => {
+      const sides = plan(
+        [
+          "flowchart TD",
+          "L{{for}} --> D{ok?}",
+          "D -->|Yes| L",
+          "D -->|No| W[work]",
+          "W --> L",
+          "L --> E[end]",
+        ].join("\n"),
+        "TB",
+        OPEN,
+      );
+
+      expect(sides.get("e1")?.fromSide).toBe(Side.Left);
+      expect(sides.get("e2")?.fromSide).toBe(Side.Right);
+    });
+
+    it("follows the flow direction when it is rotated", () => {
+      const sides = plan(
+        "flowchart LR\nA{Q} -->|Yes| B\nA -->|No| C",
+        "LR",
+        OPEN,
+      );
+
+      expect(sides.get("e0")?.fromSide).toBe(Side.Top);
+      expect(sides.get("e1")?.fromSide).toBe(Side.Bottom);
+      expect(sides.get("e0")?.fromSide).not.toBe(sides.get("e0")?.toSide);
+    });
+
+    it("settles an open vertical choice on the side that follows the flow", () => {
+      const vertical = withDecision({
+        entry: "left",
+        yes: "vertical",
+        no: "right",
+      });
+      const sides = plan(
+        "flowchart TD\nA{Q} -->|Yes| B\nA -->|No| C",
+        "TB",
+        vertical,
+      );
+
+      expect(sides.get("e0")?.fromSide).toBe(Side.Bottom);
+      expect(sides.get("e1")?.fromSide).toBe(Side.Right);
+    });
+
+    it("turns the entry around when the flow runs bottom-up", () => {
+      const entry = withDecision({
+        entry: "vertical",
+        yes: "left",
+        no: "right",
+      });
+      const sides = plan("flowchart BT\nA --> B{Q}", "BT", entry);
+
+      expect(sides.get("e0")?.toSide).toBe(Side.Bottom);
+    });
   });
 
   describe("returns to a preparation block", () => {

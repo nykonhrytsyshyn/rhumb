@@ -412,13 +412,13 @@ describe("FlowchartRenderer", () => {
     expect(String(vertical?.attrs.d)).not.toContain("A");
   });
 
-  it("arches the line that crosses a repeated section", async () => {
+  it("brings every return to a preparation block in without crossing its repeated section", async () => {
     const { nodes } = await render(0, RETURNS);
     const arched = edgePaths(nodes).filter((path) =>
       String(path.attrs.d).includes("A"),
     );
 
-    expect(arched.length).toBeGreaterThan(0);
+    expect(arched).toHaveLength(0);
   });
 
   it("draws no arches when nothing crosses", async () => {

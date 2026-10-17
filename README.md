@@ -306,8 +306,13 @@ diagram. All lengths are in millimetres.
 | `preparation`     | Entry, repeat, return and exit sides of a preparation block that the flow returns to                |
 
 Validation catches impossible profiles early: a decision's entry, `yes` and `no`
-sides must all differ, and so must the four sides of a preparation block. Built-in profiles are
-read-only in the editor - choose **Custom** to change values.
+sides must be able to differ, and so must the four sides of a preparation block.
+A side is `top`, `right`, `bottom` or `left`, or an open choice that Rhumb
+settles for each diagram: `side` means left or right and `vertical` means top
+or bottom, so two open choices can share a pair. A branch that returns to a
+preparation block takes the side that block receives returning lines on.
+Built-in profiles are read-only in the editor - choose **Custom** to change
+values.
 
 ```mermaid
 flowchart LR

@@ -19,7 +19,11 @@ describe("ProfileRegistry", () => {
 
   it("treats a profile without the default flag as not default", () => {
     const [first] = ProfileRegistry.withBuiltins().list();
-    if (first === undefined) return;
+
+    if (first === undefined) {
+      return;
+    }
+
     const rest = Object.fromEntries(
       Object.entries(first).filter(([key]) => key !== "default"),
     );
@@ -29,7 +33,11 @@ describe("ProfileRegistry", () => {
 
   it("reads a profile saved with the old loop section", () => {
     const [first] = ProfileRegistry.withBuiltins().list();
-    if (first === undefined) return;
+
+    if (first === undefined) {
+      return;
+    }
+
     const { preparation, ...rest } = first;
     const legacy = {
       ...rest,
@@ -43,6 +51,48 @@ describe("ProfileRegistry", () => {
 
     expect(new ProfileRegistry().register(legacy).preparation).toEqual(
       preparation,
+    );
+  });
+
+  it("accepts open side choices that can share the left and the right", () => {
+    const [first] = ProfileRegistry.withBuiltins().list();
+
+    if (first === undefined) {
+      return;
+    }
+
+    const open = {
+      ...first,
+      id: "open",
+      decision: {
+        entry: "top",
+        yes: { ...first.decision.yes, side: "side" },
+        no: { ...first.decision.no, side: "side" },
+      },
+    };
+
+    expect(new ProfileRegistry().register(open).decision.yes.side).toBe("side");
+  });
+
+  it("rejects open choices that need more sides than there are", () => {
+    const [first] = ProfileRegistry.withBuiltins().list();
+
+    if (first === undefined) {
+      return;
+    }
+
+    const crowded = {
+      ...first,
+      id: "crowded",
+      decision: {
+        entry: "side",
+        yes: { ...first.decision.yes, side: "side" },
+        no: { ...first.decision.no, side: "side" },
+      },
+    };
+
+    expect(() => new ProfileRegistry().register(crowded)).toThrow(
+      /fit on different sides/,
     );
   });
 
@@ -97,7 +147,11 @@ describe("ProfileRegistry", () => {
 
   it("defaults the label style and rejects an unknown one", () => {
     const [first] = ProfileRegistry.withBuiltins().list();
-    if (first === undefined) return;
+
+    if (first === undefined) {
+      return;
+    }
+
     const without = (value: object, ...keys: string[]) =>
       Object.fromEntries(
         Object.entries(value).filter(([key]) => !keys.includes(key)),
@@ -155,7 +209,7 @@ describe("ProfileRegistry", () => {
     };
 
     expect(() => new ProfileRegistry().register(clashing)).toThrow(
-      /must all differ/,
+      /fit on different sides/,
     );
   });
 });

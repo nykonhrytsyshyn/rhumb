@@ -26,7 +26,7 @@
   },
   "decisions": {
     "title": "Decisions",
-    "text": "Label the branches Yes and No. The profile decides which corner each one leaves from; unlabeled branches use the free corners in order."
+    "text": "Label the branches Yes and No. The profile decides which side each one leaves from; unlabeled branches use the free sides in order. Where the profile leaves the side open, a branch that goes back to a preparation block leaves on the side that block takes returning lines on."
   },
   "preparation": {
     "title": "Returning to a preparation block",

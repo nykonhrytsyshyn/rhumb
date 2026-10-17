@@ -40,3 +40,36 @@ describe("Orientation", () => {
     expect(Orientation.of("LR").mapProfileSide("bottom")).toBe(Side.Right);
   });
 });
+
+describe("Orientation.options", () => {
+  const lean = { side: "left", vertical: "bottom" } as const;
+
+  it("yields a particular side alone", () => {
+    expect(Orientation.of("TB").options("top", lean)).toEqual([Side.Top]);
+  });
+
+  it("puts the leaned side of an open choice first", () => {
+    expect(Orientation.of("TB").options("side", lean)).toEqual([
+      Side.Left,
+      Side.Right,
+    ]);
+    expect(
+      Orientation.of("TB").options("side", { ...lean, side: "right" }),
+    ).toEqual([Side.Right, Side.Left]);
+    expect(Orientation.of("TB").options("vertical", lean)).toEqual([
+      Side.Bottom,
+      Side.Top,
+    ]);
+  });
+
+  it("turns an open choice with the flow direction", () => {
+    expect(Orientation.of("LR").options("side", lean)).toEqual([
+      Side.Top,
+      Side.Bottom,
+    ]);
+    expect(Orientation.of("BT").options("vertical", lean)).toEqual([
+      Side.Top,
+      Side.Bottom,
+    ]);
+  });
+});

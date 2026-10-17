@@ -66,7 +66,7 @@
   "decision": {
     "entry": "top",
     "yes": {
-      "side": "left",
+      "side": "side",
       "labels": [
         "да",
         "yes",
@@ -76,7 +76,7 @@
       ]
     },
     "no": {
-      "side": "right",
+      "side": "side",
       "labels": [
         "нет",
         "no",

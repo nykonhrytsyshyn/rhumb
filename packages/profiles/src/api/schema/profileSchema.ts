@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { NODE_KINDS } from "@rhumb/kernel";
 
+import { SIDE_CHOICES, canUseDistinctSides } from "./sideChoice";
+
 const positive = z.number().positive();
 
 /** Where a line's label goes: next to the line, or on it over a backdrop. */
@@ -10,7 +12,7 @@ export const LABEL_STYLES = ["beside", "inline"] as const;
 export type LabelStyle = (typeof LABEL_STYLES)[number];
 const nonnegative = z.number().nonnegative();
 
-const sideSchema = z.enum(["top", "right", "bottom", "left"]);
+const sideSchema = z.enum(SIDE_CHOICES);
 
 const boxSchema = z.object({
   minWidth: positive,
@@ -107,24 +109,27 @@ export const profileSchema = z.preprocess(
     })
     .refine(
       ({ decision }) =>
-        new Set([decision.entry, decision.yes.side, decision.no.side]).size ===
-        3,
+        canUseDistinctSides([
+          decision.entry,
+          decision.yes.side,
+          decision.no.side,
+        ]),
       {
-        message: "Decision entry, yes and no sides must all differ",
+        message: "Decision entry, yes and no must fit on different sides",
         path: ["decision"],
       },
     )
     .refine(
       ({ preparation }) =>
-        new Set([
+        canUseDistinctSides([
           preparation.entry,
           preparation.repeat,
           preparation.return,
           preparation.exit,
-        ]).size === 4,
+        ]),
       {
         message:
-          "Preparation entry, repeat, return and exit sides must all differ",
+          "Preparation entry, repeat, return and exit must fit on different sides",
         path: ["preparation"],
       },
     ),

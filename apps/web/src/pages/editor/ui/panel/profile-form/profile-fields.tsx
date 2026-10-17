@@ -1,7 +1,7 @@
 import type { JSX, ReactNode } from "react";
 
 import { NODE_KINDS, type NodeKind } from "@rhumb/kernel";
-import { LABEL_STYLES } from "@rhumb/profiles";
+import { LABEL_STYLES, SIDE_CHOICES } from "@rhumb/profiles";
 
 import { type TranslateFn, useT } from "@shared/i18n";
 import type { TranslationKey } from "@shared/i18n";
@@ -25,8 +25,6 @@ export interface ProfileFieldsProps {
   readonly disabled: boolean;
   readonly onChange: (path: string, value: string) => void;
 }
-
-const SIDES = ["top", "right", "bottom", "left"] as const;
 
 const BLOCK_NAMES: Readonly<Record<NodeKind, TranslationKey>> = {
   process: "docs.blocks.process",
@@ -122,7 +120,7 @@ export function ProfileFields({
     return key === undefined ? undefined : t(key);
   };
 
-  const sides = SIDES.map((side) => ({
+  const sides = SIDE_CHOICES.map((side) => ({
     value: side,
     label: t(`editor.config.sides.${side}`),
   }));
