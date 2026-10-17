@@ -139,13 +139,17 @@ describe("profile form", () => {
       "decision.entry",
       "top",
     );
-    const loop = writeField(toFormState(profile), "loop.exit", "top");
+    const preparation = writeField(
+      toFormState(profile),
+      "preparation.exit",
+      "top",
+    );
 
     expect(parseForm(decision, profile).general).toContain(
       "editor.config.errors.decisionSides",
     );
-    expect(parseForm(loop, profile).general).toContain(
-      "editor.config.errors.loopSides",
+    expect(parseForm(preparation, profile).general).toContain(
+      "editor.config.errors.preparationSides",
     );
   });
 

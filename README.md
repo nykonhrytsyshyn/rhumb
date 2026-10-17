@@ -99,13 +99,13 @@ flowcharts that need **predictable geometry, explicit block semantics and
 repeatable output** - the kind that goes into a thesis, a specification or an
 engineering document.
 
-| Idea                      | What it means in practice                                                                                     |
-|---------------------------|---------------------------------------------------------------------------------------------------------------|
-| **Text in, diagram out**  | Write a small Mermaid-like flowchart and get a routed SVG                                                     |
-| **Standards as profiles** | Dimensions, line widths, typography, arrows, branch sides and loop routing come from a validated JSON profile |
-| **Browser-first**         | The editor is a static web app; your source, current diagram and saved library never leave the browser        |
-| **Useful exports**        | Download SVG or PNG, copy the rendered image, or download the source and a profile for reuse                  |
-| **Strict on purpose**     | Unsupported syntax is rejected with a line-numbered error instead of producing an approximate drawing         |
+| Idea                      | What it means in practice                                                                                                          |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| **Text in, diagram out**  | Write a small Mermaid-like flowchart and get a routed SVG                                                                          |
+| **Standards as profiles** | Dimensions, line widths, typography, arrows, branch sides and routing around preparation blocks come from a validated JSON profile |
+| **Browser-first**         | The editor is a static web app; your source, current diagram and saved library never leave the browser                             |
+| **Useful exports**        | Download SVG or PNG, copy the rendered image, or download the source and a profile for reuse                                       |
+| **Strict on purpose**     | Unsupported syntax is rejected with a line-numbered error instead of producing an approximate drawing                              |
 
 ```mermaid
 flowchart LR
@@ -303,10 +303,10 @@ diagram. All lengths are in millimetres.
 | `font`            | Family, size and line height                                                                        |
 | `shapes`          | Minimum width and height of every block kind                                                        |
 | `decision`        | The side a decision is entered from and where its `yes` / `no` branches leave                       |
-| `loop`            | Entry, body, return and exit sides of a loop header                                                 |
+| `preparation`     | Entry, repeat, return and exit sides of a preparation block that the flow returns to                |
 
 Validation catches impossible profiles early: a decision's entry, `yes` and `no`
-sides must all differ, and so must a loop's four sides. Built-in profiles are
+sides must all differ, and so must the four sides of a preparation block. Built-in profiles are
 read-only in the editor - choose **Custom** to change values.
 
 ```mermaid
@@ -397,16 +397,16 @@ sequenceDiagram
   Packages
 </h3>
 
-| Package                                            | Responsibility                                                                                            |
-|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| [`@rhumb/kernel`](packages/kernel)                 | Diagram models, geometry, directions, layout contracts, text measurement and syntax errors                |
-| [`@rhumb/source-mermaid`](packages/source-mermaid) | Line-aware parser for the supported Mermaid-like flowchart subset                                         |
-| [`@rhumb/profiles`](packages/profiles)             | Validated JSON profile schema, registry and built-in profiles                                             |
-| [`@rhumb/layout-elk`](packages/layout-elk)         | Adapter between Rhumb's `LayoutEngine` contract and ELK's layered, orthogonal layout                      |
-| [`@rhumb/flowchart`](packages/flowchart)           | Standard-aware shapes, text placement, port planning, edge routes, decision branches, loops and crossings |
-| [`@rhumb/export`](packages/export)                 | Deterministic SVG serialization and browser PNG export primitives                                         |
-| [`@rhumb/engine`](packages/engine)                 | The high-level `DiagramEngine` that connects all stages                                                   |
-| [`apps/web`](apps/web)                             | React/Vite editor: persistence, profile editing, language and theme, export actions                       |
+| Package                                            | Responsibility                                                                                                          |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| [`@rhumb/kernel`](packages/kernel)                 | Diagram models, geometry, directions, layout contracts, text measurement and syntax errors                              |
+| [`@rhumb/source-mermaid`](packages/source-mermaid) | Line-aware parser for the supported Mermaid-like flowchart subset                                                       |
+| [`@rhumb/profiles`](packages/profiles)             | Validated JSON profile schema, registry and built-in profiles                                                           |
+| [`@rhumb/layout-elk`](packages/layout-elk)         | Adapter between Rhumb's `LayoutEngine` contract and ELK's layered, orthogonal layout                                    |
+| [`@rhumb/flowchart`](packages/flowchart)           | Standard-aware shapes, text placement, port planning, edge routes, decision branches, preparation returns and crossings |
+| [`@rhumb/export`](packages/export)                 | Deterministic SVG serialization and browser PNG export primitives                                                       |
+| [`@rhumb/engine`](packages/engine)                 | The high-level `DiagramEngine` that connects all stages                                                                 |
+| [`apps/web`](apps/web)                             | React/Vite editor: persistence, profile editing, language and theme, export actions                                     |
 
 <div align="center">
   <h2 id="development">Development</h2>

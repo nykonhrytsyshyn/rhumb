@@ -39,7 +39,7 @@ const STORE = [
   "Confirm --> Done([Email receipt])",
 ].join("\n");
 
-const LOOPS = [
+const RETURNS = [
   "flowchart TD",
   'A(["Start"]) --> B[/"Input<br/>N"/]',
   'B --> C{{"From i = 0 to N - 1"}}',
@@ -272,7 +272,7 @@ describe("FlowchartRenderer", () => {
     expect(rects(transparent.svg)).toHaveLength(0);
   });
 
-  it("draws loop headers with the return on one corner and the exit on the other", async () => {
+  it("draws a preparation block with the return on one corner and the exit on the other", async () => {
     const { nodes } = await render(
       0,
       [
@@ -318,7 +318,7 @@ describe("FlowchartRenderer", () => {
   });
 
   it("keeps a straight run next to every arrowhead and block exit", async () => {
-    const layout = await renderWithLayout(LOOPS);
+    const layout = await renderWithLayout(RETURNS);
     const stub = profileAt(0).line.stub * 4;
 
     for (const points of layout.edges.values()) {
@@ -335,9 +335,9 @@ describe("FlowchartRenderer", () => {
   });
 
   it("keeps lines clear of the blocks they pass", async () => {
-    const layout = await renderWithLayout(LOOPS);
+    const layout = await renderWithLayout(RETURNS);
     const clearance = profileAt(0).spacing.clearance * 4;
-    const diagram = new FlowchartParser().parse(LOOPS);
+    const diagram = new FlowchartParser().parse(RETURNS);
     for (const edge of diagram.edges) {
       const points = layout.edges.get(edge.id) ?? [];
 
@@ -412,8 +412,8 @@ describe("FlowchartRenderer", () => {
     expect(String(vertical?.attrs.d)).not.toContain("A");
   });
 
-  it("arches the line that crosses a loop body", async () => {
-    const { nodes } = await render(0, LOOPS);
+  it("arches the line that crosses a repeated section", async () => {
+    const { nodes } = await render(0, RETURNS);
     const arched = edgePaths(nodes).filter((path) =>
       String(path.attrs.d).includes("A"),
     );

@@ -8,7 +8,7 @@ import {
   svgNode,
 } from "@rhumb/kernel";
 
-/** Elongated hexagon for loop headers and initialization. */
+/** Elongated hexagon: preparation of an action, such as initialization. */
 export class PreparationShape extends Shape {
   private static readonly CORNER_RATIO = 0.25;
 

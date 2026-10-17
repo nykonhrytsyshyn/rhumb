@@ -86,10 +86,10 @@
       ]
     }
   },
-  "loop": {
+  "preparation": {
     "entry": "top",
-    "body": "bottom",
-    "back": "left",
+    "repeat": "bottom",
+    "return": "left",
     "exit": "right"
   }
 }

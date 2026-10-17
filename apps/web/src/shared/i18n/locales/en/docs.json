@@ -13,7 +13,7 @@
     "terminator": "Start or end",
     "decision": "Decision",
     "io": "Input or output",
-    "preparation": "Preparation, loop header",
+    "preparation": "Preparation",
     "predefined": "Predefined process",
     "connector": "Connector"
   },
@@ -28,9 +28,9 @@
     "title": "Decisions",
     "text": "Label the branches Yes and No. The profile decides which corner each one leaves from; unlabeled branches use the free corners in order."
   },
-  "loops": {
-    "title": "Loops",
-    "text": "A preparation block that the flow returns to becomes a loop header: the body leaves from the bottom, the return enters one side corner and the exit leaves from the opposite one."
+  "preparation": {
+    "title": "Returning to a preparation block",
+    "text": "When the flow comes back to a preparation block, the line into the repeated section leaves from the bottom, returning lines enter one side corner and the other lines leave from the opposite one."
   },
   "standards": {
     "title": "Standards",

@@ -96,8 +96,8 @@ describe("PortPlanner", () => {
     expect(sides.get("e1")?.fromSide).toBe(decisionSides("LR").no);
   });
 
-  describe("loops", () => {
-    const loop = [
+  describe("returns to a preparation block", () => {
+    const cycle = [
       "flowchart TD",
       "A --> L{{for i}}",
       "L --> B[body]",
@@ -105,21 +105,21 @@ describe("PortPlanner", () => {
       "L --> C[after]",
     ].join("\n");
 
-    it("sends the body from the bottom and the exit from the side", () => {
-      const sides = plan(loop);
+    it("sends the repeated section from the bottom and the exit from the side", () => {
+      const sides = plan(cycle);
 
       expect(sides.get("e1")?.fromSide).toBe(Side.Bottom);
       expect(sides.get("e3")?.fromSide).toBe(Side.Right);
     });
 
     it("enters from the top and returns into the opposite side corner", () => {
-      const sides = plan(loop);
+      const sides = plan(cycle);
 
       expect(sides.get("e0")?.toSide).toBe(Side.Top);
       expect(sides.get("e2")?.toSide).toBe(Side.Left);
     });
 
-    it("handles a loop whose body branches and returns from several blocks", () => {
+    it("handles a repeated section that branches and returns from several blocks", () => {
       const sides = plan(
         [
           "flowchart TD",
@@ -143,8 +143,8 @@ describe("PortPlanner", () => {
       expect(sides.get("e0")?.toSide).toBe(Side.Top);
     });
 
-    it("rotates loop sides for a left-to-right flow", () => {
-      const sides = plan(loop.replace("TD", "LR"), "LR");
+    it("rotates preparation sides for a left-to-right flow", () => {
+      const sides = plan(cycle.replace("TD", "LR"), "LR");
 
       expect(sides.get("e0")?.toSide).toBe(Side.Left);
       expect(sides.get("e1")?.fromSide).toBe(Side.Right);

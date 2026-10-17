@@ -45,7 +45,7 @@ const GROUP_PATHS: Readonly<Record<string, readonly string[]>> = {
   text: ["font."],
   blocks: ["shapes."],
   branches: ["decision."],
-  loops: ["loop."],
+  preparation: ["preparation."],
 };
 
 function groupInvalid(
@@ -286,20 +286,20 @@ export function ProfileFields({
       </Group>
 
       <Group
-        id="loops"
-        title={t("editor.config.groups.loops")}
+        id="preparation"
+        title={t("editor.config.groups.preparation")}
         invalid={groupInvalid(
-          "loops",
+          "preparation",
           parsed,
-          "editor.config.errors.loopSides",
+          "editor.config.errors.preparationSides",
         )}
       >
         {[
-          generalError("editor.config.errors.loopSides"),
-          choice("loop.entry", "editor.config.fields.entry"),
-          choice("loop.body", "editor.config.fields.body"),
-          choice("loop.back", "editor.config.fields.back"),
-          choice("loop.exit", "editor.config.fields.exit"),
+          generalError("editor.config.errors.preparationSides"),
+          choice("preparation.entry", "editor.config.fields.entry"),
+          choice("preparation.repeat", "editor.config.fields.repeat"),
+          choice("preparation.return", "editor.config.fields.return"),
+          choice("preparation.exit", "editor.config.fields.exit"),
         ]}
       </Group>
     </Accordion>

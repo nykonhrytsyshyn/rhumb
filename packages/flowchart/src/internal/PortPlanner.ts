@@ -35,9 +35,9 @@ export class PortPlanner {
     const nodes = new Map<NodeId, DiagramNode>(
       diagram.nodes.map((node) => [node.id, node]),
     );
-    const loopHeaders = new Set<NodeId>(
+    const returnTargets = new Set<NodeId>(
       diagram.nodes
-        .filter((node) => PortPlanner.isLoopHeader(node, diagram, graph))
+        .filter((node) => PortPlanner.isReturnTarget(node, diagram, graph))
         .map((node) => node.id),
     );
 
@@ -48,8 +48,8 @@ export class PortPlanner {
       const sides: ReadonlyMap<EdgeId, Side> =
         node.kind === "decision"
           ? this.planDecision(outgoing)
-          : loopHeaders.has(node.id)
-            ? this.planLoopExits(outgoing, graph)
+          : returnTargets.has(node.id)
+            ? this.planPreparationExits(outgoing, graph)
             : new Map(outgoing.map((edge) => [edge.id, this.flowOut()]));
 
       sides.forEach((side, edgeId) => exits.set(edgeId, side));
@@ -62,15 +62,15 @@ export class PortPlanner {
 
       result.set(edge.id, {
         fromSide: exits.get(edge.id) ?? this.flowOut(),
-        toSide: this.entrySide(edge, target, loopHeaders, graph),
+        toSide: this.entrySide(edge, target, returnTargets, graph),
       });
     }
 
     return result;
   }
 
-  /** A preparation block that some path leads back to is a loop header. */
-  private static isLoopHeader(
+  /** A preparation block that some path leads back to is a return target. */
+  private static isReturnTarget(
     node: DiagramNode,
     diagram: FlowchartDiagram,
     graph: FlowGraph,
@@ -97,7 +97,7 @@ export class PortPlanner {
   private entrySide(
     edge: DiagramEdge,
     target: DiagramNode | undefined,
-    loopHeaders: ReadonlySet<NodeId>,
+    returnTargets: ReadonlySet<NodeId>,
     graph: FlowGraph,
   ): Side {
     if (target === undefined) {
@@ -108,32 +108,32 @@ export class PortPlanner {
       return this.orientation.mapProfileSide(this.profile.decision.entry);
     }
 
-    if (loopHeaders.has(target.id)) {
-      const { loop } = this.profile;
+    if (returnTargets.has(target.id)) {
+      const { preparation } = this.profile;
       const returning =
         edge.from !== target.id && graph.reaches(target.id, edge.from);
 
       return this.orientation.mapProfileSide(
-        returning ? loop.back : loop.entry,
+        returning ? preparation.return : preparation.entry,
       );
     }
     return this.flowIn();
   }
 
-  /** The edge that leads into the loop body leaves the bottom, others exit. */
-  private planLoopExits(
+  /** Lines into the repeated section leave one side, all others exit. */
+  private planPreparationExits(
     outgoing: readonly DiagramEdge[],
     graph: FlowGraph,
   ): Map<EdgeId, Side> {
-    const { loop } = this.profile;
-    const body = this.orientation.mapProfileSide(loop.body);
-    const exit = this.orientation.mapProfileSide(loop.exit);
+    const { preparation } = this.profile;
+    const repeat = this.orientation.mapProfileSide(preparation.repeat);
+    const exit = this.orientation.mapProfileSide(preparation.exit);
 
     return new Map(
       outgoing.map((edge) => [
         edge.id,
         edge.to !== edge.from && graph.reaches(edge.to, edge.from)
-          ? body
+          ? repeat
           : exit,
       ]),
     );
