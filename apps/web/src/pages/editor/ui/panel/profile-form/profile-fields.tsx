@@ -188,6 +188,18 @@ export function ProfileFields({
             onChange={onChange}
           />,
           <ChoiceField
+            key="line.arrowMerge"
+            path="line.arrowMerge"
+            label={t("editor.config.fields.arrowMerge")}
+            value={readField(values, "line.arrowMerge")}
+            options={[
+              { value: "true", label: t("editor.config.arrowMerge.true") },
+              { value: "false", label: t("editor.config.arrowMerge.false") },
+            ]}
+            disabled={disabled}
+            onChange={onChange}
+          />,
+          <ChoiceField
             key="line.labelStyle"
             path="line.labelStyle"
             label={t("editor.config.fields.labelStyle")}

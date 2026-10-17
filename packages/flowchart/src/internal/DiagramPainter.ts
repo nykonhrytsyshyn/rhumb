@@ -14,6 +14,7 @@ import {
 
 import type { Appearance, RenderedDiagram } from "../api/render/types";
 import { CrossingFinder, type Hop, type RoutedEdge } from "./EdgeCrossings";
+import { joinMergingLines } from "./EdgeMerges";
 import { buildEdgePath } from "./EdgePath";
 import type { Metrics } from "./Metrics";
 
@@ -47,9 +48,10 @@ export class DiagramPainter {
   public paint(
     diagram: FlowchartDiagram,
     shapes: ReadonlyMap<NodeId, Shape>,
-    layout: LayoutResult,
+    routed: LayoutResult,
   ): RenderedDiagram {
     const { margin } = this.metrics;
+    const layout = this.withJoinedMerges(diagram, routed);
     const labels = this.edgeLabels(diagram, layout);
     const extent = this.extentOf(layout, labels);
     const width = roundTo(extent.maxX - extent.minX + margin * 2);
@@ -113,6 +115,27 @@ export class DiagramPainter {
         [arrow],
       ),
     ]);
+  }
+
+  /** Stops lines that merge into another one where they meet it. */
+  private withJoinedMerges(
+    diagram: FlowchartDiagram,
+    layout: LayoutResult,
+  ): LayoutResult {
+    if (!this.metrics.mergeArrows) {
+      return layout;
+    }
+
+    const lines = diagram.edges.flatMap((edge) => {
+      const points = layout.edges.get(edge.id);
+
+      return points === undefined
+        ? []
+        : [{ id: edge.id, to: edge.to, arrow: edge.arrow, points }];
+    });
+    const joined = joinMergingLines(lines, this.metrics.arrowLength * 1.5);
+
+    return { ...layout, edges: new Map([...layout.edges, ...joined]) };
   }
 
   private edgeLayer(diagram: FlowchartDiagram, layout: LayoutResult): SvgNode {

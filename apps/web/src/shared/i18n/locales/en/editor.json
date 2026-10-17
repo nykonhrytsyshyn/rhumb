@@ -57,6 +57,7 @@
       "repeat": "Repeated section side",
       "return": "Return side",
       "exit": "Exit side",
+      "arrowMerge": "Arrows where lines merge",
       "labelStyle": "Line labels"
     },
     "arrow": {
@@ -79,6 +80,10 @@
       "decisionSides": "Entry, yes and no must fit on different sides",
       "preparationSides": "Entry, repeated section, return and exit must fit on different sides",
       "invalid": "Invalid value"
+    },
+    "arrowMerge": {
+      "true": "Shown",
+      "false": "Hidden"
     },
     "labelStyleOptions": {
       "beside": "Beside the line",

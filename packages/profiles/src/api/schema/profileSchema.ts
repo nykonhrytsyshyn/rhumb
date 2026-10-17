@@ -82,6 +82,8 @@ export const profileSchema = z.preprocess(
           style: z.enum(["open", "filled"]),
           length: nonnegative,
           width: nonnegative,
+          /** Whether a line that joins another one ends in its own arrowhead. */
+          merge: z.boolean().default(true),
         }),
       }),
       font: z.object({

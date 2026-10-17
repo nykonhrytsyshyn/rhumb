@@ -67,6 +67,7 @@ export function toFormState(profile: StandardProfile): FormState {
       arrowStyle: profile.line.arrow.style,
       arrowLength: String(profile.line.arrow.length),
       arrowWidth: String(profile.line.arrow.width),
+      arrowMerge: String(profile.line.arrow.merge),
     },
     font: {
       family: profile.font.family,
@@ -202,6 +203,7 @@ export function parseForm(state: FormState, base: StandardProfile): ParsedForm {
         style: text("line.arrowStyle"),
         length: number("line.arrowLength"),
         width: number("line.arrowWidth"),
+        merge: text("line.arrowMerge") === "true",
       },
     },
     font: {

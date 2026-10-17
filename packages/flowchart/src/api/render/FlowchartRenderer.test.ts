@@ -421,6 +421,47 @@ describe("FlowchartRenderer", () => {
     expect(arched).toHaveLength(0);
   });
 
+  describe("lines that merge", () => {
+    const MERGE = [
+      "flowchart TD",
+      "A{ok?} -->|Yes| B[work]",
+      "A -->|No| C[skip]",
+      "B --> D[end]",
+      "C --> D",
+    ].join("\n");
+
+    async function endsOf(merge: boolean) {
+      const profile = profileAt(0);
+      const result = await new FlowchartRenderer({
+        profile: {
+          ...profile,
+          line: { ...profile.line, arrow: { ...profile.line.arrow, merge } },
+        },
+        layoutEngine: new ElkLayoutEngine(new ELK()),
+        measurer: new ApproximateTextMeasurer(),
+      }).render(new FlowchartParser().parse(MERGE));
+      const paths = edgePaths(descendants(result.svg));
+
+      return paths
+        .filter((path) =>
+          ["e2", "e3"].includes(String(path.attrs["data-edge"])),
+        )
+        .map((path) => cornersOf(path).at(-1)?.join(","));
+    }
+
+    it("ends the shorter line on the one it joins, with its own arrowhead", async () => {
+      const [first, second] = await endsOf(true);
+
+      expect(first).not.toBe(second);
+    });
+
+    it("lets both lines run to the block when merge arrows are off", async () => {
+      const [first, second] = await endsOf(false);
+
+      expect(first).toBe(second);
+    });
+  });
+
   it("draws no arches when nothing crosses", async () => {
     const { nodes } = await render(0, SOURCE);
 
