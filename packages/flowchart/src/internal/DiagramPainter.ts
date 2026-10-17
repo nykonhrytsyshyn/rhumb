@@ -126,7 +126,11 @@ export class DiagramPainter {
         ? []
         : [{ id: edge.id, to: edge.to, arrow: edge.arrow, points }];
     });
-    const joined = joinMergingLines(lines, this.metrics.arrowLength * 1.5);
+    const joined = joinMergingLines(
+      lines,
+      this.metrics.arrowLength * 1.5,
+      this.metrics.lineSpacing * 4,
+    );
 
     return { ...layout, edges: new Map([...layout.edges, ...joined]) };
   }
