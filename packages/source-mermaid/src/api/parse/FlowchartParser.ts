@@ -13,9 +13,6 @@ import { SHAPE_DELIMITERS } from "../../internal/shapes";
 
 const HEADER = /^(?:flowchart|graph)(?:\s+(TD|TB|BT|RL|LR))?$/;
 const NODE_ID = /[\p{L}\p{N}_]+/u;
-const LABELLED_LINK =
-  /(--|==|-\.)\s+(.+?)\s+(-{2,}>|-{3,}|={2,}>|={3,}|\.+->|\.+-)/;
-const PLAIN_LINK = /(-{2,}>|-{3,}|={2,}>|={3,}|-\.+->|-\.+-)/;
 const LINK_LABEL = /\|([^|]*)\|/;
 
 interface NodeRef {
@@ -63,7 +60,8 @@ export class FlowchartParser implements DiagramParser<FlowchartDiagram> {
     const result: { text: string; line: number }[] = [];
 
     source.split(/\r?\n/).forEach((raw, index) => {
-      const withoutComment = raw.replace(/%%.*$/, "");
+      const commentAt = raw.indexOf("%%");
+      const withoutComment = commentAt === -1 ? raw : raw.slice(0, commentAt);
 
       for (const part of withoutComment.split(";")) {
         const text = part.trim();
@@ -174,25 +172,21 @@ export class FlowchartParser implements DiagramParser<FlowchartDiagram> {
   private static parseLink(scanner: LineScanner): LinkToken {
     scanner.skipSpaces();
 
-    const labelled = scanner.match(LABELLED_LINK);
+    const labelled = scanner.matchLabelled();
 
     if (labelled !== undefined) {
-      const opener = labelled[1] ?? "--";
-      const closer = labelled[3] ?? "-->";
-
       return {
-        ...FlowchartParser.describe(opener, closer),
-        label: FlowchartParser.normalizeLabel(labelled[2] ?? ""),
+        ...FlowchartParser.describe(labelled.opener, labelled.closer),
+        label: FlowchartParser.normalizeLabel(labelled.label),
       };
     }
 
-    const plain = scanner.match(PLAIN_LINK);
+    const token = scanner.matchLink();
 
-    if (plain === undefined) {
+    if (token === undefined) {
       scanner.fail("Expected a link such as -->");
     }
 
-    const token = plain[1] ?? "-->";
     const described = FlowchartParser.describe(token, token);
     const label = scanner.match(LINK_LABEL);
 
