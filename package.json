@@ -1,6 +1,6 @@
 {
   "name": "rhumb",
-  "version": "0.1.0",
+  "version": "26.10.1",
   "description": "Standard-conforming flowcharts from Mermaid-like text",
   "author": "Nykon (https://nykon.me)",
   "license": "MIT",
