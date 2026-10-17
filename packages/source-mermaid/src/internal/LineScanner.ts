@@ -23,7 +23,9 @@ export class LineScanner {
   }
 
   public skipSpaces(): void {
-    while (this.text.charAt(this.position) === " ") this.position += 1;
+    while (this.text.charAt(this.position) === " ") {
+      this.position += 1;
+    }
   }
 
   public startsWith(token: string): boolean {
@@ -71,15 +73,21 @@ export class LineScanner {
     | undefined {
     const opener = LABELLED_OPENERS.find((token) => this.startsWith(token));
 
-    if (opener === undefined) return undefined;
+    if (opener === undefined) {
+      return undefined;
+    }
 
     const afterOpener = this.position + opener.length;
 
-    if (!LineScanner.isSpace(this.text, afterOpener)) return undefined;
+    if (!LineScanner.isSpace(this.text, afterOpener)) {
+      return undefined;
+    }
 
     let labelStart = afterOpener;
 
-    while (LineScanner.isSpace(this.text, labelStart)) labelStart += 1;
+    while (LineScanner.isSpace(this.text, labelStart)) {
+      labelStart += 1;
+    }
 
     for (let at = labelStart + 1; at < this.text.length; at += 1) {
       if (

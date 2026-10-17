@@ -1,7 +1,7 @@
 import type { JSX, ReactNode } from "react";
 
 import { NODE_KINDS, type NodeKind } from "@rhumb/kernel";
-import { LABEL_STYLES } from "@rhumb/profiles";
+import { LABEL_STYLES, SIDE_CHOICES } from "@rhumb/profiles";
 
 import { type TranslateFn, useT } from "@shared/i18n";
 import type { TranslationKey } from "@shared/i18n";
@@ -26,8 +26,6 @@ export interface ProfileFieldsProps {
   readonly onChange: (path: string, value: string) => void;
 }
 
-const SIDES = ["top", "right", "bottom", "left"] as const;
-
 const BLOCK_NAMES: Readonly<Record<NodeKind, TranslationKey>> = {
   process: "docs.blocks.process",
   terminator: "docs.blocks.terminator",
@@ -45,7 +43,7 @@ const GROUP_PATHS: Readonly<Record<string, readonly string[]>> = {
   text: ["font."],
   blocks: ["shapes."],
   branches: ["decision."],
-  loops: ["loop."],
+  preparation: ["preparation."],
 };
 
 function groupInvalid(
@@ -122,7 +120,7 @@ export function ProfileFields({
     return key === undefined ? undefined : t(key);
   };
 
-  const sides = SIDES.map((side) => ({
+  const sides = SIDE_CHOICES.map((side) => ({
     value: side,
     label: t(`editor.config.sides.${side}`),
   }));
@@ -185,6 +183,18 @@ export function ProfileFields({
             options={[
               { value: "open", label: t("editor.config.arrow.open") },
               { value: "filled", label: t("editor.config.arrow.filled") },
+            ]}
+            disabled={disabled}
+            onChange={onChange}
+          />,
+          <ChoiceField
+            key="line.arrowMerge"
+            path="line.arrowMerge"
+            label={t("editor.config.fields.arrowMerge")}
+            value={readField(values, "line.arrowMerge")}
+            options={[
+              { value: "true", label: t("editor.config.arrowMerge.true") },
+              { value: "false", label: t("editor.config.arrowMerge.false") },
             ]}
             disabled={disabled}
             onChange={onChange}
@@ -286,20 +296,20 @@ export function ProfileFields({
       </Group>
 
       <Group
-        id="loops"
-        title={t("editor.config.groups.loops")}
+        id="preparation"
+        title={t("editor.config.groups.preparation")}
         invalid={groupInvalid(
-          "loops",
+          "preparation",
           parsed,
-          "editor.config.errors.loopSides",
+          "editor.config.errors.preparationSides",
         )}
       >
         {[
-          generalError("editor.config.errors.loopSides"),
-          choice("loop.entry", "editor.config.fields.entry"),
-          choice("loop.body", "editor.config.fields.body"),
-          choice("loop.back", "editor.config.fields.back"),
-          choice("loop.exit", "editor.config.fields.exit"),
+          generalError("editor.config.errors.preparationSides"),
+          choice("preparation.entry", "editor.config.fields.entry"),
+          choice("preparation.repeat", "editor.config.fields.repeat"),
+          choice("preparation.return", "editor.config.fields.return"),
+          choice("preparation.exit", "editor.config.fields.exit"),
         ]}
       </Group>
     </Accordion>

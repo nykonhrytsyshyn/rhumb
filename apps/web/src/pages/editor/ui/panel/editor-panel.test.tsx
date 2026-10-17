@@ -97,7 +97,7 @@ describe("EditorPanel", () => {
     renderPanel();
     fireEvent.click(screen.getByRole("tab", { name: /Docs/ }));
     expect(await screen.findByText("Blocks")).toBeDefined();
-    expect(screen.getByText("Loops")).toBeDefined();
+    expect(screen.getByText("Returning to a preparation block")).toBeDefined();
 
     fireEvent.click(screen.getByRole("tab", { name: /Config/ }));
     expect(await screen.findByText("Standard")).toBeDefined();

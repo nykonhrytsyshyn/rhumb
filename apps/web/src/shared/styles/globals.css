@@ -31,6 +31,8 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+
+    font-variant-ligatures: none;
   }
 
   button:not(:disabled),

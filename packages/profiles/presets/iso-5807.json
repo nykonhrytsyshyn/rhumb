@@ -66,7 +66,7 @@
   "decision": {
     "entry": "top",
     "yes": {
-      "side": "left",
+      "side": "side",
       "labels": [
         "yes",
         "y",
@@ -76,7 +76,7 @@
       ]
     },
     "no": {
-      "side": "right",
+      "side": "side",
       "labels": [
         "no",
         "n",
@@ -86,10 +86,10 @@
       ]
     }
   },
-  "loop": {
+  "preparation": {
     "entry": "top",
-    "body": "bottom",
-    "back": "left",
+    "repeat": "bottom",
+    "return": "left",
     "exit": "right"
   }
 }

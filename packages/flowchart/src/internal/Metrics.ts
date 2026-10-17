@@ -17,6 +17,7 @@ export class Metrics {
   public readonly dash: readonly number[];
   public readonly arrowLength: number;
   public readonly arrowWidth: number;
+  public readonly mergeArrows: boolean;
   public readonly arrowStyle: StandardProfile["line"]["arrow"]["style"];
   public readonly margin: number;
   public readonly textStyle: TextStyle;
@@ -40,6 +41,7 @@ export class Metrics {
     this.arrowLength = profile.line.arrow.length * scale;
     this.arrowWidth = profile.line.arrow.width * scale;
     this.arrowStyle = profile.line.arrow.style;
+    this.mergeArrows = profile.line.arrow.merge;
     this.margin = profile.grid * scale;
     this.textStyle = {
       family: profile.font.family,

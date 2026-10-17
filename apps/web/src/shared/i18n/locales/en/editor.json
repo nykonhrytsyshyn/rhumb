@@ -25,7 +25,7 @@
       "text": "Text",
       "blocks": "Block sizes",
       "branches": "Decision branches",
-      "loops": "Loops"
+      "preparation": "Preparation"
     },
     "fields": {
       "grid": "Grid step",
@@ -54,9 +54,10 @@
       "yesLabels": "Yes labels",
       "noLabels": "No labels",
       "labelsHint": "Separate with commas",
-      "body": "Body side",
-      "back": "Return side",
+      "repeat": "Repeated section side",
+      "return": "Return side",
       "exit": "Exit side",
+      "arrowMerge": "Arrows where lines merge",
       "labelStyle": "Line labels"
     },
     "arrow": {
@@ -67,16 +68,22 @@
       "top": "Top",
       "right": "Right",
       "bottom": "Bottom",
-      "left": "Left"
+      "left": "Left",
+      "side": "Left or right (automatic)",
+      "vertical": "Top or bottom (automatic)"
     },
     "errors": {
       "number": "Enter a number",
       "positive": "Must be greater than zero",
       "notNegative": "Must not be negative",
       "required": "This field is required",
-      "decisionSides": "Entry, yes and no must use different sides",
-      "loopSides": "Entry, body, return and exit must use different sides",
+      "decisionSides": "Entry, yes and no must fit on different sides",
+      "preparationSides": "Entry, repeated section, return and exit must fit on different sides",
       "invalid": "Invalid value"
+    },
+    "arrowMerge": {
+      "true": "Shown",
+      "false": "Hidden"
     },
     "labelStyleOptions": {
       "beside": "Beside the line",
