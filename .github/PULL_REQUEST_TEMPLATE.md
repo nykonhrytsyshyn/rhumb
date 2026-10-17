@@ -1,11 +1,21 @@
 ### Description
 
 <!--
-Thank you for your contribution to this project! ❤️
+Thank you for your contribution to Rhumb! ❤️
 
-Please provide a clear and concise description of the proposed change in this
-pull request.
+What changed, and why? Link related issues (e.g. "Closes #123").
+Pull requests target `dev`. Never target `release`.
 -->
+
+### Type of change
+
+<!-- Keep the lines that apply. -->
+
+- [ ] Bug fix
+- [ ] New or changed source syntax
+- [ ] Rendering, routing or profile change
+- [ ] Editor (UI) change
+- [ ] Documentation or tooling
 
 ### Acknowledgement
 

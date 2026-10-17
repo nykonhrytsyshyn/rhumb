@@ -1,0 +1,149 @@
+# ============================================================================ #
+#                             Post-Release Workflow                            #
+# ============================================================================ #
+# Runs on every push to release, i.e. right after the release PR is merged.    #
+#                                                                              #
+# Two independent jobs:                                                        #
+#  - tag-release: if the version on release has no tag yet, cuts the annotated #
+#    tag "vYY.M.N" on the pushed commit and opens a DRAFT GitHub Release with  #
+#    generated notes.                                                          #
+#  - sync-dev: merges release back into dev so the merge commit and the        #
+#    version-bump commit never have to be reconciled by hand. Requires dev's   #
+#    branch protection to allow this workflow's token to push directly.        #
+#                                                                              #
+# Secrets:                                                                     #
+#   - GITHUB_TOKEN: Used to tag and to create the draft release. Provided      #
+#                   automatically by GitHub Actions.                           #
+#   - SYNC_PAT:     Personal Access Token with contents access, used to merge  #
+#                   release back into dev (and so that the push to dev         #
+#                   triggers the follow-up workflows).                         #
+#                                                                              #
+# See: RELEASING.md - for more details on the release process.                 #
+# ============================================================================ #
+
+name: "Releasing: Post-Release"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["release"]
+
+concurrency:
+  group: "post-release"
+  cancel-in-progress: false
+
+permissions:
+  contents: "read"
+
+defaults:
+  run:
+    shell: "bash"
+
+jobs:
+  tag-release:
+    name: "Tag & Draft Release"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+
+    permissions:
+      contents: "write"
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: "Setup: Checkout repository"
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: "Setup: Git identity"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: "Run: Read version"
+        id: "info"
+        run: |
+          VERSION=$(node .github/scripts/release.ts current)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: "Run: Create tag"
+        env:
+          TAG: ${{ steps.info.outputs.tag }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists - skipping."
+            exit 0
+          fi
+
+          git tag --annotate "$TAG" --message "Rhumb $TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
+
+      - name: "Run: Create draft release"
+        env:
+          VERSION: ${{ steps.info.outputs.version }}
+          TAG: ${{ steps.info.outputs.tag }}
+        run: |
+          if gh release list --limit 200 --json tagName | jq -e --arg tag "$TAG" 'any(.[]; .tagName == $tag)' >/dev/null; then
+            echo "Release $TAG already exists - skipping."
+            exit 0
+          fi
+
+          PREVIOUS=$(node .github/scripts/release.ts previous "$VERSION")
+          ARGS=(-f "tag_name=$TAG")
+          if [ -n "$PREVIOUS" ]; then
+            ARGS+=(-f "previous_tag_name=$PREVIOUS")
+          fi
+
+          if ! gh api --method POST "repos/$GITHUB_REPOSITORY/releases/generate-notes" "${ARGS[@]}" --jq '.body' > /tmp/generated.md; then
+            echo "_Release notes could not be generated - write them by hand._" > /tmp/generated.md
+          fi
+
+          {
+            echo "Rhumb **$TAG** - live at <https://rhumb.nykon.me>."
+            echo
+            echo "### Known limitations"
+            echo
+            echo "_Fill in before publishing, or delete this section._"
+            echo
+            cat /tmp/generated.md
+          } > /tmp/release-notes.md
+
+          gh release create "$TAG" --draft --verify-tag \
+            --title "Rhumb $TAG" \
+            --notes-file /tmp/release-notes.md
+
+  sync-dev:
+    name: "Sync Dev"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+
+    permissions:
+      contents: "write"
+
+    steps:
+      - name: "Setup: Checkout repository"
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: "Setup: Git identity"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: "Run: Merge release into dev"
+        run: |
+          git fetch origin dev release
+          git checkout -B dev origin/dev
+
+          if ! git merge origin/release --message "chore: sync release into dev [ci-skip]"; then
+            echo "::error::Merging release into dev produced conflicts - resolve them manually with a regular PR."
+            exit 1
+          fi
+
+          git push origin dev
