@@ -147,14 +147,16 @@ function parseManifestVersion(json: string, source: string): string {
 
 function latestKnownVersion(baseRef: string): CalVer | null {
   const candidates = releasedVersions();
-
   const baseVersion = parseCalVer(
     parseManifestVersion(
       git("show", `${baseRef}:package.json`),
       `${baseRef}:package.json`,
     ),
   );
-  if (baseVersion !== null) candidates.push(baseVersion);
+
+  if (baseVersion !== null) {
+    candidates.push(baseVersion);
+  }
 
   return (
     candidates.reduce<CalVer | null>(
