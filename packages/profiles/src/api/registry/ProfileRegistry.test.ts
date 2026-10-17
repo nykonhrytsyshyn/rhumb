@@ -9,6 +9,24 @@ describe("ProfileRegistry", () => {
     expect(registry.list().length).toBeGreaterThanOrEqual(2);
   });
 
+  it("marks exactly one built-in profile as the default", () => {
+    const defaults = ProfileRegistry.withBuiltins()
+      .list()
+      .filter((profile) => profile.default);
+
+    expect(defaults).toHaveLength(1);
+  });
+
+  it("treats a profile without the default flag as not default", () => {
+    const [first] = ProfileRegistry.withBuiltins().list();
+    if (first === undefined) return;
+    const rest = Object.fromEntries(
+      Object.entries(first).filter(([key]) => key !== "default"),
+    );
+
+    expect(new ProfileRegistry().register(rest).default).toBe(false);
+  });
+
   it("returns a registered profile by id", () => {
     const registry = ProfileRegistry.withBuiltins();
     const [first] = registry.list();
@@ -56,6 +74,30 @@ describe("ProfileRegistry", () => {
     expect(registered.spacing.line).toBe(3);
     expect(registered.line.jump).toBe(2);
     expect(registered.line.stub).toBe(6);
+  });
+
+  it("defaults the label style and rejects an unknown one", () => {
+    const [first] = ProfileRegistry.withBuiltins().list();
+    if (first === undefined) return;
+    const without = (value: object, ...keys: string[]) =>
+      Object.fromEntries(
+        Object.entries(value).filter(([key]) => !keys.includes(key)),
+      );
+
+    const legacy = new ProfileRegistry().register({
+      ...first,
+      id: "legacy",
+      line: without(first.line, "labelStyle"),
+    });
+
+    expect(legacy.line.labelStyle).toBe("beside");
+    expect(() =>
+      new ProfileRegistry().register({
+        ...first,
+        id: "odd",
+        line: { ...first.line, labelStyle: "diagonal" },
+      }),
+    ).toThrow(/labelStyle/);
   });
 
   it("lists readable issues with their paths", () => {

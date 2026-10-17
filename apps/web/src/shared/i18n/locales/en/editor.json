@@ -10,7 +10,78 @@
     "download": "Download profile",
     "downloadHint": "Save the current profile as JSON to use it as a template.",
     "loadFailed": "Could not load the profile",
-    "loaded": "Profile loaded: {title}"
+    "loaded": "Profile loaded: {title}",
+    "custom": "Custom",
+    "lockedHint": "Built-in standards are read-only. Choose Custom to change the values.",
+    "customHint": "Changes are drawn right away. Save them to keep them after a reload.",
+    "save": "Save",
+    "saved": "Saved",
+    "reset": "Reset changes",
+    "unsaved": "Unsaved changes",
+    "unit": "mm",
+    "groups": {
+      "page": "Page and spacing",
+      "lines": "Lines and arrows",
+      "text": "Text",
+      "blocks": "Block sizes",
+      "branches": "Decision branches",
+      "loops": "Loops"
+    },
+    "fields": {
+      "grid": "Grid step",
+      "padding": "Text padding",
+      "nodeSpacing": "Between blocks",
+      "layerSpacing": "Between rows",
+      "clearance": "Clearance around blocks",
+      "lineSpacing": "Between parallel lines",
+      "lineWidth": "Line width",
+      "thickWidth": "Thick line width",
+      "dashLength": "Dash length",
+      "dashGap": "Dash gap",
+      "jump": "Crossing arch radius",
+      "stub": "Straight run at arrows",
+      "arrowStyle": "Arrowhead",
+      "arrowLength": "Arrow length",
+      "arrowWidth": "Arrow width",
+      "fontFamily": "Font family",
+      "fontSize": "Font size",
+      "lineHeight": "Line height",
+      "minWidth": "Min width",
+      "minHeight": "Min height",
+      "entry": "Entry side",
+      "yes": "Yes branch side",
+      "no": "No branch side",
+      "yesLabels": "Yes labels",
+      "noLabels": "No labels",
+      "labelsHint": "Separate with commas",
+      "body": "Body side",
+      "back": "Return side",
+      "exit": "Exit side",
+      "labelStyle": "Line labels"
+    },
+    "arrow": {
+      "open": "Open",
+      "filled": "Filled"
+    },
+    "sides": {
+      "top": "Top",
+      "right": "Right",
+      "bottom": "Bottom",
+      "left": "Left"
+    },
+    "errors": {
+      "number": "Enter a number",
+      "positive": "Must be greater than zero",
+      "notNegative": "Must not be negative",
+      "required": "This field is required",
+      "decisionSides": "Entry, yes and no must use different sides",
+      "loopSides": "Entry, body, return and exit must use different sides",
+      "invalid": "Invalid value"
+    },
+    "labelStyleOptions": {
+      "beside": "Beside the line",
+      "inline": "On the line"
+    }
   },
   "samples": {
     "algorithm": "Sum with loops",
@@ -24,5 +95,32 @@
     "copied": "Copied",
     "transparent": "Transparent background",
     "failed": "Export failed"
+  },
+  "library": {
+    "loading": "Loading…",
+    "empty": "Nothing saved yet. Save the current diagram to find it here later.",
+    "namePlaceholder": "Name of the diagram",
+    "nameLabel": "Name",
+    "saveNew": "Save as new",
+    "update": "Update “{name}”",
+    "search": "Search saved diagrams",
+    "noMatches": "No diagrams match your search.",
+    "open": "Open {name}",
+    "current": "Open now",
+    "rename": "Rename",
+    "renameLabel": "New name",
+    "duplicate": "Duplicate",
+    "copyName": "{name} (copy)",
+    "download": "Download source",
+    "delete": "Delete",
+    "deleteTitle": "Delete “{name}”?",
+    "deleteText": "The diagram will be removed from this browser. This cannot be undone.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete",
+    "updated": "Updated {date}",
+    "actions": "Actions for {name}",
+    "previewFailed": "Cannot draw this diagram",
+    "untitled": "Untitled diagram",
+    "storageFailed": "The browser storage did not work"
   }
 }

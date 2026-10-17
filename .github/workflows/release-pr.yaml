@@ -1,0 +1,207 @@
+# ============================================================================ #
+#                              Release PR Workflow                             #
+# ============================================================================ #
+# Keeps a single DRAFT "Release vYY.M.N" pull request up to date against       #
+# release. The PR is a derived artifact - it is rebuilt from scratch, never    #
+# patched:                                                                     #
+#                                                                              #
+#   release-candidate = dev HEAD + one commit that sets the next calendar      #
+#                       version (YY.M.N) in the root and every workspace       #
+#                       package.json                                           #
+#                                                                              #
+# The next version is a pure function of (existing vYY.M.N tags, version on    #
+# release, today's UTC date), see .github/scripts/release.ts. It is recomputed #
+# on every push to dev AND once a day, so a PR that sits open across a month   #
+# boundary is moved to the new month (YY.M+1.1) without anyone touching it.    #
+#                                                                              #
+# Rules:                                                                       #
+#  - Nothing to release (dev and release have identical trees) -> an open PR   #
+#    is closed and its branch deleted.                                         #
+#  - The candidate changed (new commits on dev, new version) -> the PR is      #
+#    moved back to draft: "Ready for review" always refers to what you saw.    #
+#  - The branch is bot-owned and force-pushed. Never push to it by hand.       #
+#                                                                              #
+# Authentication:                                                              #
+#   - SYNC_PAT:     Preferred token with contents, pull-requests and issues    #
+#                   access. Pushes and PRs made with it trigger the pull       #
+#                   request workflows (CI, CodeQL, readiness) normally.        #
+#   - GITHUB_TOKEN: Fallback. Events caused by it do NOT trigger other         #
+#                   workflows, so the PR would get no checks. Also requires    #
+#                   "Allow GitHub Actions to create and approve pull requests" #
+#                   in repository settings.                                    #
+#                                                                              #
+# See: RELEASING.md - for more details on the release process.                 #
+# ============================================================================ #
+
+name: "Releasing: Release PR"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["dev"]
+  schedule:
+    # Runs every day at 0:15 AM UTC - picks up a month rollover
+    - cron: "15 0 * * *"
+
+concurrency:
+  group: "release-pr"
+  cancel-in-progress: false
+
+permissions:
+  contents: "read"
+
+defaults:
+  run:
+    shell: "bash"
+
+jobs:
+  release-pr:
+    name: "Release PR"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+
+    permissions:
+      contents: "write"
+      pull-requests: "write"
+      issues: "write"
+
+    env:
+      GH_TOKEN: ${{ secrets.SYNC_PAT || secrets.GITHUB_TOKEN }}
+      CANDIDATE: "release-candidate"
+
+    steps:
+      - name: "Setup: Checkout repository"
+        uses: actions/checkout@v7
+        with:
+          ref: "dev"
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.SYNC_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: "Setup: Git identity"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: "Run: Check release state"
+        id: "state"
+        run: |
+          if ! git merge-base --is-ancestor origin/release origin/dev; then
+            echo "::error::release contains commits that are not on dev. Merge release into dev first (the sync-dev job of release-post.yaml normally does this)."
+            exit 1
+          fi
+
+          if git diff --quiet origin/release origin/dev; then
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: "Run: Close release PR (nothing to release)"
+        if: steps.state.outputs.pending != 'true'
+        run: |
+          NUMBER=$(gh pr list --base release --head "$CANDIDATE" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$NUMBER" ]; then
+            gh pr close "$NUMBER" --delete-branch \
+              --comment "Closing: dev and release are identical, there is nothing to release."
+          fi
+          echo "Nothing to release." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: "Run: Build release candidate"
+        id: "candidate"
+        if: steps.state.outputs.pending == 'true'
+        run: |
+          VERSION=$(node .github/scripts/release.ts next --base origin/release)
+          PREVIOUS=$(node .github/scripts/release.ts previous "$VERSION")
+
+          git checkout -B "$CANDIDATE" origin/dev
+          node .github/scripts/release.ts bump "$VERSION"
+          git commit --all --allow-empty --message "chore(release): v$VERSION"
+
+          CHANGED=true
+          if git rev-parse --verify --quiet "origin/$CANDIDATE" >/dev/null &&
+             [ "$(git rev-parse "origin/$CANDIDATE^")" = "$(git rev-parse origin/dev)" ] &&
+             [ "$(git rev-parse "origin/$CANDIDATE^{tree}")" = "$(git rev-parse 'HEAD^{tree}')" ]; then
+            CHANGED=false
+          else
+            git push --force origin "$CANDIDATE"
+          fi
+
+          {
+            echo "version=$VERSION"
+            echo "previous=$PREVIOUS"
+            echo "changed=$CHANGED"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: "Run: Write pull request body"
+        if: steps.state.outputs.pending == 'true'
+        env:
+          VERSION: ${{ steps.candidate.outputs.version }}
+          PREVIOUS: ${{ steps.candidate.outputs.previous }}
+        run: |
+          TOTAL=$(git rev-list --count --no-merges origin/release..origin/dev)
+          {
+            echo "## Release v$VERSION"
+            echo
+            echo "Maintained automatically by the **Releasing: Release PR** workflow and rebuilt on every push to \`dev\` and once a day. Do not push to \`$CANDIDATE\`."
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Version | \`$VERSION\` |"
+            if [ -n "$PREVIOUS" ]; then
+              echo "| Previous release | \`$PREVIOUS\` |"
+            else
+              echo "| Previous release | none |"
+            fi
+            echo "| Commits | $TOTAL |"
+            echo
+            echo "### Changes"
+            echo
+            git log --no-merges --max-count=100 --format='- %s (`%h`)' origin/release..origin/dev
+            if [ "$TOTAL" -gt 100 ]; then
+              echo "- _... and $((TOTAL - 100)) more_"
+            fi
+            echo
+            echo "### Before merging"
+            echo
+            echo "- [ ] CI, CodeQL and **Releasing: Readiness** are green"
+            echo "- [ ] Mark the PR **Ready for review**"
+            echo "- [ ] Merge with a **merge commit** (not squash / rebase)"
+            echo
+            echo "Merging tags \`v$VERSION\`, opens a draft GitHub Release and syncs \`release\` back into \`dev\`. See [RELEASING.md]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/dev/RELEASING.md)."
+          } > /tmp/release-pr-body.md
+
+      - name: "Run: Create or update release PR"
+        if: steps.state.outputs.pending == 'true'
+        env:
+          VERSION: ${{ steps.candidate.outputs.version }}
+          CHANGED: ${{ steps.candidate.outputs.changed }}
+        run: |
+          gh label create "Release" --color "1f6feb" --description "Release pull request" --force
+          gh label create "Automated" --color "6e7781" --description "Created by automation" --force
+
+          EXISTING=$(gh pr list --base release --head "$CANDIDATE" --state open --json number,isDraft --jq '.[0] // empty')
+
+          if [ -z "$EXISTING" ]; then
+            gh pr create --draft --base release --head "$CANDIDATE" \
+              --title "Release v$VERSION" \
+              --body-file /tmp/release-pr-body.md \
+              --label "Release" --label "Automated"
+            echo "Opened draft release PR for v$VERSION." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          NUMBER=$(jq -r '.number' <<<"$EXISTING")
+          IS_DRAFT=$(jq -r '.isDraft' <<<"$EXISTING")
+
+          gh pr edit "$NUMBER" \
+            --title "Release v$VERSION" \
+            --body-file /tmp/release-pr-body.md \
+            --add-label "Release" --add-label "Automated"
+
+          if [ "$CHANGED" = "true" ] && [ "$IS_DRAFT" = "false" ]; then
+            gh pr ready "$NUMBER" --undo
+            gh pr comment "$NUMBER" \
+              --body "The release candidate changed (new commits on \`dev\` or a new version), so this PR was moved back to draft. Review it again and mark it **Ready for review**."
+          fi
+          echo "Updated release PR #$NUMBER for v$VERSION (changed: $CHANGED)." >> "$GITHUB_STEP_SUMMARY"

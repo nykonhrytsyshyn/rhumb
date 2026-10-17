@@ -115,3 +115,89 @@ describe("FlowchartParser", () => {
     );
   });
 });
+
+describe("FlowchartParser input hardening", () => {
+  const BUDGET_MS = 500;
+
+  function elapsed(source: string): number {
+    const start = Date.now();
+
+    try {
+      parser.parse(source);
+    } catch (error) {
+      if (!(error instanceof DiagramSyntaxError)) throw error;
+    }
+
+    return Date.now() - start;
+  }
+
+  it("strips comments in linear time even with many '%%' and a bare CR", () => {
+    expect(
+      elapsed(`flowchart TD\nA-->B ${"%%".repeat(20_000)}\r x`),
+    ).toBeLessThan(BUDGET_MS);
+  });
+
+  it("rejects a long run of spaces after a link opener in linear time", () => {
+    for (const tail of ["", "a"]) {
+      expect(
+        elapsed(`flowchart TD\nA --${" ".repeat(50_000)}${tail}`),
+      ).toBeLessThan(BUDGET_MS);
+    }
+  });
+
+  it("rejects long runs of dots, dashes and equals signs in linear time", () => {
+    const runs = [".", "-", "=", "-.", ". "].map((unit) => unit.repeat(50_000));
+
+    for (const run of runs) {
+      expect(elapsed(`flowchart TD\nA -- x ${run}`)).toBeLessThan(BUDGET_MS);
+      expect(elapsed(`flowchart TD\nA -${run}`)).toBeLessThan(BUDGET_MS);
+      expect(elapsed(`flowchart TD\nA ${run} B`)).toBeLessThan(BUDGET_MS);
+    }
+  });
+
+  it("keeps parsing every link style", () => {
+    const diagram = parser.parse(
+      [
+        "flowchart TD",
+        "A --> B",
+        "B --- C",
+        "C ==> D",
+        "D === E",
+        "E -.-> F",
+        "F -..-> G",
+        "G -.- H",
+        "H --->|yes| I",
+      ].join("\n"),
+    );
+
+    expect(
+      diagram.edges.map(({ line, arrow }) => `${line}:${String(arrow)}`),
+    ).toEqual([
+      "solid:true",
+      "solid:false",
+      "thick:true",
+      "thick:false",
+      "dashed:true",
+      "dashed:true",
+      "dashed:false",
+      "solid:true",
+    ]);
+  });
+
+  it("keeps parsing labelled links, including embedded dashes", () => {
+    const diagram = parser.parse(
+      [
+        "flowchart TD",
+        "A -- some -- text --> B",
+        "C == hi ==> D",
+        "E -. maybe .-> F",
+      ].join("\n"),
+    );
+
+    expect(diagram.edges.map((edge) => edge.label)).toEqual([
+      "some -- text",
+      "hi",
+      "maybe",
+    ]);
+  });
+});

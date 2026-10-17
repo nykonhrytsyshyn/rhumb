@@ -18,8 +18,10 @@ async function renderForExport(
   { transparent }: ExportOptions,
 ): Promise<EngineResult> {
   return renderDiagram(source, profile, {
-    ...PRINT_APPEARANCE,
-    background: transparent ? null : PRINT_APPEARANCE.background,
+    appearance: {
+      ...PRINT_APPEARANCE,
+      background: transparent ? null : PRINT_APPEARANCE.background,
+    },
   });
 }
 

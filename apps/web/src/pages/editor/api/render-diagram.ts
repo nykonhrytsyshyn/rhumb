@@ -18,6 +18,7 @@ export const PREVIEW_APPEARANCE: Appearance = {
   ink: "currentColor",
   fill: "var(--card)",
   background: null,
+  labelBackground: "var(--background)",
 };
 
 let engine: DiagramEngine | undefined;
@@ -32,14 +33,19 @@ function getEngine(): DiagramEngine {
   return engine;
 }
 
+export interface RenderOptions {
+  /** Colours; defaults to the preview colours that follow the page theme. */
+  readonly appearance?: Partial<Appearance>;
+}
+
 export function renderDiagram(
   source: string,
   profile: StandardProfile,
-  appearance: Partial<Appearance> = PREVIEW_APPEARANCE,
+  options: RenderOptions = {},
 ): Promise<EngineResult> {
   return getEngine().render(source, {
     profile,
     scale: PIXELS_PER_MM,
-    appearance,
+    appearance: options.appearance ?? PREVIEW_APPEARANCE,
   });
 }

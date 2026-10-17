@@ -2,6 +2,7 @@
   "id": "gost-19.701-90",
   "title": "ГОСТ 19.701-90 (ЕСПД)",
   "description": "Черновые значения, сверить с текстом стандарта.",
+  "default": false,
   "unit": "mm",
   "grid": 5,
   "padding": 1.5,
@@ -14,7 +15,11 @@
   "line": {
     "width": 0.6,
     "thickWidth": 1.2,
-    "dash": [3, 1.5],
+    "dash": [
+      3,
+      1.5
+    ],
+    "labelStyle": "beside",
     "arrow": {
       "style": "open",
       "length": 3,
@@ -62,11 +67,23 @@
     "entry": "top",
     "yes": {
       "side": "left",
-      "labels": ["да", "yes", "y", "true", "+"]
+      "labels": [
+        "да",
+        "yes",
+        "y",
+        "true",
+        "+"
+      ]
     },
     "no": {
       "side": "right",
-      "labels": ["нет", "no", "n", "false", "-"]
+      "labels": [
+        "нет",
+        "no",
+        "n",
+        "false",
+        "-"
+      ]
     }
   },
   "loop": {

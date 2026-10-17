@@ -6,7 +6,8 @@
   "tabs": {
     "code": "Code",
     "config": "Config",
-    "docs": "Docs"
+    "docs": "Docs",
+    "library": "Saved"
   },
   "sections": {
     "samples": "Sample diagrams",

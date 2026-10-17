@@ -13,6 +13,8 @@ export interface Appearance {
   readonly fill: string;
   /** Page colour, or null for a transparent drawing. */
   readonly background: string | null;
+  /** Fill behind labels that sit on a line. */
+  readonly labelBackground: string;
 }
 
 /** Black on white, suitable for documents and printing. */
@@ -20,4 +22,5 @@ export const PRINT_APPEARANCE: Appearance = {
   ink: "#000000",
   fill: "#ffffff",
   background: "#ffffff",
+  labelBackground: "#ffffff",
 };

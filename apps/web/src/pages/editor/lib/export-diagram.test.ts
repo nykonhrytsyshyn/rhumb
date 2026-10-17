@@ -70,11 +70,16 @@ afterEach(() => {
 
 describe("export-diagram", () => {
   it("draws exports in print colours with a white page", async () => {
-    await exportSvg("src", profile, { transparent: false });
+    await exportSvg("src", profile, {
+      transparent: false,
+    });
     expect(renderDiagram).toHaveBeenCalledWith("src", profile, {
-      ink: "#000000",
-      fill: "#ffffff",
-      background: "#ffffff",
+      appearance: {
+        ink: "#000000",
+        fill: "#ffffff",
+        background: "#ffffff",
+        labelBackground: "#ffffff",
+      },
     });
 
     const { blob, name } = lastDownload();
@@ -84,14 +89,18 @@ describe("export-diagram", () => {
   });
 
   it("drops the page for transparent exports", async () => {
-    await exportSvg("src", profile, { transparent: true });
+    await exportSvg("src", profile, {
+      transparent: true,
+    });
     expect(vi.mocked(renderDiagram).mock.calls[0]?.[2]).toMatchObject({
-      background: null,
+      appearance: { background: null },
     });
   });
 
   it("downloads a PNG with the matching background", async () => {
-    await exportPng("src", profile, { transparent: true });
+    await exportPng("src", profile, {
+      transparent: true,
+    });
 
     const { blob, name } = lastDownload();
 

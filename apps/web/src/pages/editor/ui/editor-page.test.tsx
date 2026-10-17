@@ -10,6 +10,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@features/theme";
 
 import { renderDiagram } from "../api/render-diagram";
+import type { DiagramStore } from "../model/diagram-store";
+import { MemoryDiagramStore } from "../model/memory-diagram-store";
 import { EditorPage } from "./editor-page";
 
 vi.mock("../api/render-diagram", () => ({ renderDiagram: vi.fn() }));
@@ -44,10 +46,10 @@ function stubBrowser(wide: boolean): void {
   );
 }
 
-function renderPage() {
+function renderPage(libraryStore?: DiagramStore) {
   return render(
     <ThemeProvider>
-      <EditorPage />
+      <EditorPage {...(libraryStore === undefined ? {} : { libraryStore })} />
     </ThemeProvider>,
   );
 }
@@ -133,5 +135,81 @@ describe("EditorPage", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
       "Rhumb",
     );
+  });
+
+  describe("saved diagrams", () => {
+    const keep = {
+      id: "keep",
+      name: "Kept scheme",
+      source: "flowchart LR\nK --> L",
+      profileId: "gost-19.701-90",
+      createdAt: 1,
+      updatedAt: 1,
+    };
+
+    function openSavedTab(): void {
+      fireEvent.click(screen.getByRole("tab", { name: /Saved/ }));
+    }
+
+    it("opens a saved diagram with its standard", async () => {
+      renderPage(new MemoryDiagramStore([keep]));
+
+      openSavedTab();
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Open Kept scheme" }),
+      );
+
+      await waitFor(() => {
+        expect(mocked).toHaveBeenLastCalledWith(
+          "flowchart LR\nK --> L",
+          expect.objectContaining({ id: "gost-19.701-90" }),
+        );
+      });
+      expect(window.localStorage.getItem("rhumb:current-diagram")).toBe("keep");
+      expect(window.localStorage.getItem("rhumb:source")).toBe(
+        "flowchart LR\nK --> L",
+      );
+    });
+
+    it("keeps the current standard when the saved one is gone", async () => {
+      renderPage(new MemoryDiagramStore([{ ...keep, profileId: "retired" }]));
+
+      openSavedTab();
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Open Kept scheme" }),
+      );
+
+      await waitFor(() => {
+        expect(mocked).toHaveBeenLastCalledWith(
+          "flowchart LR\nK --> L",
+          expect.objectContaining({ default: true }),
+        );
+      });
+    });
+
+    it("remembers which saved diagram was open", async () => {
+      window.localStorage.setItem("rhumb:current-diagram", "keep");
+      renderPage(new MemoryDiagramStore([keep]));
+
+      openSavedTab();
+
+      expect(await screen.findByText("Open now")).toBeDefined();
+    });
+
+    it("saves what is in the editor as a new diagram", async () => {
+      const store = new MemoryDiagramStore();
+
+      renderPage(store);
+      openSavedTab();
+      fireEvent.change(await screen.findByLabelText("Name"), {
+        target: { value: "From the page" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: /Save as new/ }));
+
+      await waitFor(async () => {
+        expect((await store.list())[0]?.name).toBe("From the page");
+      });
+      expect((await store.list())[0]?.source).toContain("flowchart TD");
+    });
   });
 });

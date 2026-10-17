@@ -1,5 +1,9 @@
 import { DiagramSyntaxError } from "@rhumb/kernel";
 
+import { readClosingToken, readStandaloneToken } from "./linkTokens";
+
+const LABELLED_OPENERS = ["--", "==", "-."] as const;
+
 /** Cursor over a single statement of the source text. */
 export class LineScanner {
   private position = 0;
@@ -39,6 +43,76 @@ export class LineScanner {
     this.position += result[0].length;
 
     return result;
+  }
+
+  /** Consumes a standalone link token such as `-->`, `==>` or `-.->`. */
+  public matchLink(): string | undefined {
+    const end = readStandaloneToken(this.text, this.position);
+
+    return end === undefined ? undefined : this.take(end);
+  }
+
+  /**
+   * Consumes an opener (`--`, `==` or `-.`), a label and a closing link token,
+   * where whitespace separates the label from both delimiters.
+   *
+   * The label ends at the first whitespace-preceded closing token. This is
+   * hand-rolled rather than `opener\s+(.+?)\s+closer`: the overlapping
+   * `\s+` / `.+?` / `\s+` backtracks polynomially on long runs of spaces.
+   * Here every character is visited a bounded number of times, and a closing
+   * token is only attempted at the start of a non-space run.
+   */
+  public matchLabelled():
+    | {
+        readonly opener: string;
+        readonly label: string;
+        readonly closer: string;
+      }
+    | undefined {
+    const opener = LABELLED_OPENERS.find((token) => this.startsWith(token));
+
+    if (opener === undefined) return undefined;
+
+    const afterOpener = this.position + opener.length;
+
+    if (!LineScanner.isSpace(this.text, afterOpener)) return undefined;
+
+    let labelStart = afterOpener;
+
+    while (LineScanner.isSpace(this.text, labelStart)) labelStart += 1;
+
+    for (let at = labelStart + 1; at < this.text.length; at += 1) {
+      if (
+        !LineScanner.isSpace(this.text, at - 1) ||
+        LineScanner.isSpace(this.text, at)
+      ) {
+        continue;
+      }
+
+      const end = readClosingToken(this.text, at);
+
+      if (end !== undefined) {
+        const label = this.text.slice(labelStart, at).trim();
+
+        this.position = end;
+
+        return { opener, label, closer: this.text.slice(at, end) };
+      }
+    }
+
+    return undefined;
+  }
+
+  private take(end: number): string {
+    const token = this.text.slice(this.position, end);
+
+    this.position = end;
+
+    return token;
+  }
+
+  private static isSpace(text: string, index: number): boolean {
+    return index < text.length && /\s/.test(text.charAt(index));
   }
 
   public consume(token: string): void {

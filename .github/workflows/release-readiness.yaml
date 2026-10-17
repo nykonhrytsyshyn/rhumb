@@ -1,0 +1,52 @@
+# ============================================================================ #
+#                          Release Readiness Workflow                          #
+# ============================================================================ #
+# Gates pull requests targeting release. CI, CodeQL and the other checks       #
+# already run against release as a PR-target branch, so this workflow adds     #
+# only what they don't cover: proof that the version is the RIGHT one.         #
+#                                                                              #
+# The gate has a single rule - every package.json in the PR must carry exactly #
+# the version `release.ts next` would produce right now:                       #
+#   - valid calendar version (YY.M.N, no leading zeros);                       #
+#   - all workspace manifests agree;                                           #
+#   - newer than every existing vYY.M.N tag and than the version on release;   #
+#   - belongs to the current UTC month, so a PR that went stale over a month   #
+#     boundary can't be merged as an old month's build.                        #
+#                                                                              #
+# It re-runs when the PR is marked "Ready for review", i.e. at the moment of   #
+# confirmation. If it fails because the month rolled over, run                 #
+# "Releasing: Release PR" (it also runs daily) and the PR is rebuilt.          #
+#                                                                              #
+# See: RELEASING.md - for more details on the release process.                 #
+# ============================================================================ #
+
+name: "Releasing: Readiness"
+
+on:
+  pull_request:
+    branches: ["release"]
+    types: ["opened", "synchronize", "reopened", "ready_for_review"]
+
+concurrency:
+  group: "release-readiness-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: "read"
+
+jobs:
+  version-gate:
+    name: "Version Gate"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+
+    steps:
+      - name: "Setup: Checkout repository"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: "Run: Verify version"
+        run: "node .github/scripts/release.ts verify --base origin/release"

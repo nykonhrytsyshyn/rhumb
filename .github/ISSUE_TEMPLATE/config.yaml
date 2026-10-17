@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name:  "Discussions & Help"
+    about: "Have a question or need help? Ask here."
+    url:   "https://git.nykon.me/rhumb/discussions"
+
+  - name:  "Website"
+    about: "Check out my personal website"
+    url:   "https://nykon.me/"
