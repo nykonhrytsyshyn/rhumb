@@ -106,8 +106,8 @@ export function LibraryCard({
       ) : null}
 
       {/* Bottom bar with name, updated date, and actions */}
-      <div className="absolute inset-x-0 bottom-0 flex h-12 items-center gap-1 border-t bg-background/90">
-        <div className="h-full min-w-0 flex-1">
+      <div className="absolute inset-x-0 bottom-0 flex h-12 items-center border-t bg-background/90">
+        <div className="min-w-0 flex-1">
           {renaming ? (
             <Input
               autoFocus

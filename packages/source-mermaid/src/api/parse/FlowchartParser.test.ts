@@ -125,7 +125,9 @@ describe("FlowchartParser input hardening", () => {
     try {
       parser.parse(source);
     } catch (error) {
-      if (!(error instanceof DiagramSyntaxError)) throw error;
+      if (!(error instanceof DiagramSyntaxError)) {
+        throw error;
+      }
     }
 
     return Date.now() - start;

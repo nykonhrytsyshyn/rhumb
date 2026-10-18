@@ -17,7 +17,7 @@ export function AlertDialogCancel({
   return (
     <AlertDialogPrimitive.Close
       data-slot="alert-dialog-cancel"
-      className={cn(className)}
+      className={cn("bg-transparent", className)}
       render={<Button variant={variant} size={size} />}
       {...props}
     />

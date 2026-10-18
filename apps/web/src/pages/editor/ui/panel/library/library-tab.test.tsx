@@ -82,8 +82,8 @@ describe("LibraryTab", () => {
   it("says so when nothing has been saved", async () => {
     renderTab();
 
-    expect(screen.getByText("Loading…")).toBeDefined();
-    expect(await screen.findByText(/Nothing saved yet/)).toBeDefined();
+    expect(screen.getByText("Loading saved diagrams")).toBeDefined();
+    expect(await screen.findByText(/No saved diagrams/)).toBeDefined();
   });
 
   it("shows saved diagrams as tiles drawn like the canvas", async () => {
@@ -123,7 +123,7 @@ describe("LibraryTab", () => {
 
   it("saves the current diagram as a new one and makes it current", async () => {
     const { props, store } = renderTab();
-    await screen.findByText(/Nothing saved yet/);
+    await screen.findByText(/No saved diagrams/);
 
     fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: "My scheme" },
@@ -144,7 +144,7 @@ describe("LibraryTab", () => {
 
   it("names an unnamed diagram", async () => {
     renderTab();
-    await screen.findByText(/Nothing saved yet/);
+    await screen.findByText(/No saved diagrams/);
 
     fireEvent.click(screen.getByRole("button", { name: /Save as new/ }));
 
@@ -153,7 +153,7 @@ describe("LibraryTab", () => {
 
   it("cannot save an empty source", async () => {
     renderTab([], { source: "   " });
-    await screen.findByText(/Nothing saved yet/);
+    await screen.findByText(/No saved diagrams/);
 
     expect(screen.getByRole("button", { name: /Save as new/ })).toHaveProperty(
       "disabled",
@@ -325,7 +325,7 @@ describe("LibraryTab", () => {
 
     const alert = await screen.findByRole("alert");
 
-    expect(alert.textContent).toContain("The browser storage did not work");
+    expect(alert.textContent).toContain("The storage did not work");
     expect(alert.textContent).toContain("quota exceeded");
   });
 });

@@ -76,4 +76,36 @@ describe("ElkLayoutEngine", () => {
       });
     }
   });
+
+  it("keeps forward lines forward when a block is declared before the block that leads to it", async () => {
+    const node = (id: string) => ({
+      id,
+      size: { width: 80, height: 40 },
+      ports: allPorts(80, 40),
+    });
+    const edge = (id: string, from: string, to: string, back = false) => ({
+      id,
+      from,
+      to,
+      fromSide: back ? Side.Left : Side.Bottom,
+      toSide: back ? Side.Left : Side.Top,
+    });
+    const result = await new ElkLayoutEngine(new ELK()).layout({
+      ...request,
+      // J is declared before I although I leads to J.
+      nodes: ["A", "B", "J", "I"].map(node),
+      edges: [
+        edge("e0", "A", "B"),
+        edge("e1", "B", "J"),
+        edge("e2", "B", "I"),
+        edge("e3", "I", "J"),
+        edge("e4", "J", "A", true),
+      ],
+    });
+    const i = result.nodes.get("I");
+    const j = result.nodes.get("J");
+
+    expect(i && j).toBeTruthy();
+    expect(i?.y).toBeLessThan(j?.y ?? 0);
+  });
 });

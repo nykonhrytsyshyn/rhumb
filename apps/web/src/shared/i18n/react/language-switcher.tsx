@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-import { useId } from "react";
 
 import {
   Select,
@@ -32,8 +31,6 @@ export function LanguageSwitcher({
   label,
   heading,
 }: LanguageSwitcherProps): JSX.Element {
-  const contentId = `language-select-${useId()}`;
-
   return (
     <Select
       value={language}
@@ -46,7 +43,6 @@ export function LanguageSwitcher({
       <SelectTrigger
         className="min-w-28 rounded-full bg-background"
         aria-label={label}
-        aria-controls={contentId}
       >
         <SelectValue>
           {(value: string) =>
@@ -55,7 +51,7 @@ export function LanguageSwitcher({
         </SelectValue>
       </SelectTrigger>
 
-      <SelectContent id={contentId}>
+      <SelectContent alignItemWithTrigger={false}>
         <SelectGroup>
           <SelectLabel>{heading}</SelectLabel>
 

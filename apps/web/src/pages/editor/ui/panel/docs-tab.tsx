@@ -93,8 +93,8 @@ export function DocsTab(): JSX.Element {
       </section>
 
       <section className="flex flex-col gap-2">
-        <Heading>{t("docs.loops.title")}</Heading>
-        <p className="text-muted-foreground">{t("docs.loops.text")}</p>
+        <Heading>{t("docs.preparation.title")}</Heading>
+        <p className="text-muted-foreground">{t("docs.preparation.text")}</p>
       </section>
 
       <section className="flex flex-col gap-2">

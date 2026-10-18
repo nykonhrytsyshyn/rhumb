@@ -1,4 +1,4 @@
-import { type ChangeEvent, type JSX, useId, useRef, useState } from "react";
+import { type ChangeEvent, type JSX, useRef, useState } from "react";
 
 import {
   IconDeviceFloppy,
@@ -40,7 +40,6 @@ export function ConfigTab({
   onProfileSelect,
 }: ConfigTabProps): JSX.Element {
   const t = useT();
-  const selectId = useId();
   const input = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
 
@@ -83,7 +82,7 @@ export function ConfigTab({
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor={selectId} className="text-xs uppercase">
+        <Label className="text-xs uppercase">
           {t("editor.config.standard")}
         </Label>
 
@@ -95,7 +94,7 @@ export function ConfigTab({
             }
           }}
         >
-          <SelectTrigger id={selectId} className="w-full rounded-xl">
+          <SelectTrigger className="w-full rounded-xl">
             <SelectValue>
               {(value: string | null) => {
                 const found = editor.profiles.find(

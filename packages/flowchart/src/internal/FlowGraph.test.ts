@@ -16,29 +16,65 @@ function edge(from: string, to: string): DiagramEdge {
 }
 
 describe("FlowGraph", () => {
-  const graph = new FlowGraph([
-    edge("a", "b"),
-    edge("b", "c"),
-    edge("c", "b"),
-    edge("c", "d"),
-  ]);
+  describe("a single cycle", () => {
+    const edges = [
+      edge("a", "b"),
+      edge("b", "c"),
+      edge("c", "b"),
+      edge("c", "d"),
+    ];
+    const graph = new FlowGraph(edges, ["a", "b", "c", "d"]);
 
-  it("follows paths of any length", () => {
-    expect(graph.reaches("a", "d")).toBe(true);
-    expect(graph.reaches("b", "c")).toBe(true);
+    it("marks only the edge that returns", () => {
+      expect(edges.map((item) => graph.isBack(item))).toEqual([
+        false,
+        false,
+        true,
+        false,
+      ]);
+    });
+
+    it("finds a stretch that comes back to a block", () => {
+      expect(graph.leadsBackTo("c", "b")).toBe(true);
+      expect(graph.leadsBackTo("b", "b")).toBe(true);
+    });
+
+    it("does not count a way out as coming back", () => {
+      expect(graph.leadsBackTo("d", "b")).toBe(false);
+    });
   });
 
-  it("respects edge direction", () => {
-    expect(graph.reaches("d", "a")).toBe(false);
-    expect(graph.reaches("a", "a")).toBe(false);
+  describe("a loop inside a loop", () => {
+    // A is the start; D opens the outer loop and F the inner one.
+    const edges = [
+      edge("A", "D"),
+      edge("D", "E"),
+      edge("E", "F"),
+      edge("F", "G"),
+      edge("G", "F"),
+      edge("F", "H"),
+      edge("H", "D"),
+      edge("D", "Z"),
+    ];
+    const graph = new FlowGraph(edges, ["A", "D", "E", "F", "G", "H", "Z"]);
+
+    it("marks the edge into the inner block as forward", () => {
+      expect(graph.isBack(edge("E", "F"))).toBe(false);
+      expect(graph.isBack(edge("G", "F"))).toBe(true);
+      expect(graph.isBack(edge("H", "D"))).toBe(true);
+    });
+
+    it("does not send the inner exit back to the inner block", () => {
+      expect(graph.leadsBackTo("G", "F")).toBe(true);
+      expect(graph.leadsBackTo("H", "F")).toBe(false);
+    });
   });
 
-  it("detects cycles through a node", () => {
-    expect(graph.reaches("b", "b")).toBe(true);
-  });
+  it("walks from the start even when a block is declared early", () => {
+    const edges = [edge("c", "a"), edge("start", "a"), edge("a", "c")];
+    const graph = new FlowGraph(edges, ["c", "a", "start"]);
 
-  it("terminates on cycles and caches answers", () => {
-    expect(graph.reaches("a", "missing")).toBe(false);
-    expect(graph.reaches("a", "missing")).toBe(false);
+    expect(graph.isBack(edge("c", "a"))).toBe(true);
+    expect(graph.isBack(edge("a", "c"))).toBe(false);
   });
 });

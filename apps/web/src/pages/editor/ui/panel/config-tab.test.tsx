@@ -58,8 +58,26 @@ function pick(file: File): void {
   });
 }
 
+/** The control that sits next to a field's label text. */
+function controlOf(label: string | RegExp, selector: string): Element {
+  const control = screen
+    .getByText(label)
+    .parentElement?.querySelector(selector);
+
+  if (control === null || control === undefined) {
+    throw new Error(`No control next to ${String(label)}`);
+  }
+
+  return control;
+}
+
+/** The grid step sits in a group that starts closed. */
 function gridField(): HTMLInputElement {
-  const field = screen.getByLabelText(/Grid step/);
+  if (screen.queryByText(/Grid step/) === null) {
+    fireEvent.click(screen.getByRole("button", { name: /Page and spacing/ }));
+  }
+
+  const field = controlOf(/Grid step/, "input");
 
   if (!(field instanceof HTMLInputElement)) {
     throw new Error("The grid field is not an input");
@@ -73,9 +91,9 @@ describe("ConfigTab", () => {
     const { catalog } = renderTab();
     const [standard] = catalog.getSnapshot();
 
-    expect(
-      screen.getByRole("combobox", { name: "Standard" }).textContent,
-    ).toContain(standard?.title);
+    expect(controlOf("Standard", '[role="combobox"]').textContent).toContain(
+      standard?.title,
+    );
     expect(gridField().value).toBe(String(standard?.grid));
     expect(gridField().disabled).toBe(true);
     expect(screen.getByText(/Built-in standards are read-only/)).toBeDefined();
@@ -90,9 +108,9 @@ describe("ConfigTab", () => {
 
     expect(gridField().disabled).toBe(false);
     expect(screen.getByText(/Changes are drawn right away/)).toBeDefined();
-    expect(
-      screen.getByRole("combobox", { name: "Standard" }).textContent,
-    ).toContain("Custom");
+    expect(controlOf("Standard", '[role="combobox"]').textContent).toContain(
+      "Custom",
+    );
   });
 
   it("flags invalid input and blocks saving until it is fixed", () => {
@@ -145,7 +163,7 @@ describe("ConfigTab", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Lines and arrows/ }));
 
-    expect(await screen.findByLabelText(/Line width/)).toBeDefined();
+    expect(await screen.findByText(/Line width/)).toBeDefined();
   });
 
   it("downloads the profile that is being drawn", () => {
@@ -206,10 +224,11 @@ describe("ConfigTab", () => {
   it("keeps the label style among the other settings of the standard", async () => {
     renderTab({ custom: true });
 
-    expect(screen.queryByRole("combobox", { name: "Line labels" })).toBeNull();
+    expect(screen.queryByText("Line labels")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: /Lines and arrows/ }));
-    const style = await screen.findByRole("combobox", { name: "Line labels" });
+    await screen.findByText("Line labels");
+    const style = controlOf("Line labels", '[role="combobox"]');
 
     expect(style.textContent).toContain("Beside the line");
     expect(style).toHaveProperty("disabled", false);
@@ -219,7 +238,8 @@ describe("ConfigTab", () => {
     renderTab();
 
     fireEvent.click(screen.getByRole("button", { name: /Lines and arrows/ }));
-    const style = await screen.findByRole("combobox", { name: "Line labels" });
+    await screen.findByText("Line labels");
+    const style = controlOf("Line labels", '[role="combobox"]');
 
     expect(style.textContent).toContain("Beside the line");
     expect(style.hasAttribute("disabled")).toBe(true);

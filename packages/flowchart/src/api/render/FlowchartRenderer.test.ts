@@ -39,7 +39,7 @@ const STORE = [
   "Confirm --> Done([Email receipt])",
 ].join("\n");
 
-const LOOPS = [
+const RETURNS = [
   "flowchart TD",
   'A(["Start"]) --> B[/"Input<br/>N"/]',
   'B --> C{{"From i = 0 to N - 1"}}',
@@ -272,7 +272,7 @@ describe("FlowchartRenderer", () => {
     expect(rects(transparent.svg)).toHaveLength(0);
   });
 
-  it("draws loop headers with the return on one corner and the exit on the other", async () => {
+  it("draws a preparation block with the return on one corner and the exit on the other", async () => {
     const { nodes } = await render(
       0,
       [
@@ -318,7 +318,7 @@ describe("FlowchartRenderer", () => {
   });
 
   it("keeps a straight run next to every arrowhead and block exit", async () => {
-    const layout = await renderWithLayout(LOOPS);
+    const layout = await renderWithLayout(RETURNS);
     const stub = profileAt(0).line.stub * 4;
 
     for (const points of layout.edges.values()) {
@@ -335,9 +335,9 @@ describe("FlowchartRenderer", () => {
   });
 
   it("keeps lines clear of the blocks they pass", async () => {
-    const layout = await renderWithLayout(LOOPS);
+    const layout = await renderWithLayout(RETURNS);
     const clearance = profileAt(0).spacing.clearance * 4;
-    const diagram = new FlowchartParser().parse(LOOPS);
+    const diagram = new FlowchartParser().parse(RETURNS);
     for (const edge of diagram.edges) {
       const points = layout.edges.get(edge.id) ?? [];
 
@@ -412,13 +412,80 @@ describe("FlowchartRenderer", () => {
     expect(String(vertical?.attrs.d)).not.toContain("A");
   });
 
-  it("arches the line that crosses a loop body", async () => {
-    const { nodes } = await render(0, LOOPS);
+  it("brings every return to a preparation block in without crossing its repeated section", async () => {
+    const { nodes } = await render(0, RETURNS);
     const arched = edgePaths(nodes).filter((path) =>
       String(path.attrs.d).includes("A"),
     );
 
-    expect(arched.length).toBeGreaterThan(0);
+    expect(arched).toHaveLength(0);
+  });
+
+  describe("lines that merge", () => {
+    const MERGE = [
+      "flowchart TD",
+      "A{ok?} -->|Yes| B[work]",
+      "A -->|No| C[skip]",
+      "B --> D[end]",
+      "C --> D",
+    ].join("\n");
+
+    async function endsOf(merge: boolean) {
+      const profile = profileAt(0);
+      const result = await new FlowchartRenderer({
+        profile: {
+          ...profile,
+          line: { ...profile.line, arrow: { ...profile.line.arrow, merge } },
+        },
+        layoutEngine: new ElkLayoutEngine(new ELK()),
+        measurer: new ApproximateTextMeasurer(),
+      }).render(new FlowchartParser().parse(MERGE));
+      const paths = edgePaths(descendants(result.svg));
+
+      return paths
+        .filter((path) =>
+          ["e2", "e3"].includes(String(path.attrs["data-edge"])),
+        )
+        .map((path) => cornersOf(path).at(-1)?.join(","));
+    }
+
+    it("ends the shorter line on the one it joins, with its own arrowhead", async () => {
+      const [first, second] = await endsOf(true);
+
+      expect(first).not.toBe(second);
+    });
+
+    it("lets both lines run to the block when merge arrows are off", async () => {
+      const [first, second] = await endsOf(false);
+
+      expect(first).toBe(second);
+    });
+  });
+
+  describe("labels that need room", () => {
+    async function heightOf(source: string) {
+      const profile = profileAt(0);
+      const result = await new FlowchartRenderer({
+        profile: {
+          ...profile,
+          line: { ...profile.line, labelStyle: "beside" },
+          spacing: { ...profile.spacing, layer: 1, clearance: 1 },
+        },
+        layoutEngine: new ElkLayoutEngine(new ELK()),
+        measurer: new ApproximateTextMeasurer(),
+      }).render(new FlowchartParser().parse(source));
+
+      return result.size.height;
+    }
+
+    it("lengthens a line that is too short for its label", async () => {
+      const bare = await heightOf("flowchart TD\nA[a] --> B[b]");
+      const labelled = await heightOf(
+        'flowchart TD\nA[a] -->|"a rather long label"| B[b]',
+      );
+
+      expect(labelled).toBeGreaterThan(bare);
+    });
   });
 
   it("draws no arches when nothing crosses", async () => {

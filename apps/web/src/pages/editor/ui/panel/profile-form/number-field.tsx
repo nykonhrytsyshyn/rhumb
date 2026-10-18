@@ -1,7 +1,12 @@
-import { type JSX, useId } from "react";
+import { type JSX } from "react";
 
 import { Field, FieldError, FieldLabel } from "@shared/ui/field";
-import { Input } from "@shared/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@shared/ui/input";
 
 export interface NumberFieldProps {
   readonly path: string;
@@ -22,32 +27,31 @@ export function NumberField({
   disabled,
   onChange,
 }: NumberFieldProps): JSX.Element {
-  const id = useId();
   const invalid = error !== undefined;
 
   return (
-    <Field data-invalid={invalid} data-disabled={disabled}>
-      <FieldLabel htmlFor={id}>
-        {label}
-        {unit === undefined ? null : (
-          <span className="font-normal text-muted-foreground">· {unit}</span>
-        )}
-      </FieldLabel>
+    <Field data-disabled={disabled}>
+      <FieldLabel>{label}</FieldLabel>
 
-      <Input
-        id={id}
-        inputMode="decimal"
-        autoComplete="off"
-        value={value}
-        disabled={disabled}
-        aria-invalid={invalid}
-        aria-describedby={invalid ? `${id}-error` : undefined}
-        onChange={(event) => {
-          onChange(path, event.target.value);
-        }}
-      />
+      <InputGroup>
+        <InputGroupInput
+          inputMode="decimal"
+          autoComplete="off"
+          value={value}
+          disabled={disabled}
+          aria-invalid={invalid}
+          onChange={(event) => {
+            onChange(path, event.target.value);
+          }}
+          placeholder={"0"}
+        />
 
-      {invalid ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
+        <InputGroupAddon align="inline-end">
+          <InputGroupText>{unit ?? null}</InputGroupText>
+        </InputGroupAddon>
+      </InputGroup>
+
+      <FieldError>{error}</FieldError>
     </Field>
   );
 }

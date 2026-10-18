@@ -1,7 +1,17 @@
 import { type Direction, Side } from "@rhumb/kernel";
-import type { StandardProfile } from "@rhumb/profiles";
+import {
+  type ProfileSide,
+  type SideChoice,
+  allowedSides,
+} from "@rhumb/profiles";
 
-type ProfileSide = StandardProfile["decision"]["entry"];
+/** Which side of an open choice is tried first, for each kind of choice. */
+export interface SideLean {
+  /** First pick when the choice is `side` (left or right). */
+  readonly side: "left" | "right";
+  /** First pick when the choice is `vertical` (top or bottom). */
+  readonly vertical: "top" | "bottom";
+}
 
 const PROFILE_SIDES: Readonly<Record<ProfileSide, Side>> = {
   top: Side.Top,
@@ -66,5 +76,17 @@ export class Orientation {
 
   public mapProfileSide(side: ProfileSide): Side {
     return this.map(PROFILE_SIDES[side]);
+  }
+
+  /**
+   * The sides a profile choice may settle on in this orientation, the one
+   * to prefer first. A particular side yields just itself.
+   */
+  public options(choice: SideChoice, lean: SideLean): readonly Side[] {
+    const first = choice === "vertical" ? lean.vertical : lean.side;
+
+    return [...allowedSides(choice)]
+      .sort((a, b) => Number(b === first) - Number(a === first))
+      .map((side) => this.mapProfileSide(side));
   }
 }

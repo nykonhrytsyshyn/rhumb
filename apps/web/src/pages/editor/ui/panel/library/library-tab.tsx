@@ -1,10 +1,22 @@
 import { type JSX, useState } from "react";
 
-import { IconDeviceFloppy, IconSearch } from "@tabler/icons-react";
+import {
+  IconBinaryTree2,
+  IconDeviceFloppy,
+  IconSearch,
+} from "@tabler/icons-react";
 
 import { useI18n } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@shared/ui/empty";
 import { Input } from "@shared/ui/input";
+import { Spinner } from "@shared/ui/spinner";
 
 import { downloadBlob } from "../../../lib/download";
 import { toFileName } from "../../../lib/file-name";
@@ -77,9 +89,9 @@ export function LibraryTab({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex h-full flex-col">
       <form
-        className="flex flex-col gap-3 p-3"
+        className="flex flex-col gap-2.5 p-3"
         onSubmit={(event) => {
           event.preventDefault();
           void saveAsNew();
@@ -134,35 +146,52 @@ export function LibraryTab({
         </p>
       )}
 
-      {/* Search bar */}
-      {items.length > 0 ? (
-        <div className="relative border-y">
-          <IconSearch className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            aria-label={t("editor.library.search")}
-            placeholder={t("editor.library.search")}
-            className="h-12 rounded-none bg-transparent pl-11 focus-visible:border-transparent focus-visible:bg-input/50 focus-visible:ring-0"
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-            }}
-          />
-        </div>
-      ) : null}
+      <div className="relative border-y">
+        <IconSearch className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="search"
+          aria-label={t("editor.library.search")}
+          placeholder={t("editor.library.search")}
+          className="h-12 rounded-none border-none bg-transparent pl-11 focus-visible:border-transparent focus-visible:bg-input/50 focus-visible:ring-0"
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value);
+          }}
+        />
+      </div>
 
       {/* Message for loading library */}
       {library.items === undefined ? (
-        <p className="border-t p-4 text-sm text-muted-foreground">
-          {t("editor.library.loading")}
-        </p>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Spinner />
+            </EmptyMedia>
+
+            <EmptyTitle>{t("editor.library.loadingTitle")}</EmptyTitle>
+
+            <EmptyDescription>
+              {t("editor.library.loadingDescription")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : null}
 
       {/* Message for empty library */}
       {library.items !== undefined && items.length === 0 ? (
-        <p className="border-t p-4 text-sm text-muted-foreground">
-          {t("editor.library.empty")}
-        </p>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <IconBinaryTree2 />
+            </EmptyMedia>
+
+            <EmptyTitle>{t("editor.library.emptyTitle")}</EmptyTitle>
+
+            <EmptyDescription>
+              {t("editor.library.emptyDescription")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : null}
 
       {/* Message for no matches found */}

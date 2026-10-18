@@ -13,7 +13,7 @@ export function DropdownMenuSeparator({
   return (
     <MenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn("-mx-1.5 my-1.5 h-px bg-border/50", className)}
+      className={cn("h-px bg-border/50", className)}
       {...props}
     />
   );

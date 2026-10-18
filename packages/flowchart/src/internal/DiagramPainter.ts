@@ -1,11 +1,11 @@
 import {
   type DiagramEdge,
+  type EdgeId,
   type FlowchartDiagram,
   type LayoutResult,
   type NodeId,
   type Point,
   type Shape,
-  type Size,
   type SvgNode,
   type TextMeasurer,
   roundTo,
@@ -14,27 +14,24 @@ import {
 
 import type { Appearance, RenderedDiagram } from "../api/render/types";
 import { CrossingFinder, type Hop, type RoutedEdge } from "./EdgeCrossings";
+import { joinMergingLines } from "./EdgeMerges";
 import { buildEdgePath } from "./EdgePath";
+import { LabelPlacer, type PlacedLabel } from "./LabelPlacer";
+import { type Stretch, openGap } from "./LayoutGaps";
 import type { Metrics } from "./Metrics";
 
 const ARROW_ID = "rhumb-arrow";
 
 /** A line label whose position has been decided. */
-interface PlacedLabel {
-  readonly text: string;
-  readonly cx: number;
-  readonly cy: number;
-  readonly size: Size;
-  /** True when the label sits on its line and needs a backdrop. */
-  readonly inline: boolean;
-}
-
 interface Extent {
   readonly minX: number;
   readonly minY: number;
   readonly maxX: number;
   readonly maxY: number;
 }
+
+/** How many times a diagram may be stretched to make room for labels. */
+const MAX_ROOM_PASSES = 8;
 
 /** Turns a computed layout into the final SVG tree. */
 export class DiagramPainter {
@@ -47,10 +44,32 @@ export class DiagramPainter {
   public paint(
     diagram: FlowchartDiagram,
     shapes: ReadonlyMap<NodeId, Shape>,
-    layout: LayoutResult,
+    routed: LayoutResult,
   ): RenderedDiagram {
     const { margin } = this.metrics;
-    const labels = this.edgeLabels(diagram, layout);
+    let current = routed;
+    let layout = this.withJoinedMerges(diagram, current);
+    let hops = this.findHops(diagram, layout);
+    let placed = this.edgeLabels(diagram, layout, hops, current);
+
+    // A label that finds no room makes its line longer, and the diagram
+    // grows with it.
+    for (let pass = 0; pass < MAX_ROOM_PASSES; pass += 1) {
+      const opened = placed.cramped
+        .map((stretch) => openGap(current, stretch))
+        .find((result) => result !== undefined);
+
+      if (opened === undefined) {
+        break;
+      }
+
+      current = opened;
+      layout = this.withJoinedMerges(diagram, current);
+      hops = this.findHops(diagram, layout);
+      placed = this.edgeLabels(diagram, layout, hops, current);
+    }
+
+    const labels = placed.labels;
     const extent = this.extentOf(layout, labels);
     const width = roundTo(extent.maxX - extent.minX + margin * 2);
     const height = roundTo(extent.maxY - extent.minY + margin * 2);
@@ -61,7 +80,7 @@ export class DiagramPainter {
       "g",
       { transform: `translate(${String(shiftX)} ${String(shiftY)})` },
       [
-        this.edgeLayer(diagram, layout),
+        this.edgeLayer(diagram, layout, hops),
         this.nodeLayer(diagram, shapes, layout),
         ...this.labelBackdropLayer(labels),
         this.textLayer(diagram, layout, labels),
@@ -115,7 +134,35 @@ export class DiagramPainter {
     ]);
   }
 
-  private edgeLayer(diagram: FlowchartDiagram, layout: LayoutResult): SvgNode {
+  /** Stops lines that merge into another one where they meet it. */
+  private withJoinedMerges(
+    diagram: FlowchartDiagram,
+    layout: LayoutResult,
+  ): LayoutResult {
+    if (!this.metrics.mergeArrows) {
+      return layout;
+    }
+
+    const lines = diagram.edges.flatMap((edge) => {
+      const points = layout.edges.get(edge.id);
+
+      return points === undefined
+        ? []
+        : [{ id: edge.id, to: edge.to, arrow: edge.arrow, points }];
+    });
+    const joined = joinMergingLines(
+      lines,
+      this.metrics.arrowLength * 1.5,
+      this.metrics.lineSpacing * 4,
+    );
+
+    return { ...layout, edges: new Map([...layout.edges, ...joined]) };
+  }
+
+  private findHops(
+    diagram: FlowchartDiagram,
+    layout: LayoutResult,
+  ): ReadonlyMap<EdgeId, readonly Hop[]> {
     const routed: RoutedEdge[] = [];
 
     for (const edge of diagram.edges) {
@@ -128,7 +175,14 @@ export class DiagramPainter {
       routed.push({ id: edge.id, from: edge.from, to: edge.to, points });
     }
 
-    const hops = new CrossingFinder(this.metrics.jumpRadius).find(routed);
+    return new CrossingFinder(this.metrics.jumpRadius).find(routed);
+  }
+
+  private edgeLayer(
+    diagram: FlowchartDiagram,
+    layout: LayoutResult,
+    hops: ReadonlyMap<EdgeId, readonly Hop[]>,
+  ): SvgNode {
     const lines = diagram.edges.flatMap((edge) => {
       const points = layout.edges.get(edge.id);
 
@@ -226,14 +280,63 @@ export class DiagramPainter {
   private edgeLabels(
     diagram: FlowchartDiagram,
     layout: LayoutResult,
-  ): readonly PlacedLabel[] {
-    return diagram.edges.flatMap((edge) => {
-      const points = layout.edges.get(edge.id);
-      const label =
-        points === undefined ? undefined : this.placeLabel(edge, points);
-
-      return label === undefined ? [] : [label];
+    hops: ReadonlyMap<EdgeId, readonly Hop[]>,
+    routed: LayoutResult,
+  ): { labels: readonly PlacedLabel[]; cramped: readonly Stretch[] } {
+    const placer = new LabelPlacer({
+      padding: this.metrics.padding,
+      stub: this.metrics.stub,
+      jumpRadius: this.metrics.jumpRadius,
+      arrowLength: this.metrics.arrowLength,
     });
+    const arches = [...hops.values()].flatMap((list) =>
+      list.map((hop) => hop.at),
+    );
+    const placed: PlacedLabel[] = [];
+    const cramped: Stretch[] = [];
+    const inline = this.metrics.labelStyle === "inline";
+
+    for (const edge of diagram.edges) {
+      const points = layout.edges.get(edge.id);
+
+      if (edge.label === undefined || points === undefined) {
+        continue;
+      }
+
+      const line = {
+        id: edge.id,
+        points,
+        fullPoints: routed.edges.get(edge.id),
+        arrow: edge.arrow,
+        text: edge.label,
+        size: this.measurer.measure(edge.label, this.metrics.textStyle),
+      };
+      const surroundings = {
+        nodes: layout.nodes,
+        edges: layout.edges,
+        hops: arches,
+        placed,
+      };
+      const label = inline
+        ? placer.placeInline(line, surroundings)
+        : placer.placeBeside(line, surroundings);
+
+      if (label === undefined) {
+        continue;
+      }
+
+      const stretch = placer.isCrowded(label, line, surroundings)
+        ? placer.stretchFor(line, inline)
+        : undefined;
+
+      if (stretch !== undefined) {
+        cramped.push(stretch);
+      }
+
+      placed.push(label);
+    }
+
+    return { labels: placed, cramped };
   }
 
   /** Solid patches that keep a line from running through its own label. */
@@ -306,122 +409,6 @@ export class DiagramPainter {
       },
       texts,
     );
-  }
-
-  private placeLabel(
-    edge: DiagramEdge,
-    points: readonly Point[],
-  ): PlacedLabel | undefined {
-    if (edge.label === undefined) {
-      return undefined;
-    }
-
-    const text = this.measurer.measure(edge.label, this.metrics.textStyle);
-
-    return this.metrics.labelStyle === "inline"
-      ? this.placeInline(edge, edge.label, points, text)
-      : this.placeBeside(edge.label, points, text);
-  }
-
-  /**
-   * Puts a label beside the first segment of a line, close to its source and
-   * on the side away from where the line turns, so that it never crosses it.
-   */
-  private placeBeside(
-    label: string,
-    points: readonly Point[],
-    text: Size,
-  ): PlacedLabel | undefined {
-    const [start, next, after] = points;
-
-    if (start === undefined || next === undefined) {
-      return undefined;
-    }
-
-    const length = Math.hypot(next.x - start.x, next.y - start.y);
-
-    if (length === 0) {
-      return undefined;
-    }
-
-    const ux = (next.x - start.x) / length;
-    const uy = (next.y - start.y) / length;
-    let nx = uy;
-    let ny = -ux;
-
-    if (
-      after !== undefined &&
-      nx * (after.x - next.x) + ny * (after.y - next.y) > 0
-    ) {
-      nx = -nx;
-      ny = -ny;
-    }
-
-    const gap = this.metrics.padding;
-    const along =
-      Math.abs(ux) * (text.width / 2) + Math.abs(uy) * (text.height / 2) + gap;
-    const offset =
-      Math.abs(nx) * (text.width / 2) + Math.abs(ny) * (text.height / 2) + gap;
-
-    return {
-      text: label,
-      cx: start.x + ux * along + nx * offset,
-      cy: start.y + uy * along + ny * offset,
-      size: text,
-      inline: false,
-    };
-  }
-
-  /**
-   * Centres a label on the longest segment of a line. Next to an arrowhead the
-   * label is pulled back so that it does not cover the arrow.
-   */
-  private placeInline(
-    edge: DiagramEdge,
-    label: string,
-    points: readonly Point[],
-    text: Size,
-  ): PlacedLabel | undefined {
-    const segments = points.slice(1).flatMap((to, index) => {
-      const from = points[index];
-
-      return from === undefined
-        ? []
-        : [{ from, to, length: Math.hypot(to.x - from.x, to.y - from.y) }];
-    });
-    const longest = segments.reduce<(typeof segments)[number] | undefined>(
-      (best, segment) =>
-        best === undefined || segment.length > best.length ? segment : best,
-      undefined,
-    );
-
-    if (longest === undefined || longest.length === 0) {
-      return undefined;
-    }
-
-    const ux = (longest.to.x - longest.from.x) / longest.length;
-    const uy = (longest.to.y - longest.from.y) / longest.length;
-    const half =
-      Math.abs(ux) * (text.width / 2) +
-      Math.abs(uy) * (text.height / 2) +
-      this.metrics.padding / 2;
-    let distance = longest.length / 2;
-
-    if (edge.arrow && longest === segments.at(-1)) {
-      const limit = longest.length - this.metrics.stub - half;
-
-      if (limit >= half) {
-        distance = Math.min(distance, limit);
-      }
-    }
-
-    return {
-      text: label,
-      cx: longest.from.x + ux * distance,
-      cy: longest.from.y + uy * distance,
-      size: text,
-      inline: true,
-    };
   }
 
   private textBlock(text: string, cx: number, cy: number): SvgNode {

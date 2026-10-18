@@ -67,6 +67,7 @@ export function toFormState(profile: StandardProfile): FormState {
       arrowStyle: profile.line.arrow.style,
       arrowLength: String(profile.line.arrow.length),
       arrowWidth: String(profile.line.arrow.width),
+      arrowMerge: String(profile.line.arrow.merge),
     },
     font: {
       family: profile.font.family,
@@ -81,11 +82,11 @@ export function toFormState(profile: StandardProfile): FormState {
       yesLabels: profile.decision.yes.labels.join(", "),
       noLabels: profile.decision.no.labels.join(", "),
     },
-    loop: {
-      entry: profile.loop.entry,
-      body: profile.loop.body,
-      back: profile.loop.back,
-      exit: profile.loop.exit,
+    preparation: {
+      entry: profile.preparation.entry,
+      repeat: profile.preparation.repeat,
+      return: profile.preparation.return,
+      exit: profile.preparation.exit,
     },
   };
 }
@@ -202,6 +203,7 @@ export function parseForm(state: FormState, base: StandardProfile): ParsedForm {
         style: text("line.arrowStyle"),
         length: number("line.arrowLength"),
         width: number("line.arrowWidth"),
+        merge: text("line.arrowMerge") === "true",
       },
     },
     font: {
@@ -221,11 +223,11 @@ export function parseForm(state: FormState, base: StandardProfile): ParsedForm {
         labels: toLabels(text("decision.noLabels")),
       },
     },
-    loop: {
-      entry: text("loop.entry"),
-      body: text("loop.body"),
-      back: text("loop.back"),
-      exit: text("loop.exit"),
+    preparation: {
+      entry: text("preparation.entry"),
+      repeat: text("preparation.repeat"),
+      return: text("preparation.return"),
+      exit: text("preparation.exit"),
     },
   });
 
@@ -239,11 +241,11 @@ export function parseForm(state: FormState, base: StandardProfile): ParsedForm {
   for (const issue of result.error.issues) {
     const joined = issue.path.map(String).join(".");
 
-    if (joined === "decision" || joined === "loop") {
+    if (joined === "decision" || joined === "preparation") {
       general.push(
         joined === "decision"
           ? "editor.config.errors.decisionSides"
-          : "editor.config.errors.loopSides",
+          : "editor.config.errors.preparationSides",
       );
       continue;
     }
