@@ -1,4 +1,4 @@
-import { type JSX, useId } from "react";
+import { type JSX } from "react";
 
 import { Field, FieldError, FieldLabel } from "@shared/ui/field";
 import {
@@ -27,22 +27,19 @@ export function NumberField({
   disabled,
   onChange,
 }: NumberFieldProps): JSX.Element {
-  const id = useId();
   const invalid = error !== undefined;
 
   return (
-    <Field data-invalid={invalid} data-disabled={disabled}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+    <Field data-disabled={disabled}>
+      <FieldLabel>{label}</FieldLabel>
 
       <InputGroup>
         <InputGroupInput
-          id={id}
           inputMode="decimal"
           autoComplete="off"
           value={value}
           disabled={disabled}
           aria-invalid={invalid}
-          aria-describedby={invalid ? `${id}-error` : undefined}
           onChange={(event) => {
             onChange(path, event.target.value);
           }}
@@ -54,7 +51,7 @@ export function NumberField({
         </InputGroupAddon>
       </InputGroup>
 
-      {invalid ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
+      <FieldError>{error}</FieldError>
     </Field>
   );
 }

@@ -104,8 +104,10 @@
     "failed": "Export failed"
   },
   "library": {
-    "loading": "Loading…",
-    "empty": "Nothing saved yet. Save the current diagram to find it here later.",
+    "loadingTitle": "Loading saved diagrams",
+    "loadingDescription": "We are loading your saved diagrams from your device. This may take a few seconds.",
+    "emptyTitle": "No saved diagrams",
+    "emptyDescription": "You haven't saved any diagrams yet. Save the current diagram to find it here later.",
     "namePlaceholder": "Name of the diagram",
     "nameLabel": "Name",
     "saveNew": "Save as new",
@@ -121,13 +123,13 @@
     "download": "Download source",
     "delete": "Delete",
     "deleteTitle": "Delete “{name}”?",
-    "deleteText": "The diagram will be removed from this browser. This cannot be undone.",
+    "deleteText": "The diagram will be removed from your device. This cannot be undone.",
     "cancel": "Cancel",
     "confirmDelete": "Delete",
     "updated": "Updated {date}",
     "actions": "Actions for {name}",
     "previewFailed": "Cannot draw this diagram",
     "untitled": "Untitled diagram",
-    "storageFailed": "The browser storage did not work"
+    "storageFailed": "The storage did not work"
   }
 }

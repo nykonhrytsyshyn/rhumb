@@ -13,6 +13,7 @@ import {
 
 import {
   IconAlertTriangle,
+  IconBinaryTree2,
   IconGridDots,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
@@ -20,7 +21,16 @@ import {
 
 import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
+import { Badge } from "@shared/ui/badge";
 import { Button } from "@shared/ui/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@shared/ui/empty";
+import { Spinner } from "@shared/ui/spinner";
 
 import type { RenderState } from "../../model/use-rendered-diagram";
 import { CanvasToolbar } from "./canvas-toolbar";
@@ -119,6 +129,7 @@ export function DiagramCanvas({
         grid && "bg-drafting-grid",
       )}
     >
+      {/* SVG canvas */}
       <TransformWrapper
         ref={transform}
         minScale={MIN_SCALE}
@@ -142,15 +153,36 @@ export function DiagramCanvas({
         </TransformComponent>
       </TransformWrapper>
 
+      {/* Empty canvas state */}
       {svg === null && (
-        <p className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-muted-foreground">
-          {error === null
-            ? t("common.canvas.empty")
-            : t("common.canvas.fixSource")}
-        </p>
+        <Empty className="absolute top-1/2 left-1/2 w-[calc(100%-3rem)] max-w-xs -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-card p-4 shadow-lg sm:max-w-sm sm:rounded-3xl sm:p-6">
+          <EmptyHeader className="gap-2 sm:gap-3">
+            <EmptyMedia variant="icon" className="mb-0">
+              {error === null ? <IconBinaryTree2 /> : <IconAlertTriangle />}
+            </EmptyMedia>
+
+            <EmptyTitle className="text-base sm:text-lg">
+              {error === null
+                ? t("common.canvas.emptyTitle")
+                : t("common.canvas.fixSourceTitle")}
+            </EmptyTitle>
+
+            <EmptyDescription className="text-xs sm:text-sm">
+              {error === null
+                ? t("common.canvas.emptyDescription")
+                : t("common.canvas.fixSourceDescription")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
 
-      <div className="absolute top-3 left-3 hidden md:block">
+      {/* Panel toggle button */}
+      <div
+        className={cn(
+          "absolute top-3 left-3 hidden md:block",
+          fullscreen && "hidden!",
+        )}
+      >
         <Button
           variant="outline"
           size="icon-sm"
@@ -170,6 +202,7 @@ export function DiagramCanvas({
         </Button>
       </div>
 
+      {/* Canvas toolbar */}
       <div className="absolute top-3 right-3">
         <CanvasToolbar
           fullscreen={fullscreen}
@@ -184,17 +217,24 @@ export function DiagramCanvas({
         />
       </div>
 
+      {/* Error message */}
       {error !== null && svg !== null && (
         <div
           role="status"
-          className="absolute top-16 left-1/2 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-full border border-destructive/40 bg-background/90 px-3 py-1.5 text-xs text-destructive backdrop-blur sm:top-5"
+          className="absolute top-16 left-1/2 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-full border border-destructive/40 bg-background/90 bg-destructive/10 px-3 py-1.5 text-xs text-destructive backdrop-blur sm:top-5"
         >
           <IconAlertTriangle className="size-4 shrink-0" />
-          <span className="truncate">{t("common.canvas.fixSource")}</span>
+          <span className="truncate">{t("common.canvas.fixSourceAlert")}</span>
         </div>
       )}
 
-      <div className="absolute bottom-12 left-3 flex items-center gap-2 md:bottom-3">
+      {/* Grid toggle and status */}
+      <div
+        className={cn(
+          "absolute left-3 flex items-center gap-2 md:bottom-3",
+          fullscreen ? "bottom-3" : "bottom-12",
+        )}
+      >
         <Button
           variant={grid ? "ghost" : "outline"}
           size="icon-sm"
@@ -208,15 +248,21 @@ export function DiagramCanvas({
           <IconGridDots />
         </Button>
 
-        <p
-          aria-live="polite"
-          className="font-mono text-xs text-muted-foreground"
-        >
-          {pending ? t("common.canvas.updating") : ""}
-        </p>
+        {pending ? (
+          <Badge variant="outline">
+            <Spinner data-icon="inline-start" />
+            {t("common.canvas.updating")}
+          </Badge>
+        ) : null}
       </div>
 
-      <div className="absolute right-3 bottom-12 flex items-center gap-2 md:bottom-3">
+      {/* Footer */}
+      <div
+        className={cn(
+          "absolute right-3 flex items-center gap-2 md:bottom-3",
+          fullscreen ? "bottom-3" : "bottom-12",
+        )}
+      >
         {footer}
       </div>
     </div>

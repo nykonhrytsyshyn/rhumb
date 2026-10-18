@@ -45,26 +45,26 @@ describe("DiagramCanvas", () => {
   it("explains an empty canvas and one that has an error", () => {
     const empty = renderCanvas({ ...READY, svg: null, size: null });
 
-    expect(screen.getByText("The diagram will appear here.")).toBeDefined();
+    expect(
+      screen.getByText("The diagram will be drawn here as you type the code."),
+    ).toBeDefined();
     empty.unmount();
 
     renderCanvas({ ...READY, svg: null, size: null, error: "Line 1: boom" });
-    expect(
-      screen.getByText("Fix the source to build the diagram."),
-    ).toBeDefined();
+    expect(screen.getByText("Cannot draw diagram")).toBeDefined();
   });
 
   it("keeps the last drawing and flags a newer error", () => {
     renderCanvas({ ...READY, error: "Line 2: boom" });
     expect(screen.getByRole("status").textContent).toContain(
-      "Fix the source to build the diagram.",
+      "Fix the source code to draw the diagram",
     );
     expect(screen.getByRole("img", { name: "Flowchart" })).toBeDefined();
   });
 
   it("announces that it is updating", () => {
     renderCanvas({ ...READY, pending: true });
-    expect(screen.getByText("Updating…")).toBeDefined();
+    expect(screen.getByText("Updating...")).toBeDefined();
   });
 
   it("offers view controls and a footer slot", () => {

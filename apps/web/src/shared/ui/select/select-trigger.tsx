@@ -28,9 +28,15 @@ export function SelectTrigger({
       {children}
 
       <SelectPrimitive.Icon
-        render={
-          <IconChevronDown className="pointer-events-none size-4 text-muted-foreground" />
-        }
+        render={(props, state) => (
+          <IconChevronDown
+            {...props}
+            className={cn(
+              "pointer-events-none size-4 text-muted-foreground transition-transform duration-200",
+              state.open && "rotate-180",
+            )}
+          />
+        )}
       />
     </SelectPrimitive.Trigger>
   );

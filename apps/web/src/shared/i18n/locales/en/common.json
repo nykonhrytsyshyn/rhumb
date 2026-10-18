@@ -24,9 +24,12 @@
     "fit": "Fit to screen",
     "fullscreen": "Toggle fullscreen",
     "grid": "Toggle grid",
-    "empty": "The diagram will appear here.",
-    "fixSource": "Fix the source to build the diagram.",
-    "updating": "Updating…",
+    "emptyTitle": "No diagram yet",
+    "emptyDescription": "The diagram will be drawn here as you type the code.",
+    "fixSourceTitle": "Cannot draw diagram",
+    "fixSourceDescription": "The diagram cannot be drawn because the source code contains errors.",
+    "fixSourceAlert": "Fix the source code to draw the diagram",
+    "updating": "Updating...",
     "label": "Flowchart"
   },
   "theme": {

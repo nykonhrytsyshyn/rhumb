@@ -1,4 +1,4 @@
-import { type JSX, useId } from "react";
+import { type JSX } from "react";
 
 import {
   Field,
@@ -27,28 +27,25 @@ export function TextField({
   disabled,
   onChange,
 }: TextFieldProps): JSX.Element {
-  const id = useId();
   const invalid = error !== undefined;
 
   return (
     <Field data-invalid={invalid} data-disabled={disabled}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <FieldLabel>{label}</FieldLabel>
 
       <Input
-        id={id}
         autoComplete="off"
         spellCheck={false}
         value={value}
         disabled={disabled}
         aria-invalid={invalid}
-        aria-describedby={invalid ? `${id}-error` : undefined}
         onChange={(event) => {
           onChange(path, event.target.value);
         }}
       />
 
       {hint === undefined ? null : <FieldDescription>{hint}</FieldDescription>}
-      {invalid ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
+      <FieldError>{error}</FieldError>
     </Field>
   );
 }

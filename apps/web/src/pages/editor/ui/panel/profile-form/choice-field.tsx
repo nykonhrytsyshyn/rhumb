@@ -1,4 +1,4 @@
-import { type JSX, useId } from "react";
+import { type JSX } from "react";
 
 import { Field, FieldLabel } from "@shared/ui/field";
 import {
@@ -31,11 +31,9 @@ export function ChoiceField({
   disabled,
   onChange,
 }: ChoiceFieldProps): JSX.Element {
-  const id = useId();
-
   return (
     <Field data-disabled={disabled}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <FieldLabel>{label}</FieldLabel>
 
       <Select
         value={value}
@@ -46,7 +44,7 @@ export function ChoiceField({
           }
         }}
       >
-        <SelectTrigger id={id} className="w-full">
+        <SelectTrigger className="w-full">
           <SelectValue>
             {(current: string | null) =>
               options.find((option) => option.value === current)?.label ??

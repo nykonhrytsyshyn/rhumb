@@ -3,7 +3,7 @@ import type { JSX, ReactNode } from "react";
 import { NODE_KINDS, type NodeKind } from "@rhumb/kernel";
 import { LABEL_STYLES, SIDE_CHOICES } from "@rhumb/profiles";
 
-import { type TranslateFn, useT } from "@shared/i18n";
+import { useT } from "@shared/i18n";
 import type { TranslationKey } from "@shared/i18n";
 import {
   Accordion,
@@ -98,7 +98,7 @@ export function ProfileFields({
   disabled,
   onChange,
 }: ProfileFieldsProps): JSX.Element {
-  const t: TranslateFn = useT();
+  const t = useT();
   const unit = t("editor.config.unit");
 
   const number = (path: string, label: TranslationKey, withUnit = true) => (

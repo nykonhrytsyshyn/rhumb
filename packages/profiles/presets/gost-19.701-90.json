@@ -68,6 +68,7 @@
     "yes": {
       "side": "side",
       "labels": [
+        "так",
         "да",
         "yes",
         "y",
@@ -78,6 +79,7 @@
     "no": {
       "side": "side",
       "labels": [
+        "ні",
         "нет",
         "no",
         "n",
