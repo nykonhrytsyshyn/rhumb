@@ -145,7 +145,7 @@ export function ProfileFields({
     ) : null;
 
   return (
-    <Accordion multiple defaultValue={["page"]}>
+    <Accordion multiple>
       <Group
         id="page"
         title={t("editor.config.groups.page")}
@@ -242,7 +242,9 @@ export function ProfileFields({
       >
         {NODE_KINDS.map((kind) => (
           <FieldSet key={kind} className="col-span-2">
-            <FieldLegend variant="label">{t(BLOCK_NAMES[kind])}</FieldLegend>
+            <FieldLegend variant="label" className="text-muted-foreground">
+              {t(BLOCK_NAMES[kind])}
+            </FieldLegend>
 
             <div className="grid grid-cols-2 gap-3">
               {number(
