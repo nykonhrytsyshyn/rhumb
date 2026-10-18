@@ -17,6 +17,7 @@ import { CrossingFinder, type Hop, type RoutedEdge } from "./EdgeCrossings";
 import { joinMergingLines } from "./EdgeMerges";
 import { buildEdgePath } from "./EdgePath";
 import { LabelPlacer, type PlacedLabel } from "./LabelPlacer";
+import { type Stretch, openGap } from "./LayoutGaps";
 import type { Metrics } from "./Metrics";
 
 const ARROW_ID = "rhumb-arrow";
@@ -28,6 +29,9 @@ interface Extent {
   readonly maxX: number;
   readonly maxY: number;
 }
+
+/** How many times a diagram may be stretched to make room for labels. */
+const MAX_ROOM_PASSES = 8;
 
 /** Turns a computed layout into the final SVG tree. */
 export class DiagramPainter {
@@ -43,9 +47,29 @@ export class DiagramPainter {
     routed: LayoutResult,
   ): RenderedDiagram {
     const { margin } = this.metrics;
-    const layout = this.withJoinedMerges(diagram, routed);
-    const hops = this.findHops(diagram, layout);
-    const labels = this.edgeLabels(diagram, layout, hops);
+    let current = routed;
+    let layout = this.withJoinedMerges(diagram, current);
+    let hops = this.findHops(diagram, layout);
+    let placed = this.edgeLabels(diagram, layout, hops, current);
+
+    // A label that finds no room makes its line longer, and the diagram
+    // grows with it.
+    for (let pass = 0; pass < MAX_ROOM_PASSES; pass += 1) {
+      const opened = placed.cramped
+        .map((stretch) => openGap(current, stretch))
+        .find((result) => result !== undefined);
+
+      if (opened === undefined) {
+        break;
+      }
+
+      current = opened;
+      layout = this.withJoinedMerges(diagram, current);
+      hops = this.findHops(diagram, layout);
+      placed = this.edgeLabels(diagram, layout, hops, current);
+    }
+
+    const labels = placed.labels;
     const extent = this.extentOf(layout, labels);
     const width = roundTo(extent.maxX - extent.minX + margin * 2);
     const height = roundTo(extent.maxY - extent.minY + margin * 2);
@@ -257,16 +281,20 @@ export class DiagramPainter {
     diagram: FlowchartDiagram,
     layout: LayoutResult,
     hops: ReadonlyMap<EdgeId, readonly Hop[]>,
-  ): readonly PlacedLabel[] {
+    routed: LayoutResult,
+  ): { labels: readonly PlacedLabel[]; cramped: readonly Stretch[] } {
     const placer = new LabelPlacer({
       padding: this.metrics.padding,
       stub: this.metrics.stub,
       jumpRadius: this.metrics.jumpRadius,
+      arrowLength: this.metrics.arrowLength,
     });
     const arches = [...hops.values()].flatMap((list) =>
       list.map((hop) => hop.at),
     );
     const placed: PlacedLabel[] = [];
+    const cramped: Stretch[] = [];
+    const inline = this.metrics.labelStyle === "inline";
 
     for (const edge of diagram.edges) {
       const points = layout.edges.get(edge.id);
@@ -278,6 +306,7 @@ export class DiagramPainter {
       const line = {
         id: edge.id,
         points,
+        fullPoints: routed.edges.get(edge.id),
         arrow: edge.arrow,
         text: edge.label,
         size: this.measurer.measure(edge.label, this.metrics.textStyle),
@@ -288,17 +317,26 @@ export class DiagramPainter {
         hops: arches,
         placed,
       };
-      const label =
-        this.metrics.labelStyle === "inline"
-          ? placer.placeInline(line, surroundings)
-          : placer.placeBeside(line, surroundings);
+      const label = inline
+        ? placer.placeInline(line, surroundings)
+        : placer.placeBeside(line, surroundings);
 
-      if (label !== undefined) {
-        placed.push(label);
+      if (label === undefined) {
+        continue;
       }
+
+      const stretch = placer.isCrowded(label, line, surroundings)
+        ? placer.stretchFor(line, inline)
+        : undefined;
+
+      if (stretch !== undefined) {
+        cramped.push(stretch);
+      }
+
+      placed.push(label);
     }
 
-    return placed;
+    return { labels: placed, cramped };
   }
 
   /** Solid patches that keep a line from running through its own label. */

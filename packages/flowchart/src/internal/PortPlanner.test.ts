@@ -284,3 +284,29 @@ describe("PortPlanner", () => {
     });
   });
 });
+
+describe("PortPlanner with a loop inside a loop", () => {
+  const source = [
+    "flowchart TD",
+    "A --> B{{outer}}",
+    "B --> E[work]",
+    "E --> F{{inner}}",
+    "F --> G[step]",
+    "G --> F",
+    "F --> H[after]",
+    "H --> B",
+    "B --> Z[end]",
+  ].join("\n");
+  const sides = plan(source);
+
+  it("enters the inner block from the flow side and not from the return side", () => {
+    // E -> F is the third edge.
+    expect(sides.get("e2")?.toSide).toBe(Side.Top);
+    expect(sides.get("e4")?.toSide).toBe(Side.Left);
+  });
+
+  it("leaves the inner block for its own loop from the bottom and for the rest from the side", () => {
+    expect(sides.get("e3")?.fromSide).toBe(Side.Bottom);
+    expect(sides.get("e5")?.fromSide).toBe(Side.Right);
+  });
+});

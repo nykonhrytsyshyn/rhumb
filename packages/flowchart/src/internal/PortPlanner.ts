@@ -52,12 +52,16 @@ export class PortPlanner {
   ) {}
 
   public plan(diagram: FlowchartDiagram): ReadonlyMap<EdgeId, PlannedSides> {
-    const graph = new FlowGraph(diagram.edges);
+    const graph = new FlowGraph(
+      diagram.edges,
+      diagram.nodes.map((node) => node.id),
+    );
     const returnTargets = diagram.nodes.filter((node) =>
       PortPlanner.isReturnTarget(node, diagram, graph),
     );
     const plans = new Map<NodeId, BlockSides>();
 
+    // Preparation blocks go first: decisions steer their lines to them.
     for (const node of returnTargets) {
       plans.set(node.id, this.planPreparation(node, diagram, graph));
     }
@@ -95,12 +99,7 @@ export class PortPlanner {
   ): boolean {
     return (
       node.kind === "preparation" &&
-      diagram.edges.some(
-        (edge) =>
-          edge.from === node.id &&
-          edge.to !== node.id &&
-          graph.reaches(edge.to, node.id),
-      )
+      diagram.edges.some((edge) => edge.to === node.id && graph.isBack(edge))
     );
   }
 
@@ -156,10 +155,9 @@ export class PortPlanner {
     const { preparation } = this.profile;
     const incoming = PortPlanner.into(node, diagram);
     const outgoing = PortPlanner.from(node, diagram);
-    const returning = (edge: DiagramEdge): boolean =>
-      edge.from !== node.id && graph.reaches(node.id, edge.from);
+    const returning = (edge: DiagramEdge): boolean => graph.isBack(edge);
     const repeating = (edge: DiagramEdge): boolean =>
-      edge.to !== edge.from && graph.reaches(edge.to, edge.from);
+      edge.to !== edge.from && graph.leadsBackTo(edge.to, node.id);
 
     const roles: Role[] = [];
 
@@ -222,8 +220,7 @@ export class PortPlanner {
       const choice = index === 0 ? decision.yes.side : decision.no.side;
       const lean = index === 0 ? LEANS.yes : LEANS.no;
       const arrival = plans.get(edge.to)?.entering.get(edge.id);
-      const goesBack =
-        edge.to !== edge.from && graph.reaches(edge.to, edge.from);
+      const goesBack = graph.isBack(edge);
       const base =
         index < 2
           ? this.role(key, choice, lean)

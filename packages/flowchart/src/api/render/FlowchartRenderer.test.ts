@@ -462,6 +462,32 @@ describe("FlowchartRenderer", () => {
     });
   });
 
+  describe("labels that need room", () => {
+    async function heightOf(source: string) {
+      const profile = profileAt(0);
+      const result = await new FlowchartRenderer({
+        profile: {
+          ...profile,
+          line: { ...profile.line, labelStyle: "beside" },
+          spacing: { ...profile.spacing, layer: 1, clearance: 1 },
+        },
+        layoutEngine: new ElkLayoutEngine(new ELK()),
+        measurer: new ApproximateTextMeasurer(),
+      }).render(new FlowchartParser().parse(source));
+
+      return result.size.height;
+    }
+
+    it("lengthens a line that is too short for its label", async () => {
+      const bare = await heightOf("flowchart TD\nA[a] --> B[b]");
+      const labelled = await heightOf(
+        'flowchart TD\nA[a] -->|"a rather long label"| B[b]',
+      );
+
+      expect(labelled).toBeGreaterThan(bare);
+    });
+  });
+
   it("draws no arches when nothing crosses", async () => {
     const { nodes } = await render(0, SOURCE);
 
