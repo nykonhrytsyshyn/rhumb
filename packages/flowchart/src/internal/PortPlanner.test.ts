@@ -310,3 +310,26 @@ describe("PortPlanner with a loop inside a loop", () => {
     expect(sides.get("e5")?.fromSide).toBe(Side.Right);
   });
 });
+
+describe("PortPlanner with a loop whose exit returns to an outer loop", () => {
+  const sides = plan(
+    [
+      "flowchart TD",
+      "A --> C{{outer}}",
+      "C --> D{{inner}}",
+      "D --> E[work]",
+      "E --> D",
+      "D --> C",
+      "C --> Z[end]",
+    ].join("\n"),
+  );
+
+  it("sends the line into the repeated section from the bottom", () => {
+    expect(sides.get("e2")?.fromSide).toBe(Side.Bottom);
+  });
+
+  it("sends the line back to the outer block out of the exit side", () => {
+    expect(sides.get("e4")?.fromSide).toBe(Side.Right);
+    expect(sides.get("e4")?.toSide).toBe(Side.Left);
+  });
+});
