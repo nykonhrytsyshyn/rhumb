@@ -67,6 +67,7 @@ export function toElkGraph(request: LayoutRequest): ElkNode {
       "elk.edgeRouting": "ORTHOGONAL",
       "elk.layered.cycleBreaking.strategy": "DEPTH_FIRST",
       "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
+      "elk.layered.nodePlacement.bk.fixedAlignment": "LEFTUP",
       "elk.padding": "[top=0,left=0,bottom=0,right=0]",
       "elk.spacing.nodeNode": String(request.nodeSpacing),
       "elk.layered.spacing.nodeNodeBetweenLayers": String(request.layerSpacing),

@@ -157,7 +157,9 @@ export class PortPlanner {
     const outgoing = PortPlanner.from(node, diagram);
     const returning = (edge: DiagramEdge): boolean => graph.isBack(edge);
     const repeating = (edge: DiagramEdge): boolean =>
-      edge.to !== edge.from && graph.leadsBackTo(edge.to, node.id);
+      !graph.isBack(edge) &&
+      edge.to !== edge.from &&
+      graph.leadsBackTo(edge.to, node.id);
 
     const roles: Role[] = [];
 
