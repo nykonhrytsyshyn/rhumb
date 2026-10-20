@@ -25,7 +25,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["assets/*.ico", "assets/*.png", "assets/*.svg"],
+      includeManifestIcons: false,
       manifest: {
         name: "Rhumb - Flowcharts by standard",
         short_name: "Rhumb",
