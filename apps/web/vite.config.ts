@@ -172,6 +172,12 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         globIgnores: ["404.html"],
+        navigateFallbackDenylist: [
+          /^\/robots\.txt$/,
+          /^\/sitemap.*\.xml$/,
+          /^\/\.well-known\//,
+          /^\/manifest\.webmanifest$/,
+        ],
       },
     }),
   ],
