@@ -1,6 +1,6 @@
 {
   "name": "rhumb",
-  "version": "26.10.4",
+  "version": "26.10.5",
   "description": "Standard-conforming flowcharts from Mermaid-like text",
   "author": "Nykon Hrytsyshyn (https://nykon.me)",
   "license": "MIT",
@@ -65,7 +65,7 @@
     "prettier-plugin-yaml": "^1.3.0",
     "tree-node-cli": "^3.0.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.71.2",
+    "typescript-eslint": "^8.72.0",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
   }

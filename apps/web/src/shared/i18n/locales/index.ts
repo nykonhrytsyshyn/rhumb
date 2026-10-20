@@ -2,14 +2,17 @@ import type { Language } from "../constants";
 import enCommon from "./en/common.json";
 import enDocs from "./en/docs.json";
 import enEditor from "./en/editor.json";
+import enErrors from "./en/errors.json";
 import ukCommon from "./uk/common.json";
 import ukDocs from "./uk/docs.json";
 import ukEditor from "./uk/editor.json";
+import ukErrors from "./uk/errors.json";
 
 export interface Messages {
   readonly common: typeof enCommon;
   readonly editor: typeof enEditor;
   readonly docs: typeof enDocs;
+  readonly errors: typeof enErrors;
 }
 
 type Flatten<T, Prefix extends string = ""> = T extends string
@@ -23,8 +26,18 @@ type Flatten<T, Prefix extends string = ""> = T extends string
 
 export type TranslationKey = Flatten<Messages>;
 
-const en: Messages = { common: enCommon, editor: enEditor, docs: enDocs };
-const uk: Messages = { common: ukCommon, editor: ukEditor, docs: ukDocs };
+const en: Messages = {
+  common: enCommon,
+  editor: enEditor,
+  docs: enDocs,
+  errors: enErrors,
+};
+const uk: Messages = {
+  common: ukCommon,
+  editor: ukEditor,
+  docs: ukDocs,
+  errors: ukErrors,
+};
 
 export const LOCALES_BY_LANGUAGE: Readonly<Record<Language, Messages>> = {
   en,
