@@ -1,4 +1,5 @@
 @import "./theme.css";
+@import "./fonts.css";
 
 @layer base {
   ::-webkit-scrollbar {

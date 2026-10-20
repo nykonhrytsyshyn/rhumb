@@ -1,63 +1,34 @@
 import type { JSX } from "react";
-import { useState } from "react";
 
-import { IconBrandGithub } from "@tabler/icons-react";
+import { DiagramCanvas } from "@widgets/diagram-canvas";
+import { EditorPanel } from "@widgets/editor-panel";
 
+import { LanguageSwitcher } from "@features/i18n";
 import { ThemeToggler } from "@features/theme";
 
-import { SITE } from "@shared/config";
-import { LANGUAGE_OPTIONS, LanguageSwitcher, useI18n } from "@shared/i18n";
-import { usePersistedState } from "@shared/lib/use-persisted-state";
-import { Button } from "@shared/ui/button";
+import { useT } from "@shared/i18n";
 
-import { sampleSource, translateSample } from "../config/samples";
-import type { DiagramStore, SavedDiagram } from "../model/diagram-store";
-import { useProfileEditor } from "../model/use-profile-editor";
-import { useRenderedDiagram } from "../model/use-rendered-diagram";
-import { DiagramCanvas } from "./canvas";
-import { EditorPanel } from "./panel";
+import { EDITOR_TABS } from "../config/editor-tabs";
+import { useEditorPage } from "../model/use-editor-page";
+import { RepositoryButton } from "./diagram";
+import {
+  ActionsSection,
+  CodeTab,
+  ConfigTab,
+  DocsTab,
+  LibraryTab,
+  SamplesSection,
+} from "./panel";
 
-const SOURCE_KEY = "rhumb:source";
-const CURRENT_DIAGRAM_KEY = "rhumb:current-diagram";
-const WIDE_SCREEN = "(min-width: 768px)";
+export function EditorPage(): JSX.Element {
+  const t = useT();
+  const page = useEditorPage();
 
-function startsOpen(): boolean {
-  return (
-    typeof window.matchMedia !== "function" ||
-    window.matchMedia(WIDE_SCREEN).matches
-  );
-}
-
-export interface EditorPageProps {
-  /** Where saved diagrams live; the browser's storage by default. */
-  readonly libraryStore?: DiagramStore;
-}
-
-export function EditorPage({ libraryStore }: EditorPageProps): JSX.Element {
-  const { t, language, setLanguage } = useI18n();
-  const editor = useProfileEditor();
-  const [source, setSource] = usePersistedState(
-    SOURCE_KEY,
-    sampleSource("algorithm", language),
-  );
-  const [storedCurrent, setStoredCurrent] = usePersistedState(
-    CURRENT_DIAGRAM_KEY,
-    "",
-  );
-  const [panelOpen, setPanelOpen] = useState(startsOpen);
-  const [fitKey, setFitKey] = useState(0);
-
-  const rendered = useRenderedDiagram(source, editor.active);
-
-  function openDiagram(diagram: SavedDiagram): void {
-    setSource(diagram.source);
-
-    if (editor.profiles.some((profile) => profile.id === diagram.profileId)) {
-      editor.select(diagram.profileId);
-    }
-
-    setFitKey((key) => key + 1);
-  }
+  const tabs = EDITOR_TABS.map((tab) => ({
+    value: tab.value,
+    label: t(tab.labelKey),
+    icon: tab.icon,
+  }));
 
   return (
     <main className="relative flex h-dvh w-full overflow-hidden">
@@ -66,81 +37,82 @@ export function EditorPage({ libraryStore }: EditorPageProps): JSX.Element {
       </h1>
 
       <EditorPanel
-        open={panelOpen}
-        onOpenChange={setPanelOpen}
-        source={source}
-        onSourceChange={setSource}
-        error={rendered.error}
-        editor={editor}
-        {...(libraryStore === undefined ? {} : { libraryStore })}
-        currentDiagramId={storedCurrent === "" ? null : storedCurrent}
-        onCurrentDiagramChange={(id) => {
-          setStoredCurrent(id ?? "");
-        }}
-        onOpenDiagram={openDiagram}
-        onProfileSelect={(id) => {
-          editor.select(id);
-          setFitKey((key) => key + 1);
-        }}
-        onSampleSelect={(next) => {
-          setSource(next);
-          setFitKey((key) => key + 1);
-        }}
-      />
+        open={page.panelOpen}
+        onOpenChange={page.setPanelOpen}
+        defaultTab="code"
+      >
+        <EditorPanel.Handle />
 
-      <DiagramCanvas
-        state={rendered}
-        panelOpen={panelOpen}
-        onPanelOpenChange={setPanelOpen}
-        fitKey={fitKey}
-        footer={
-          <>
-            <LanguageSwitcher
-              language={language}
-              onChange={(next) => {
-                const translated = translateSample(source, next);
+        <EditorPanel.Body>
+          <EditorPanel.Tabs tabs={tabs} />
 
-                if (translated !== undefined) {
-                  setSource(translated);
-                }
+          <EditorPanel.Content>
+            <EditorPanel.Pane value="code" fill>
+              <CodeTab
+                source={page.source}
+                onSourceChange={page.setSource}
+                error={page.rendered.error}
+              />
+            </EditorPanel.Pane>
 
-                setLanguage(next);
-              }}
-              options={LANGUAGE_OPTIONS}
-              label={t("common.language.label")}
-              heading={t("common.language.heading")}
-            />
+            <EditorPanel.Pane value="config">
+              <ConfigTab
+                editor={page.editor}
+                onProfileSelect={page.selectProfile}
+              />
+            </EditorPanel.Pane>
 
-            <ThemeToggler
-              label={t("common.theme.toggle")}
-              modeLabels={{
-                light: t("common.theme.mode.light"),
-                dark: t("common.theme.mode.dark"),
-                system: t("common.theme.mode.system"),
-              }}
-            />
+            <EditorPanel.Pane value="library">
+              <LibraryTab
+                source={page.source}
+                profileId={page.editor.selected.id}
+                currentId={page.currentDiagramId}
+                onCurrentChange={page.setCurrentDiagramId}
+                onOpen={page.openDiagram}
+              />
+            </EditorPanel.Pane>
 
-            <Button
-              variant="outline"
-              title={`v${SITE.version}`}
-              onClick={() => {
-                window.open(
-                  SITE.repositoryUrl,
-                  "_blank",
-                  "noopener,noreferrer",
-                );
-              }}
-              className="gap-3"
-            >
-              <span className="font-mono text-xs text-muted-foreground">
-                v{SITE.version}
-              </span>
+            <EditorPanel.Pane value="docs">
+              <DocsTab />
+            </EditorPanel.Pane>
 
-              <IconBrandGithub />
-            </Button>
-          </>
-        }
-      />
+            {process.env.NODE_ENV === "development" && (
+              <SamplesSection onSelect={page.selectSample} />
+            )}
+
+            <ActionsSection source={page.source} profile={page.editor.active} />
+          </EditorPanel.Content>
+        </EditorPanel.Body>
+      </EditorPanel>
+
+      <DiagramCanvas state={page.rendered} fitKey={page.fitKey}>
+        <DiagramCanvas.Viewport />
+        <DiagramCanvas.Empty />
+
+        <DiagramCanvas.Slot position="top-left">
+          <EditorPanel.Toggle
+            open={page.panelOpen}
+            onOpenChange={page.setPanelOpen}
+          />
+        </DiagramCanvas.Slot>
+
+        <DiagramCanvas.Slot position="top-right">
+          <DiagramCanvas.Toolbar />
+        </DiagramCanvas.Slot>
+
+        <DiagramCanvas.Alert />
+
+        <DiagramCanvas.Slot position="bottom-left">
+          <DiagramCanvas.GridToggle />
+          <DiagramCanvas.PendingBadge />
+        </DiagramCanvas.Slot>
+
+        <DiagramCanvas.Slot position="bottom-right">
+          <LanguageSwitcher onChange={page.followLanguage} />
+          <ThemeToggler />
+          <RepositoryButton />
+        </DiagramCanvas.Slot>
+      </DiagramCanvas>
     </main>
   );
 }

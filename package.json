@@ -1,8 +1,8 @@
 {
   "name": "rhumb",
-  "version": "26.10.3",
+  "version": "26.10.4",
   "description": "Standard-conforming flowcharts from Mermaid-like text",
-  "author": "Nykon (https://nykon.me)",
+  "author": "Nykon Hrytsyshyn (https://nykon.me)",
   "license": "MIT",
   "homepage": "https://rhumb.nykon.me",
   "type": "module",
@@ -15,7 +15,7 @@
     "url": "https://github.com/nykonhrytsyshyn/rhumb/issues",
     "email": "contact@nykon.me"
   },
-  "packageManager": "pnpm@12.11.2",
+  "packageManager": "pnpm@12.14.0",
   "engines": {
     "node": ">=22.16.0",
     "pnpm": ">=11.0.0"
@@ -34,7 +34,7 @@
     "preview": "pnpm --filter @rhumb/web preview",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run test && pnpm run build",
     "typecheck": "pnpm --filter \"./packages/**\" --filter \"./apps/**\" run typecheck && tsc --noEmit",
-    "lint": "eslint . && pnpm --filter @rhumb/web run lint:fsd",
+    "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -52,16 +52,18 @@
   "devDependencies": {
     "@eslint/js": "^10.0.0",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "@types/estree": "^1.0.8",
     "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^5.0.5",
     "@vitest/ui": "^5.0.5",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
     "jiti": "^2.7.0",
     "prettier": "^3.9.9",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "prettier-plugin-yaml": "^1.3.0",
+    "tree-node-cli": "^3.0.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.2",
     "vite": "^8.3.4",

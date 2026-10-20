@@ -1,20 +1,21 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-
-import { COLOR_SCHEME_QUERY, applyTheme, isTheme } from "../lib";
 import {
-  type Theme,
-  ThemeProviderContext,
-  type ThemeProviderProps,
-} from "../model";
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-function readTheme(storageKey: string, fallback: Theme): Theme {
-  try {
-    const stored = window.localStorage.getItem(storageKey);
+import { applyTheme } from "../lib/apply-theme";
+import { COLOR_SCHEME_QUERY } from "../lib/constants";
+import { readTheme } from "../model/read-theme";
+import type { Theme } from "../model/theme";
+import { ThemeProviderContext } from "../model/theme-provider-context";
 
-    return isTheme(stored) ? stored : fallback;
-  } catch {
-    return fallback;
-  }
+export interface ThemeProviderProps {
+  readonly children: ReactNode;
+  readonly defaultTheme?: Theme;
+  readonly storageKey?: string;
 }
 
 export function ThemeProvider({

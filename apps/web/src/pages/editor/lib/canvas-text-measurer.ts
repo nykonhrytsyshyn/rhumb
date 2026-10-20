@@ -11,7 +11,6 @@ function createBrowserContext(): MeasureContext | null {
   return document.createElement("canvas").getContext("2d");
 }
 
-/** Measures text with the browser's own font metrics. */
 export class CanvasTextMeasurer implements TextMeasurer {
   private readonly fallback = new ApproximateTextMeasurer();
   private readonly createContext: () => MeasureContext | null;

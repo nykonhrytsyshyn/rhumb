@@ -1,12 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  applyTheme,
-  getSystemTheme,
-  isTheme,
-  nextTheme,
-  resolveTheme,
-} from "./theme-utils";
+import { applyTheme } from "./apply-theme";
+import { getSystemTheme } from "./get-system-theme";
+import { isTheme } from "./is-theme";
+import { nextTheme } from "./next-theme";
+import { resolveTheme } from "./resolve-theme";
 
 function mockSystem(dark: boolean): void {
   vi.stubGlobal(

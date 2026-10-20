@@ -12,10 +12,4 @@ export {
   type Messages,
   type TranslationKey,
 } from "./locales";
-export {
-  type TranslateFn,
-  LanguageSwitcher,
-  type LanguageSwitcherProps,
-  useI18n,
-  useT,
-} from "./react";
+export { type TranslateFn, useI18n, useT } from "./react";

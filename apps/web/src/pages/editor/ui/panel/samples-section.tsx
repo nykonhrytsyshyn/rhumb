@@ -2,11 +2,12 @@ import type { JSX } from "react";
 
 import { IconHierarchy2 } from "@tabler/icons-react";
 
+import { EditorPanel } from "@widgets/editor-panel";
+
 import { useI18n } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
 
 import { SAMPLES } from "../../config/samples";
-import { PanelSection } from "./panel-section";
 
 export interface SamplesSectionProps {
   readonly onSelect: (source: string) => void;
@@ -16,7 +17,7 @@ export function SamplesSection({ onSelect }: SamplesSectionProps): JSX.Element {
   const { t, language } = useI18n();
 
   return (
-    <PanelSection
+    <EditorPanel.Section
       icon={<IconHierarchy2 />}
       title={t("common.sections.samples")}
     >
@@ -34,6 +35,6 @@ export function SamplesSection({ onSelect }: SamplesSectionProps): JSX.Element {
           </Button>
         ))}
       </div>
-    </PanelSection>
+    </EditorPanel.Section>
   );
 }

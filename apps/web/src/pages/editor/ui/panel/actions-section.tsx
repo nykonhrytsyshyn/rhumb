@@ -9,13 +9,15 @@ import {
 
 import type { StandardProfile } from "@rhumb/profiles";
 
+import { EditorPanel } from "@widgets/editor-panel";
+
 import { useT } from "@shared/i18n";
+import { getErrorMessage } from "@shared/lib/get-error-message";
 import { Button } from "@shared/ui/button";
 import { Label } from "@shared/ui/label";
 import { Switch } from "@shared/ui/switch";
 
 import { copyPng, exportPng, exportSvg } from "../../lib/export-diagram";
-import { PanelSection } from "./panel-section";
 
 export interface ActionsSectionProps {
   readonly source: string;
@@ -60,9 +62,7 @@ export function ActionsSection({
           break;
       }
     } catch (error) {
-      const details = error instanceof Error ? error.message : String(error);
-
-      setFailure(`${t("editor.actions.failed")}: ${details}`);
+      setFailure(`${t("editor.actions.failed")}: ${getErrorMessage(error)}`);
     } finally {
       setBusy(null);
     }
@@ -71,7 +71,7 @@ export function ActionsSection({
   const disabled = profile === undefined || busy !== null;
 
   return (
-    <PanelSection
+    <EditorPanel.Section
       icon={<IconUpload />}
       title={t("common.sections.actions")}
       defaultOpen
@@ -133,6 +133,6 @@ export function ActionsSection({
           </p>
         )}
       </div>
-    </PanelSection>
+    </EditorPanel.Section>
   );
 }

@@ -25,7 +25,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["assets/*.ico", "assets/*.png", "assets/*.svg"],
+      includeManifestIcons: false,
       manifest: {
         name: "Rhumb - Flowcharts by standard",
         short_name: "Rhumb",
@@ -45,6 +45,7 @@ export default defineConfig({
         ],
         orientation: "any",
         icons: [
+          //<editor-fold desc="Icons" defaultstate="collapsed">
           {
             src: "/assets/icon-192.png",
             sizes: "192x192",
@@ -55,8 +56,91 @@ export default defineConfig({
             src: "/assets/icon-512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "any",
           },
+          {
+            src: "/assets/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          //</editor-fold>
+        ],
+        screenshots: [
+          //<editor-fold desc="Desktop (wide)" defaultstate="collapsed">
+          {
+            src: "/assets/screenshots/desktop-banner.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Rhumb banner",
+          },
+          {
+            src: "/assets/screenshots/desktop-code-tab.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Editor tab with code input and diagram output",
+          },
+          {
+            src: "/assets/screenshots/desktop-library-tab.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Library tab with saved diagrams and search input",
+          },
+          {
+            src: "/assets/screenshots/desktop-docs-tab.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Documentation tab with Markdown content",
+          },
+          {
+            src: "/assets/screenshots/desktop-config-tab.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Configuration tab with settings",
+          },
+          //</editor-fold>
+          //<editor-fold desc="Mobile (narrow)" defaultstate="collapsed">
+          {
+            src: "/assets/screenshots/mobile-banner.png",
+            sizes: "1179x2556",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Rhumb banner",
+          },
+          {
+            src: "/assets/screenshots/mobile-code-tab.png",
+            sizes: "1179x2556",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Editor tab with code input and diagram output",
+          },
+          {
+            src: "/assets/screenshots/mobile-library-tab.png",
+            sizes: "1179x2556",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Library tab with saved diagrams and search input",
+          },
+          {
+            src: "/assets/screenshots/mobile-docs-tab.png",
+            sizes: "1179x2556",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Documentation tab with Markdown content",
+          },
+          {
+            src: "/assets/screenshots/mobile-config-tab.png",
+            sizes: "1179x2556",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Configuration tab with settings",
+          },
+          //</editor-fold>
         ],
       },
       workbox: {
