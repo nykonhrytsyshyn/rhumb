@@ -13,7 +13,6 @@ import { CanvasTextMeasurer } from "../lib/canvas-text-measurer";
 
 const PIXELS_PER_MM = 4;
 
-/** Follows the page: ink takes the text colour, blocks get a solid card fill. */
 export const PREVIEW_APPEARANCE: Appearance = {
   ink: "currentColor",
   fill: "var(--card)",
@@ -23,7 +22,6 @@ export const PREVIEW_APPEARANCE: Appearance = {
 
 let engine: DiagramEngine | undefined;
 
-/** The engine is created on first use so that its worker starts lazily. */
 function getEngine(): DiagramEngine {
   engine ??= new DiagramEngine({
     layoutEngine: new ElkLayoutEngine(new ELK({ workerUrl })),
@@ -34,7 +32,6 @@ function getEngine(): DiagramEngine {
 }
 
 export interface RenderOptions {
-  /** Colours; defaults to the preview colours that follow the page theme. */
   readonly appearance?: Partial<Appearance>;
 }
 

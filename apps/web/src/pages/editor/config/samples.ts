@@ -82,29 +82,3 @@ export const SAMPLES: readonly Sample[] = [
     },
   },
 ];
-
-export function sampleSource(id: SampleId, language: Language): string {
-  const sample = SAMPLES.find((candidate) => candidate.id === id);
-
-  if (sample === undefined) {
-    throw new Error(`Unknown sample "${id}"`);
-  }
-
-  return sample.sources[language];
-}
-
-/**
- * When the editor still holds an untouched sample, returns the same sample in
- * another language so that the text follows the interface language.
- */
-export function translateSample(
-  source: string,
-  language: Language,
-): string | undefined {
-  const sample = SAMPLES.find((candidate) =>
-    Object.values(candidate.sources).includes(source),
-  );
-  const translated = sample?.sources[language];
-
-  return translated === source ? undefined : translated;
-}
