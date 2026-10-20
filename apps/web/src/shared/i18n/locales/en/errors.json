@@ -1,0 +1,10 @@
+{
+  "notFound": {
+    "title": "Page not found",
+    "cta": "Open the editor"
+  },
+  "crash": {
+    "title": "Something broke",
+    "cta": "Reload"
+  }
+}
