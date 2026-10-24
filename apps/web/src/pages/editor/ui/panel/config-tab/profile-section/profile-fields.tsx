@@ -8,10 +8,10 @@ import { ProfileForm } from "@widgets/profile-form";
 import type { TranslationKey } from "@shared/i18n";
 import { useT } from "@shared/i18n";
 
-import { BLOCK_NAMES } from "../../../config/block-names";
-import { isGroupInvalid } from "../../../lib/is-group-invalid";
-import { type FormState, readField } from "../../../lib/profile-form";
-import type { ParsedForm } from "../../../lib/profile-form";
+import { BLOCK_NAMES } from "../../../../config/block-names";
+import { isGroupInvalid } from "../../../../lib/is-group-invalid";
+import { type FormState, readField } from "../../../../lib/profile-form";
+import type { ParsedForm } from "../../../../lib/profile-form";
 
 export interface ProfileFieldsProps {
   readonly values: FormState;
