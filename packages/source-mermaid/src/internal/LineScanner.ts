@@ -28,6 +28,86 @@ export class LineScanner {
     }
   }
 
+  /** Skips spaces and the commas that separate the entries of `@{ ... }`. */
+  public skipSeparators(): void {
+    while (/[ ,\t]/.test(this.text.charAt(this.position)) && !this.atTextEnd) {
+      this.position += 1;
+    }
+  }
+
+  private get atTextEnd(): boolean {
+    return this.position >= this.text.length;
+  }
+
+  /** A value in `@{ ... }`: quoted text, or bare text up to a comma or `}`. */
+  public readValue(): string {
+    this.skipSpaces();
+
+    if (this.text.charAt(this.position) === '"') {
+      const end = this.text.indexOf('"', this.position + 1);
+
+      if (end === -1) {
+        this.fail("Unterminated quoted text");
+      }
+
+      const quoted = this.text.slice(this.position + 1, end);
+
+      this.position = end + 1;
+
+      return quoted;
+    }
+
+    let end = this.position;
+
+    while (end < this.text.length && !",}".includes(this.text.charAt(end))) {
+      end += 1;
+    }
+
+    const raw = this.text.slice(this.position, end);
+
+    this.position = end;
+
+    return raw.trim();
+  }
+
+  /**
+   * Whether `open` at the cursor is closed by `close` later in the statement.
+   * For a form added on top of Mermaid the text between must also not hold
+   * the bracket that ends the block, so that `A[~x] --> B[~y~]` does not read
+   * `x] --> B[~y` as one label.
+   */
+  public closes(open: string, close: string, strict: boolean): boolean {
+    let at = this.position + open.length;
+
+    while (this.text.charAt(at) === " ") {
+      at += 1;
+    }
+
+    if (this.text.charAt(at) === '"') {
+      const end = this.text.indexOf('"', at + 1);
+
+      if (end === -1) {
+        return false;
+      }
+
+      at = end + 1;
+
+      while (this.text.charAt(at) === " ") {
+        at += 1;
+      }
+
+      return this.text.startsWith(close, at);
+    }
+
+    const end = this.text.indexOf(close, at);
+
+    if (end === -1) {
+      return false;
+    }
+
+    return !strict || !this.text.slice(at, end).includes(close.slice(-1));
+  }
+
   public startsWith(token: string): boolean {
     return this.text.startsWith(token, this.position);
   }

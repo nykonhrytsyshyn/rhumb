@@ -44,6 +44,37 @@ describe("mermaid stream parser", () => {
     ]);
   });
 
+  it("splits the short forms of the other blocks", () => {
+    expect(tokenize("A[~Doc~] --> B[=] --> C{^i^}").tokens).toEqual([
+      ["A", "variableName"],
+      ["[~", "bracket"],
+      ["Doc", "variableName"],
+      ["~]", "bracket"],
+      ["-->", "operator"],
+      ["B", "variableName"],
+      ["[=]", "bracket"],
+      ["-->", "operator"],
+      ["C", "variableName"],
+      ["{^", "bracket"],
+      ["i", "variableName"],
+      ["^}", "bracket"],
+    ]);
+  });
+
+  it("marks frames and the properties of a block", () => {
+    expect(tokenize("subgraph S").tokens[0]).toEqual(["subgraph", "keyword"]);
+    expect(tokenize("end").tokens).toEqual([["end", "keyword"]]);
+    expect(tokenize('A@{ shape: doc, ref: "X" }').tokens).toEqual([
+      ["A", "variableName"],
+      ["@{", "bracket"],
+      ["shape", "propertyName"],
+      ["doc", "variableName"],
+      ["ref", "propertyName"],
+      ['"X"', "string"],
+      ["}", "bracket"],
+    ]);
+  });
+
   it("marks comments", () => {
     expect(tokenize("A --> B %% note").tokens.at(-1)).toEqual([
       "%% note",

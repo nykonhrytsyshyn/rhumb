@@ -12,6 +12,8 @@ function edge(from: string, to: string): DiagramEdge {
     label: undefined,
     line: "solid",
     arrow: true,
+    skip: false,
+    channel: false,
   };
 }
 

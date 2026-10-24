@@ -58,7 +58,13 @@
       "return": "Return side",
       "exit": "Exit side",
       "arrowMerge": "Arrows where lines merge",
-      "labelStyle": "Line labels"
+      "labelStyle": "Line labels",
+      "noteGap": "Line to a comment",
+      "framePadding": "Inside a frame",
+      "parallelGap": "Between parallel-bar lines",
+      "parallelMargin": "Around a parallel bar",
+      "markLength": "Symbol on a line",
+      "markClearance": "Straight run at symbols"
     },
     "arrow": {
       "open": "Open",
@@ -88,12 +94,39 @@
     "labelStyleOptions": {
       "beside": "Beside the line",
       "inline": "On the line"
+    },
+    "other": {
+      "title": "Other",
+      "developer": "Developer mode",
+      "developerHint": "Shows what is meant for working on Rhumb itself, such as the test diagrams.",
+      "developerLocked": "Always on in the development build.",
+      "assistant": "AI assistant",
+      "assistantHint": "Connect a model with a key so that it can build diagrams and set up profiles for you.",
+      "soon": "Soon"
     }
   },
   "samples": {
     "algorithm": "Sum with loops",
     "branching": "Branching",
-    "linear": "Linear flow"
+    "linear": "Linear flow",
+    "everyBlock": "Every block",
+    "dataFlow": "Data flow",
+    "systemFlow": "System flow",
+    "loops": "Nested loops",
+    "parallel": "Parallel actions",
+    "frames": "Frame and comments",
+    "nestedFrames": "Nested frames",
+    "comments": "Comments around",
+    "stripe": "Stripe to a detailed sheet",
+    "stacked": "Overlapping copies",
+    "interaction": "Program interaction",
+    "manyExits": "Many exits",
+    "retry": "Retries and omission",
+    "sideways": "Left to right",
+    "mermaidNames": "Mermaid shape names",
+    "tricky": "Tricky text",
+    "pipeline": "Big pipeline",
+    "noteSides": "Comment sides"
   },
   "actions": {
     "png": "PNG",

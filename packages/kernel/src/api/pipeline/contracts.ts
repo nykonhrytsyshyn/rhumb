@@ -1,6 +1,7 @@
 import type {
   Diagram,
   EdgeId,
+  GroupId,
   NodeId,
   Point,
   Rect,
@@ -21,6 +22,21 @@ export interface LayoutNodeInput {
   readonly size: Size;
   /** Ports with positions relative to the node's top-left corner. */
   readonly ports: readonly Port[];
+  /** The innermost frame the node sits in. */
+  readonly group?: GroupId;
+}
+
+/** A frame that keeps its members together; frames can nest. */
+export interface LayoutGroupInput {
+  readonly id: GroupId;
+  readonly parent?: GroupId;
+  /** Free space between the frame and what it holds. */
+  readonly padding: {
+    readonly top: number;
+    readonly right: number;
+    readonly bottom: number;
+    readonly left: number;
+  };
 }
 
 export interface LayoutEdgeInput {
@@ -39,11 +55,20 @@ export interface LayoutRequest {
   readonly edgeSpacing: number;
   readonly nodes: readonly LayoutNodeInput[];
   readonly edges: readonly LayoutEdgeInput[];
+  readonly groups?: readonly LayoutGroupInput[];
+  /**
+   * Put every block in the first row it can be in, so that blocks that follow
+   * the same block share a row (needed for a bar of parallel actions to reach
+   * all of them).
+   */
+  readonly earlyRows?: boolean;
 }
 
 export interface LayoutResult {
   readonly nodes: ReadonlyMap<NodeId, Rect>;
   readonly edges: ReadonlyMap<EdgeId, readonly Point[]>;
+  /** Bounds of every frame, in the same coordinates as the nodes. */
+  readonly groups?: ReadonlyMap<GroupId, Rect>;
   readonly size: Size;
 }
 

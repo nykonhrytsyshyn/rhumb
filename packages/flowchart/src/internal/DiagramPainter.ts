@@ -1,11 +1,14 @@
 import {
   type DiagramEdge,
+  type DiagramNode,
   type EdgeId,
   type FlowchartDiagram,
   type LayoutResult,
   type NodeId,
   type Point,
+  type Rect,
   type Shape,
+  Side,
   type SvgNode,
   type TextMeasurer,
   roundTo,
@@ -19,6 +22,8 @@ import { buildEdgePath } from "./EdgePath";
 import { LabelPlacer, type PlacedLabel } from "./LabelPlacer";
 import { type Stretch, openGap } from "./LayoutGaps";
 import type { Metrics } from "./Metrics";
+import { NodeFrame } from "./NodeFrame";
+import { triangleCorners } from "./shapes/TransferShape";
 
 const ARROW_ID = "rhumb-arrow";
 
@@ -33,13 +38,34 @@ interface Extent {
 /** How many times a diagram may be stretched to make room for labels. */
 const MAX_ROOM_PASSES = 8;
 
+/** A piece of text that sits outside the blocks: titles, identifiers. */
+interface Caption {
+  readonly text: string;
+  readonly x: number;
+  readonly y: number;
+  readonly anchor: "start" | "end";
+  readonly width: number;
+  readonly height: number;
+}
+
+/** Block outlines that are plain rectangles need no clipping for a stripe. */
+const RECTANGULAR = new Set<DiagramNode["kind"]>([
+  "process",
+  "predefinedProcess",
+  "internalStorage",
+]);
+
 /** Turns a computed layout into the final SVG tree. */
 export class DiagramPainter {
+  private readonly frame: NodeFrame;
+
   public constructor(
     private readonly metrics: Metrics,
     private readonly measurer: TextMeasurer,
     private readonly appearance: Appearance,
-  ) {}
+  ) {
+    this.frame = new NodeFrame(metrics);
+  }
 
   public paint(
     diagram: FlowchartDiagram,
@@ -70,7 +96,10 @@ export class DiagramPainter {
     }
 
     const labels = placed.labels;
-    const extent = this.extentOf(layout, labels);
+    const captions = this.captions(diagram, layout);
+    const body = this.extentOf(layout, labels, captions);
+    const legend = this.legend(diagram, body);
+    const extent = { ...body, maxX: legend.maxX, maxY: legend.maxY };
     const width = roundTo(extent.maxX - extent.minX + margin * 2);
     const height = roundTo(extent.maxY - extent.minY + margin * 2);
     const shiftX = roundTo(margin - extent.minX);
@@ -80,10 +109,14 @@ export class DiagramPainter {
       "g",
       { transform: `translate(${String(shiftX)} ${String(shiftY)})` },
       [
+        ...this.frameLayer(diagram, layout),
+        ...this.stackLayer(diagram, shapes, layout),
         this.edgeLayer(diagram, layout, hops),
+        ...this.markLayer(layout, labels),
         this.nodeLayer(diagram, shapes, layout),
         ...this.labelBackdropLayer(labels),
-        this.textLayer(diagram, layout, labels),
+        this.textLayer(diagram, shapes, layout, labels, captions),
+        ...legend.nodes,
       ],
     );
     const { background } = this.appearance;
@@ -232,16 +265,19 @@ export class DiagramPainter {
   ): SvgNode {
     const drawn: SvgNode[] = [];
 
-    for (const node of diagram.nodes) {
+    diagram.nodes.forEach((node, index) => {
       const shape = shapes.get(node.id);
       const bounds = layout.nodes.get(node.id);
 
       if (shape === undefined || bounds === undefined) {
-        continue;
+        return;
       }
 
-      drawn.push(shape.draw(bounds));
-    }
+      const front = this.frame.front(node, bounds);
+      const outline = shape.draw(front);
+
+      drawn.push(outline, ...this.stripe(node, index, outline, front));
+    });
 
     return svgNode(
       "g",
@@ -255,15 +291,347 @@ export class DiagramPainter {
     );
   }
 
-  /** The area covered by blocks, lines and labels, labels included. */
+  /** The line under the reference of a block, kept inside its outline. */
+  private stripe(
+    node: DiagramNode,
+    index: number,
+    outline: SvgNode,
+    front: Rect,
+  ): readonly SvgNode[] {
+    const band = this.frame.band(node);
+
+    if (band === 0) {
+      return [];
+    }
+
+    const y = roundTo(front.y + band);
+    const rule = svgNode("line", {
+      x1: roundTo(front.x),
+      y1: y,
+      x2: roundTo(front.x + front.width),
+      y2: y,
+    });
+
+    if (RECTANGULAR.has(node.kind)) {
+      return [rule];
+    }
+
+    const id = `rhumb-stripe-${String(index)}`;
+    const parts = outline.tag === "g" ? outline.children : [outline];
+    const clip = svgNode(
+      "clipPath",
+      { id },
+      parts.filter((part): part is SvgNode => typeof part !== "string"),
+    );
+
+    return [clip, svgNode("g", { "clip-path": `url(#${id})` }, [rule])];
+  }
+
+  /** The copies behind blocks that stand for several of the same. */
+  private stackLayer(
+    diagram: FlowchartDiagram,
+    shapes: ReadonlyMap<NodeId, Shape>,
+    layout: LayoutResult,
+  ): readonly SvgNode[] {
+    const behind: SvgNode[] = [];
+
+    for (const node of diagram.nodes) {
+      const shape = shapes.get(node.id);
+      const bounds = layout.nodes.get(node.id);
+      const copies = this.frame.copies(node);
+
+      if (shape === undefined || bounds === undefined || copies < 2) {
+        continue;
+      }
+
+      const front = this.frame.front(node, bounds);
+
+      for (let copy = copies - 1; copy >= 1; copy -= 1) {
+        const offset = copy * this.frame.shift();
+
+        behind.push(
+          shape.draw({ ...front, x: front.x - offset, y: front.y - offset }),
+        );
+      }
+    }
+
+    return behind.length === 0
+      ? []
+      : [
+          svgNode(
+            "g",
+            {
+              fill: this.appearance.fill,
+              stroke: this.appearance.ink,
+              "stroke-width": this.metrics.lineWidth,
+              "stroke-linejoin": "round",
+            },
+            behind,
+          ),
+        ];
+  }
+
+  /** Dashed frames, the outermost first so that inner ones lie on top. */
+  private frameLayer(
+    diagram: FlowchartDiagram,
+    layout: LayoutResult,
+  ): readonly SvgNode[] {
+    const frames = diagram.groups.flatMap((group) => {
+      const bounds = layout.groups?.get(group.id);
+
+      return bounds === undefined
+        ? []
+        : [
+            svgNode("rect", {
+              "data-frame": group.id,
+              x: roundTo(bounds.x),
+              y: roundTo(bounds.y),
+              width: roundTo(bounds.width),
+              height: roundTo(bounds.height),
+            }),
+          ];
+    });
+
+    return frames.length === 0
+      ? []
+      : [
+          svgNode(
+            "g",
+            {
+              fill: "none",
+              stroke: this.appearance.ink,
+              "stroke-width": this.metrics.lineWidth,
+              "stroke-dasharray": this.metrics.dash.join(" "),
+            },
+            frames,
+          ),
+        ];
+  }
+
+  /**
+   * The symbols that sit on a line: three dots for what is left out, and a
+   * zigzag for a communication link. Each stands where the placer kept room
+   * for it and cuts the line open exactly as wide as the symbol, so that the
+   * line meets its ends.
+   */
+  private markLayer(
+    layout: LayoutResult,
+    labels: readonly PlacedLabel[],
+  ): readonly SvgNode[] {
+    const marks: SvgNode[] = [];
+    const { lineWidth, markLength } = this.metrics;
+    const reach = markLength / 2;
+    const radius = lineWidth * 0.9;
+
+    for (const label of labels) {
+      const mark = label.mark;
+      const points =
+        mark === undefined ? undefined : layout.edges.get(mark.edge);
+
+      if (mark === undefined || points === undefined) {
+        continue;
+      }
+
+      const along = DiagramPainter.directionAt(points, label.cx, label.cy);
+      const { cx, cy } = label;
+      const at = (u: number, v: number): Point =>
+        along === "x" ? { x: cx + u, y: cy + v } : { x: cx + v, y: cy + u };
+      const across =
+        mark.kind === "channel" ? reach / 2 + lineWidth * 2 : lineWidth * 2;
+      const corner = at(-reach, -across);
+      const far = at(reach, across);
+
+      marks.push(
+        svgNode("rect", {
+          fill: this.appearance.labelBackground,
+          stroke: "none",
+          x: roundTo(Math.min(corner.x, far.x)),
+          y: roundTo(Math.min(corner.y, far.y)),
+          width: roundTo(Math.abs(far.x - corner.x)),
+          height: roundTo(Math.abs(far.y - corner.y)),
+        }),
+      );
+
+      if (mark.kind === "channel") {
+        const zigzag = [
+          at(-reach, 0),
+          at(-reach / 3, -reach / 2),
+          at(reach / 3, reach / 2),
+          at(reach, 0),
+        ];
+
+        marks.push(
+          svgNode("polyline", {
+            fill: "none",
+            stroke: this.appearance.ink,
+            "stroke-width": lineWidth,
+            "stroke-linejoin": "round",
+            points: zigzag
+              .map(
+                (point) =>
+                  `${String(roundTo(point.x))},${String(roundTo(point.y))}`,
+              )
+              .join(" "),
+          }),
+        );
+      } else {
+        marks.push(
+          svgNode(
+            "g",
+            { fill: this.appearance.ink, stroke: "none" },
+            [-1, 0, 1].map((slot) => {
+              const dot = at(slot * (reach * 0.6), 0);
+
+              return svgNode("circle", {
+                cx: roundTo(dot.x),
+                cy: roundTo(dot.y),
+                r: roundTo(radius),
+              });
+            }),
+          ),
+        );
+      }
+    }
+
+    return marks;
+  }
+
+  /** The way the line runs where it passes the given point. */
+  private static directionAt(
+    points: readonly Point[],
+    x: number,
+    y: number,
+  ): "x" | "y" {
+    let best: { along: "x" | "y"; distance: number } | undefined;
+
+    points.slice(1).forEach((to, index) => {
+      const from = points[index] ?? to;
+      const horizontal = Math.abs(to.x - from.x) >= Math.abs(to.y - from.y);
+      const distance = horizontal
+        ? Math.abs(y - from.y) +
+          Math.max(0, Math.min(from.x, to.x) - x, x - Math.max(from.x, to.x))
+        : Math.abs(x - from.x) +
+          Math.max(0, Math.min(from.y, to.y) - y, y - Math.max(from.y, to.y));
+
+      if (best === undefined || distance < best.distance) {
+        best = { along: horizontal ? "x" : "y", distance };
+      }
+    });
+
+    return best?.along ?? "y";
+  }
+
+  /**
+   * The key to the marks inside transfers of control: one row for each
+   * letter, a small triangle and what the letter stands for.
+   */
+  private legend(
+    diagram: FlowchartDiagram,
+    body: Extent,
+  ): { nodes: readonly SvgNode[]; maxX: number; maxY: number } {
+    const meanings = new Map<string, string>();
+
+    for (const node of diagram.nodes) {
+      if (node.kind === "transfer" && node.legend !== undefined) {
+        meanings.set(node.label, node.legend);
+      }
+    }
+
+    if (meanings.size === 0) {
+      return { nodes: [], maxX: body.maxX, maxY: body.maxY };
+    }
+
+    const { textStyle, padding, layerSpacing } = this.metrics;
+    const size = textStyle.size * textStyle.lineHeight * 2.4;
+    const shapes: SvgNode[] = [];
+    const texts: SvgNode[] = [];
+    let y = body.maxY + layerSpacing;
+    let maxX = body.maxX;
+
+    for (const [mark, meaning] of meanings) {
+      const triangle = {
+        x: body.minX,
+        y,
+        width: size * (Math.sqrt(3) / 2),
+        height: size,
+      };
+      const text = `- ${meaning}`;
+      const wide = this.measurer.measure(text, textStyle).width;
+
+      shapes.push(
+        svgNode("polygon", {
+          points: triangleCorners(triangle, Side.Right)
+            .map(([px, py]) => `${String(roundTo(px))},${String(roundTo(py))}`)
+            .join(" "),
+        }),
+      );
+      texts.push(
+        this.textBlock(mark, body.minX + triangle.width / 3, y + size / 2),
+        this.textBlock(
+          text,
+          body.minX + triangle.width + padding,
+          y + size / 2,
+          "start",
+        ),
+      );
+      maxX = Math.max(maxX, body.minX + triangle.width + padding + wide);
+      y += size + padding;
+    }
+
+    return {
+      nodes: [
+        svgNode(
+          "g",
+          {
+            fill: this.appearance.fill,
+            stroke: this.appearance.ink,
+            "stroke-width": this.metrics.lineWidth,
+            "stroke-linejoin": "round",
+          },
+          shapes,
+        ),
+        svgNode(
+          "g",
+          {
+            fill: this.appearance.ink,
+            stroke: "none",
+            "font-family": this.metrics.fontFamily,
+            "font-size": textStyle.size,
+            "text-anchor": "middle",
+            "dominant-baseline": "central",
+          },
+          texts,
+        ),
+      ],
+      maxX,
+      maxY: y - padding,
+    };
+  }
+
+  /** The area covered by blocks, frames, lines and text. */
   private extentOf(
     layout: LayoutResult,
     labels: readonly PlacedLabel[],
+    captions: readonly Caption[],
   ): Extent {
     let minX = 0;
     let minY = 0;
     let maxX = layout.size.width;
     let maxY = layout.size.height;
+
+    const cover = (rect: Rect): void => {
+      minX = Math.min(minX, rect.x);
+      minY = Math.min(minY, rect.y);
+      maxX = Math.max(maxX, rect.x + rect.width);
+      maxY = Math.max(maxY, rect.y + rect.height);
+    };
+
+    for (const rect of [
+      ...layout.nodes.values(),
+      ...(layout.groups?.values() ?? []),
+    ]) {
+      cover(rect);
+    }
 
     for (const label of labels) {
       const pad = label.inline ? this.metrics.padding / 2 : 0;
@@ -274,7 +642,83 @@ export class DiagramPainter {
       maxY = Math.max(maxY, label.cy + label.size.height / 2 + pad);
     }
 
+    for (const caption of captions) {
+      cover({
+        x: caption.anchor === "start" ? caption.x : caption.x - caption.width,
+        y: caption.y - caption.height / 2,
+        width: caption.width,
+        height: caption.height,
+      });
+    }
+
     return { minX, minY, maxX, maxY };
+  }
+
+  /** Text outside the blocks: frame titles, identifiers and descriptions. */
+  private captions(
+    diagram: FlowchartDiagram,
+    layout: LayoutResult,
+  ): readonly Caption[] {
+    const gap = this.metrics.padding / 2;
+    const make = (
+      text: string,
+      x: number,
+      anchor: "start" | "end",
+      place: (height: number) => number,
+    ): Caption => {
+      const size = this.measurer.measure(text, this.metrics.textStyle);
+
+      return {
+        text,
+        x,
+        y: place(size.height),
+        anchor,
+        width: size.width,
+        height: size.height,
+      };
+    };
+    const captions: Caption[] = [];
+
+    for (const group of diagram.groups) {
+      const bounds = layout.groups?.get(group.id);
+
+      if (bounds !== undefined && group.title !== undefined) {
+        captions.push(
+          make(
+            group.title,
+            bounds.x + this.metrics.padding,
+            "start",
+            (height) => bounds.y + gap + height / 2,
+          ),
+        );
+      }
+    }
+
+    for (const node of diagram.nodes) {
+      const bounds = layout.nodes.get(node.id);
+
+      if (bounds === undefined) {
+        continue;
+      }
+
+      const above = (height: number): number => bounds.y - gap - height / 2;
+      const below = (height: number): number =>
+        bounds.y + bounds.height + gap + height / 2;
+
+      if (node.ident !== undefined) {
+        captions.push(make(node.ident, bounds.x, "start", above));
+      }
+
+      if (node.desc !== undefined) {
+        captions.push(make(node.desc, bounds.x + bounds.width, "end", above));
+      }
+
+      if (node.input !== undefined) {
+        captions.push(make(node.input, bounds.x + bounds.width, "end", below));
+      }
+    }
+
+    return captions;
   }
 
   private edgeLabels(
@@ -298,6 +742,42 @@ export class DiagramPainter {
 
     for (const edge of diagram.edges) {
       const points = layout.edges.get(edge.id);
+
+      if ((edge.skip || edge.channel) && points !== undefined) {
+        const room = this.metrics.markLength + this.metrics.markClearance * 2;
+        const mark = {
+          id: edge.id,
+          points,
+          fullPoints: routed.edges.get(edge.id),
+          arrow: edge.arrow,
+          text: "",
+          size: { width: room, height: room },
+        };
+        const surroundings = {
+          nodes: layout.nodes,
+          edges: layout.edges,
+          hops: arches,
+          placed,
+        };
+        const spot = placer.placeInline(mark, surroundings);
+
+        if (spot !== undefined) {
+          placed.push({
+            ...spot,
+            mark: { edge: edge.id, kind: edge.channel ? "channel" : "skip" },
+          });
+
+          const stretch = placer.isCrowded(spot, mark, surroundings)
+            ? placer.stretchFor(mark, true)
+            : undefined;
+
+          if (stretch !== undefined) {
+            cramped.push(stretch);
+          }
+        }
+
+        continue;
+      }
 
       if (edge.label === undefined || points === undefined) {
         continue;
@@ -343,7 +823,9 @@ export class DiagramPainter {
   private labelBackdropLayer(
     labels: readonly PlacedLabel[],
   ): readonly SvgNode[] {
-    const inline = labels.filter((label) => label.inline);
+    const inline = labels.filter(
+      (label) => label.inline && label.mark === undefined,
+    );
 
     if (inline.length === 0) {
       return [];
@@ -370,29 +852,58 @@ export class DiagramPainter {
 
   private textLayer(
     diagram: FlowchartDiagram,
+    shapes: ReadonlyMap<NodeId, Shape>,
     layout: LayoutResult,
     labels: readonly PlacedLabel[],
+    captions: readonly Caption[],
   ): SvgNode {
     const texts: SvgNode[] = [];
 
     for (const node of diagram.nodes) {
       const bounds = layout.nodes.get(node.id);
+      const shape = shapes.get(node.id);
 
-      if (bounds === undefined) {
+      if (bounds === undefined || shape === undefined) {
         continue;
       }
 
-      texts.push(
-        this.textBlock(
-          node.label,
-          bounds.x + bounds.width / 2,
-          bounds.y + bounds.height / 2,
-        ),
-      );
+      const front = this.frame.front(node, bounds);
+      const band = this.frame.band(node);
+
+      if (shape.showsText && node.label !== "") {
+        const center = shape.labelCenter(front);
+
+        texts.push(
+          this.aligned(
+            node.label,
+            center.x,
+            center.y + band / 2,
+            shape.textAlign,
+          ),
+        );
+      }
+
+      if (node.ref !== undefined) {
+        texts.push(
+          this.textBlock(
+            node.ref,
+            front.x + front.width / 2,
+            front.y + band / 2,
+          ),
+        );
+      }
     }
 
-    for (const label of labels) {
+    for (const label of labels.filter(
+      (candidate) => candidate.mark === undefined,
+    )) {
       texts.push(this.textBlock(label.text, label.cx, label.cy));
+    }
+
+    for (const caption of captions) {
+      texts.push(
+        this.textBlock(caption.text, caption.x, caption.y, caption.anchor),
+      );
     }
 
     const { textStyle } = this.metrics;
@@ -411,7 +922,30 @@ export class DiagramPainter {
     );
   }
 
-  private textBlock(text: string, cx: number, cy: number): SvgNode {
+  /** Text set against the left or right edge of the box centred on `cx`. */
+  private aligned(
+    text: string,
+    cx: number,
+    cy: number,
+    align: "start" | "middle" | "end",
+  ): SvgNode {
+    if (align === "middle") {
+      return this.textBlock(text, cx, cy);
+    }
+
+    const half = this.measurer.measure(text, this.metrics.textStyle).width / 2;
+
+    return align === "start"
+      ? this.textBlock(text, cx - half, cy, "start")
+      : this.textBlock(text, cx + half, cy, "end");
+  }
+
+  private textBlock(
+    text: string,
+    cx: number,
+    cy: number,
+    anchor?: "start" | "end",
+  ): SvgNode {
     const lines = text.split("\n");
     const { size, lineHeight } = this.metrics.textStyle;
     const step = size * lineHeight;
@@ -419,7 +953,7 @@ export class DiagramPainter {
 
     return svgNode(
       "text",
-      {},
+      anchor === undefined ? {} : { "text-anchor": anchor },
       lines.map((line, index) =>
         svgNode("tspan", { x: roundTo(cx), y: roundTo(first + index * step) }, [
           line,
