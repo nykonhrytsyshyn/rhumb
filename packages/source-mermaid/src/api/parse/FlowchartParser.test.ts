@@ -110,8 +110,11 @@ describe("FlowchartParser", () => {
     expect(() => parser.parse('flowchart TD\nA["x" y]')).toThrow(
       /Expected "]"/,
     );
-    expect(() => parser.parse("flowchart TD\nsubgraph S")).toThrow(
+    expect(() => parser.parse("flowchart TD\nclassDef a fill:#fff")).toThrow(
       /not supported/,
+    );
+    expect(() => parser.parse("flowchart TD\nsubgraph S\nA")).toThrow(
+      /Missing "end"/,
     );
   });
 });
@@ -201,5 +204,295 @@ describe("FlowchartParser input hardening", () => {
       "hi",
       "maybe",
     ]);
+  });
+});
+
+describe("FlowchartParser block syntax", () => {
+  const parser = new FlowchartParser();
+
+  function kindOf(source: string): string | undefined {
+    return parser.parse(`flowchart TD\n${source}`).nodes[0]?.kind;
+  }
+
+  it("reads the short forms of every standard block", () => {
+    const forms: readonly (readonly [string, string])[] = [
+      ["A[)x(]", "storedData"],
+      ["A[#x#]", "internalStorage"],
+      ["A(@x@)", "sequentialStorage"],
+      ["A[(x)]", "directStorage"],
+      ["A[~x~]", "document"],
+      ["A[~~x~~]", "paperTape"],
+      ["A[^x^]", "manualInput"],
+      ["A[:x:]", "card"],
+      ["A(=x=)", "display"],
+      ["A[\\x/]", "manualOperation"],
+      ["A[=]", "parallel"],
+      ["A{^i: x^}", "loopStart"],
+      ["A{_i_}", "loopEnd"],
+      ["A(>x>)", "transfer"],
+      ["A[*x*]", "comment"],
+    ];
+
+    for (const [form, kind] of forms) {
+      const companion =
+        kind === "comment"
+          ? "\nB"
+          : kind === "loopStart"
+            ? "\nZ{_i_}"
+            : kind === "loopEnd"
+              ? "\nZ{^i^}"
+              : "";
+      const link = kind === "comment" ? `${form} -.- B` : form;
+      const found = parser
+        .parse(`flowchart TD\n${link}${companion}`)
+        .nodes.find((node) => node.id === "A");
+
+      expect(found?.kind, form).toBe(kind);
+    }
+  });
+
+  it("keeps the old forms and tells slashes apart by their closer", () => {
+    expect(kindOf("A[/x/]")).toBe("io");
+    expect(kindOf("A[\\x\\]")).toBe("io");
+    expect(kindOf("A[\\x/]")).toBe("manualOperation");
+    expect(kindOf("A[x]")).toBe("process");
+    expect(kindOf("A(x)")).toBe("terminator");
+  });
+
+  it("leaves a label that only starts like a short form as a process", () => {
+    expect(kindOf("A[~x]")).toBe("process");
+    expect(parser.parse("flowchart TD\nA[~x]").nodes[0]?.label).toBe("~x");
+    expect(kindOf('A["~x~"]')).toBe("process");
+    expect(
+      parser.parse("flowchart TD\nA[~x] --> B[~y~]").nodes.map((n) => n.kind),
+    ).toEqual(["process", "document"]);
+  });
+
+  it("reads Mermaid shape names and Rhumb aliases", () => {
+    const shape = (name: string): string | undefined =>
+      kindOf(`A@{ shape: ${name}, label: "x" }`);
+
+    expect(shape("doc")).toBe("document");
+    expect(shape("sl-rect")).toBe("manualInput");
+    expect(shape("trap-t")).toBe("manualOperation");
+    expect(shape("win-pane")).toBe("internalStorage");
+    expect(shape("bow-rect")).toBe("storedData");
+    expect(shape("h-cyl")).toBe("directStorage");
+    expect(shape("notch-rect")).toBe("card");
+    expect(shape("flag")).toBe("paperTape");
+    expect(shape("curv-trap")).toBe("display");
+    expect(shape("fork")).toBe("parallel");
+    expect(() => shape("bolt")).toThrow(/Unknown shape/);
+    expect(shape("tri")).toBe("transfer");
+    expect(shape("seq-store")).toBe("sequentialStorage");
+    expect(() => shape("hourglass")).toThrow(/Unknown shape "hourglass"/);
+  });
+
+  it("reads node properties and merges them into an existing block", () => {
+    const diagram = parser.parse(
+      [
+        "flowchart TD",
+        "A[Process] --> B",
+        'A@{ ref: "X84", ident: "P1", desc: "out" }',
+        'B@{ shape: docs, label: "Reports", stack: 4 }',
+      ].join("\n"),
+    );
+
+    expect(diagram.nodes[0]).toEqual({
+      id: "A",
+      kind: "process",
+      label: "Process",
+      ref: "X84",
+      ident: "P1",
+      desc: "out",
+    });
+    expect(diagram.nodes[1]).toMatchObject({
+      kind: "document",
+      label: "Reports",
+      stack: 4,
+    });
+    expect(
+      parser.parse("flowchart TD\nA@{ shape: docs }").nodes[0]?.stack,
+    ).toBe(3);
+  });
+
+  it("reads properties spread over several lines and with a semicolon inside", () => {
+    const diagram = parser.parse(
+      'flowchart TD\nA@{\n  shape: doc\n  label: "a; b %% c"\n}\nB',
+    );
+
+    expect(diagram.nodes[0]).toMatchObject({
+      kind: "document",
+      label: "a; b %% c",
+    });
+    expect(diagram.nodes).toHaveLength(2);
+  });
+
+  it("keeps ; and %% inside quoted labels", () => {
+    const [node] = parser.parse('flowchart TD\nA["x; y %% z"]').nodes;
+
+    expect(node?.label).toBe("x; y %% z");
+  });
+
+  it("rejects wrong properties", () => {
+    const bad =
+      (body: string): (() => unknown) =>
+      () =>
+        parser.parse(`flowchart TD\nA@{ ${body} }`);
+
+    expect(bad("size: 3")).toThrow(/Unknown key "size"/);
+    expect(bad("stack: 0")).toThrow(/whole number/);
+    expect(bad("loop: i")).toThrow(/loop blocks only/);
+    expect(() => parser.parse("flowchart TD\nA[x]@{ shape: doc }")).toThrow(
+      /shape twice/,
+    );
+    expect(() => parser.parse("flowchart TD\nA(>x>)@{ ref: r }")).toThrow(
+      /cannot carry/,
+    );
+    expect(() => parser.parse("flowchart TD\nA@{ label: x")).toThrow(
+      /Missing closing "}"/,
+    );
+  });
+
+  it("pairs the parts of a loop by name", () => {
+    const diagram = parser.parse(
+      "flowchart TD\nA{^i: i=1..n^} --> B --> C{_i_}",
+    );
+
+    expect(diagram.nodes.map((node) => node.loop)).toEqual([
+      "i",
+      undefined,
+      "i",
+    ]);
+    expect(() => parser.parse("flowchart TD\nA{^i: x^} --> B")).toThrow(
+      /loop "i" has no end/,
+    );
+    expect(() => parser.parse("flowchart TD\nB --> C{_j_}")).toThrow(
+      /loop "j" has no start/,
+    );
+    expect(
+      parser
+        .parse(
+          'flowchart TD\nA@{ shape: loop-start, loop: "k", label: "x" } --> B@{ shape: loop-end, loop: "k" }',
+        )
+        .nodes.map((n) => n.loop),
+    ).toEqual(["k", "k"]);
+  });
+
+  it("reads frames, nested frames and the blocks inside them", () => {
+    const diagram = parser.parse(
+      [
+        "flowchart TD",
+        "A --> B",
+        'subgraph outer ["Outer"]',
+        "  B",
+        "  subgraph inner",
+        "    C --> D",
+        "  end",
+        "end",
+        "D --> E",
+      ].join("\n"),
+    );
+
+    expect(diagram.groups).toEqual([
+      { id: "outer", title: "Outer", parent: undefined },
+      { id: "inner", title: undefined, parent: "outer" },
+    ]);
+    expect(
+      Object.fromEntries(diagram.nodes.map((node) => [node.id, node.group])),
+    ).toEqual({
+      A: undefined,
+      B: "outer",
+      C: "inner",
+      D: "inner",
+      E: undefined,
+    });
+    expect(() => parser.parse("flowchart TD\nsubgraph S\nend")).toThrow(
+      /holds no blocks/,
+    );
+    expect(() => parser.parse("flowchart TD\nend")).toThrow(
+      /without a subgraph/,
+    );
+    expect(() =>
+      parser.parse("flowchart TD\nsubgraph S\nA\nend\nsubgraph T\nA\nend"),
+    ).toThrow(/already in the frame "S"/);
+  });
+
+  it("links comments to blocks and frames as dashed lines without arrows", () => {
+    const diagram = parser.parse(
+      [
+        "flowchart TD",
+        "A --> B",
+        "subgraph S",
+        "  C",
+        "end",
+        "N1[*note*] --- A",
+        "S ==> N2[*other*]",
+      ].join("\n"),
+    );
+    const links = diagram.edges.filter(
+      (edge) => edge.from !== "A" || edge.to !== "B",
+    );
+
+    expect(links).toHaveLength(2);
+    expect(links.every((edge) => edge.line === "dashed" && !edge.arrow)).toBe(
+      true,
+    );
+    expect(() => parser.parse("flowchart TD\nA\nN[*x*]")).toThrow(/not linked/);
+    expect(() =>
+      parser.parse("flowchart TD\nA --> B\nsubgraph S\nC\nend\nA -.- S"),
+    ).toThrow(/Only a comment/);
+    expect(() => parser.parse("flowchart TD\nA\nN[*x*] -->|why| A")).toThrow(
+      /takes no label/,
+    );
+  });
+
+  it("marks a line labelled with dots as an omission", () => {
+    const [edge] = parser.parse("flowchart TD\nA -->|...| B").edges;
+
+    expect(edge).toMatchObject({ skip: true, label: undefined });
+  });
+
+  it("marks a line labelled with a tilde as a communication link", () => {
+    const [edge] = parser.parse("flowchart TD\nA -->|~| B").edges;
+
+    expect(edge).toMatchObject({
+      channel: true,
+      skip: false,
+      label: undefined,
+    });
+  });
+
+  it("reads the side of a comment and refuses it elsewhere", () => {
+    const diagram = parser.parse(
+      "flowchart TD\nA\nN[*x*] @{ side: left } -.- A",
+    );
+
+    expect(diagram.nodes.find((node) => node.id === "N")?.side).toBe("left");
+    expect(() => parser.parse("flowchart TD\nA@{ side: left }")).toThrow(
+      /comments only/,
+    );
+    expect(() =>
+      parser.parse("flowchart TD\nA\nN[*x*] @{ side: up } -.- A"),
+    ).toThrow(/right, left, top or bottom/);
+  });
+
+  it("reads the legend of a transfer and keeps a letter to one meaning", () => {
+    const diagram = parser.parse(
+      'flowchart TD\nA(>P>) @{ legend: "permanent" } --> B(>P>)',
+    );
+
+    expect(diagram.nodes[0]).toMatchObject({
+      kind: "transfer",
+      legend: "permanent",
+    });
+    expect(() => parser.parse('flowchart TD\nA@{ legend: "x" }')).toThrow(
+      /transfers of control only/,
+    );
+    expect(() =>
+      parser.parse(
+        'flowchart TD\nA(>P>) @{ legend: "a" } --> B(>P>) @{ legend: "b" }',
+      ),
+    ).toThrow(/already stands for "a"/);
   });
 });

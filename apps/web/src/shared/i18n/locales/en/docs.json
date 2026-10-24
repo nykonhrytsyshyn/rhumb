@@ -15,7 +15,22 @@
     "io": "Input or output",
     "preparation": "Preparation",
     "predefined": "Predefined process",
-    "connector": "Connector"
+    "connector": "Connector",
+    "storedData": "Stored data",
+    "internalStorage": "Internal storage",
+    "sequentialStorage": "Sequential-access storage",
+    "directStorage": "Direct-access storage",
+    "document": "Document",
+    "paperTape": "Paper tape",
+    "manualInput": "Manual input",
+    "card": "Card",
+    "display": "Display",
+    "manualOperation": "Manual operation",
+    "parallel": "Parallel actions",
+    "loopStart": "Loop limit: start",
+    "loopEnd": "Loop limit: end",
+    "transfer": "Transfer of control (one letter)",
+    "comment": "Comment"
   },
   "lines": {
     "title": "Lines",

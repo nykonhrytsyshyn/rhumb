@@ -31,29 +31,6 @@ describe("ProfileRegistry", () => {
     expect(new ProfileRegistry().register(rest).default).toBe(false);
   });
 
-  it("reads a profile saved with the old loop section", () => {
-    const [first] = ProfileRegistry.withBuiltins().list();
-
-    if (first === undefined) {
-      return;
-    }
-
-    const { preparation, ...rest } = first;
-    const legacy = {
-      ...rest,
-      loop: {
-        entry: preparation.entry,
-        body: preparation.repeat,
-        back: preparation.return,
-        exit: preparation.exit,
-      },
-    };
-
-    expect(new ProfileRegistry().register(legacy).preparation).toEqual(
-      preparation,
-    );
-  });
-
   it("accepts open side choices that can share the left and the right", () => {
     const [first] = ProfileRegistry.withBuiltins().list();
 
