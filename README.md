@@ -130,8 +130,13 @@ flowchart LR
   <h2 id="editor">Try it in the browser</h2>
 </div>
 
-The hosted editor lives at **[rhumb.nykon.me](https://rhumb.nykon.me)**. It
-opens with a working algorithm example.
+The hosted editor is available at **[rhumb.nykon.me](https://rhumb.nykon.me)**.
+
+Preview environments:
+- **Release Candidate:** [release-candidate.rhumb.pages.dev](https://release-candidate.rhumb.pages.dev)
+- **Development:** [dev.rhumb.pages.dev](https://dev.rhumb.pages.dev)
+
+It opens with a working algorithm example.
 
 | Tab        | What it does                                                             |
 |------------|--------------------------------------------------------------------------|
@@ -139,7 +144,6 @@ opens with a working algorithm example.
 | **Saved**  | Keep named diagrams in the browser (IndexedDB) and reopen them later     |
 | **Docs**   | Read the supported source syntax without leaving the editor              |
 | **Config** | Select a built-in standard, tune a custom profile, import or export JSON |
-
 > [!NOTE]
 > There is no server-side workspace and no account. Clearing your browser's site
 > data also clears the saved library - download the source of anything you want
