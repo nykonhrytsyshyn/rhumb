@@ -11,6 +11,12 @@ export class Metrics {
   public readonly lineSpacing: number;
   public readonly jumpRadius: number;
   public readonly stub: number;
+  public readonly noteGap: number;
+  public readonly framePadding: number;
+  public readonly parallelGap: number;
+  public readonly parallelMargin: number;
+  public readonly markLength: number;
+  public readonly markClearance: number;
   public readonly labelStyle: LabelStyle;
   public readonly lineWidth: number;
   public readonly thickWidth: number;
@@ -34,6 +40,12 @@ export class Metrics {
     this.lineSpacing = profile.spacing.line * scale;
     this.jumpRadius = profile.line.jump * scale;
     this.stub = profile.line.stub * scale;
+    this.noteGap = profile.spacing.note * scale;
+    this.framePadding = profile.spacing.frame * scale;
+    this.parallelGap = profile.spacing.parallelGap * scale;
+    this.parallelMargin = profile.spacing.parallelMargin * scale;
+    this.markLength = profile.line.markLength * scale;
+    this.markClearance = profile.line.markClearance * scale;
     this.labelStyle = profile.line.labelStyle;
     this.lineWidth = profile.line.width * scale;
     this.thickWidth = profile.line.thickWidth * scale;
