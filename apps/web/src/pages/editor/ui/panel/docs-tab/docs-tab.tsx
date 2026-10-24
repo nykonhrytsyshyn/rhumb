@@ -3,6 +3,7 @@ import type { JSX } from "react";
 import { useT } from "@shared/i18n";
 
 import { DOCS_BLOCKS } from "../../../config/docs-blocks";
+import { DOCS_EXTRAS, DOCS_STRUCTURE } from "../../../config/docs-extras";
 import { DOCS_LINES } from "../../../config/docs-lines";
 import { DocsHeading } from "./docs-heading";
 import { DocsRows } from "./docs-rows";
@@ -40,6 +41,18 @@ export function DocsTab(): JSX.Element {
       <section className="flex flex-col gap-2">
         <DocsHeading>{t("docs.blocks.title")}</DocsHeading>
         <DocsRows rows={DOCS_BLOCKS.map(([code, key]) => [code, t(key)])} />
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <DocsHeading>{t("docs.shapes.title")}</DocsHeading>
+        <p className="text-muted-foreground">{t("docs.shapes.text")}</p>
+        <DocsRows rows={DOCS_EXTRAS.map(([code, key]) => [code, t(key)])} />
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <DocsHeading>{t("docs.structure.title")}</DocsHeading>
+        <p className="text-muted-foreground">{t("docs.structure.text")}</p>
+        <DocsRows rows={DOCS_STRUCTURE.map(([code, key]) => [code, t(key)])} />
       </section>
 
       <section className="flex flex-col gap-2">
