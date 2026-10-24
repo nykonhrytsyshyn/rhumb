@@ -15,7 +15,46 @@
     "io": "Input or output",
     "preparation": "Preparation",
     "predefined": "Predefined process",
-    "connector": "Connector"
+    "connector": "Connector",
+    "storedData": "Stored data",
+    "internalStorage": "Internal storage",
+    "sequentialStorage": "Sequential-access storage",
+    "directStorage": "Direct-access storage",
+    "document": "Document",
+    "paperTape": "Paper tape",
+    "manualInput": "Manual input",
+    "card": "Card",
+    "display": "Display",
+    "manualOperation": "Manual operation",
+    "parallel": "Parallel actions",
+    "loopStart": "Loop limit: start",
+    "loopEnd": "Loop limit: end",
+    "transfer": "Transfer of control (one letter)",
+    "comment": "Comment"
+  },
+  "shapes": {
+    "title": "Blocks by name and their extras",
+    "text": "Any block can also be written as A@{ shape: name, label: \"text\" } with the shape names Mermaid uses (doc, sl-rect, trap-t, fork, ...); Rhumb adds seq-store, loop-start and loop-end. The same braces carry properties of a block. In the short forms, put the text in quotes to keep it from being read as part of the form."
+  },
+  "extras": {
+    "shape": "Shape by name",
+    "ident": "Identifier above the block, on the left",
+    "desc": "Description above the block, on the right",
+    "input": "Description below the block, on the right",
+    "ref": "Stripe that points to a detailed sheet",
+    "stack": "Overlapping copies, 2 to 8",
+    "loop": "Name that joins the two loop limits",
+    "side": "Side of a comment: right, left, top or bottom",
+    "legend": "What the letter of a transfer stands for, shown under the diagram"
+  },
+  "structure": {
+    "title": "Frames, comments and omissions",
+    "text": "A frame is a dashed outline around blocks. A comment is tied to a block or a frame with a dashed line and always stands beside it. Loop limits are paired by the name before the colon. A line labelled with three dots shows that blocks are left out. A line labelled with a tilde carries the zigzag of a communication link.",
+    "frame": "Dashed frame around blocks",
+    "comment": "Comment on a block",
+    "frameComment": "Comment on a frame",
+    "skip": "Omission on a line",
+    "channel": "Communication link on a line"
   },
   "lines": {
     "title": "Lines",

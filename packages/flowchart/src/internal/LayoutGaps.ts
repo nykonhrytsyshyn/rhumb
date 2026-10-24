@@ -71,7 +71,31 @@ export function openGap(
       ? { ...point, [axis]: point[axis] + extra }
       : point;
 
+  const groups =
+    layout.groups === undefined
+      ? {}
+      : {
+          groups: new Map(
+            [...layout.groups].map(([id, rect]): [string, Rect] => {
+              const [start, end] = span(rect, axis);
+
+              if (start >= at) {
+                return [id, { ...rect, [axis]: rect[axis] + extra }];
+              }
+
+              if (end > at) {
+                const size = axis === "x" ? "width" : "height";
+
+                return [id, { ...rect, [size]: rect[size] + extra }];
+              }
+
+              return [id, rect];
+            }),
+          ),
+        };
+
   return {
+    ...groups,
     nodes: new Map(
       [...layout.nodes].map(([id, rect]) => {
         const [start, end] = span(rect, axis);

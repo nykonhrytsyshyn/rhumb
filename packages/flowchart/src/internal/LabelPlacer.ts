@@ -9,6 +9,8 @@ export interface PlacedLabel {
   readonly size: Size;
   /** True when the label sits on its line and needs a backdrop. */
   readonly inline: boolean;
+  /** Set when the spot is kept for a symbol on a line, which draws itself. */
+  readonly mark?: { readonly edge: EdgeId; readonly kind: "skip" | "channel" };
 }
 
 /** What a label has to keep clear of. */

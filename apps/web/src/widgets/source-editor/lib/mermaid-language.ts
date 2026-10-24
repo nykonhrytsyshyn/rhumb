@@ -5,8 +5,26 @@ interface MermaidState {
 }
 
 const ARROW = /-{2,}>|-{3,}|={2,}>|={3,}|-\.+->|-\.+-/;
-const SHAPE_BRACKET =
-  /\(\[|\]\)|\[\[|\]\]|\[\/|\/\]|\[\\|\\\]|\(\(|\)\)|\{\{|\}\}|[[\]{}()]/;
+const SHAPE_BRACKET = new RegExp(
+  [
+    "@\\{",
+    "\\[=\\]",
+    "\\[~~|~~\\]",
+    "\\(\\[|\\]\\)",
+    "\\[\\[|\\]\\]",
+    "\\[\\/|\\/\\]",
+    "\\[\\\\|\\\\\\]",
+    "\\(\\(|\\)\\)",
+    "\\{\\{|\\}\\}",
+    "\\[\\(|\\)\\]",
+    "\\[\\)|\\(\\]",
+    "\\[[#~^:*]|[#~^:*]\\]",
+    "\\([@=>]|[@=>]\\)",
+    "\\{[\\^_]|[\\^_]\\}",
+    "[[\\]{}()]",
+  ].join("|"),
+);
+const PROPERTY = /(?:shape|label|ident|desc|input|ref|stack|loop)(?=\s*:)/;
 
 /** Token parser for the supported flowchart subset of Mermaid. */
 export const mermaidStreamParser: StreamParser<MermaidState> = {
@@ -36,6 +54,14 @@ export const mermaidStreamParser: StreamParser<MermaidState> = {
 
     if (stream.sol() && stream.match(/(?:flowchart|graph)\b/)) {
       return "keyword";
+    }
+
+    if (stream.match(/\b(?:subgraph|end)\b/)) {
+      return "keyword";
+    }
+
+    if (stream.match(PROPERTY)) {
+      return "propertyName";
     }
 
     if (stream.match(/\b(?:TD|TB|BT|LR|RL)\b/)) {

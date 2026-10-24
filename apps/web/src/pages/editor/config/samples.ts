@@ -1,13 +1,15 @@
 import type { Language } from "@shared/i18n";
 
-export type SampleId = "algorithm" | "branching" | "linear";
+import { DEV_SAMPLES, type DevSampleId } from "./dev-samples";
+
+export type SampleId = "algorithm" | "branching" | "linear" | DevSampleId;
 
 export interface Sample {
   readonly id: SampleId;
   readonly sources: Readonly<Record<Language, string>>;
 }
 
-export const SAMPLES: readonly Sample[] = [
+const BASIC_SAMPLES: readonly Sample[] = [
   {
     id: "algorithm",
     sources: {
@@ -82,3 +84,5 @@ export const SAMPLES: readonly Sample[] = [
     },
   },
 ];
+
+export const SAMPLES: readonly Sample[] = [...BASIC_SAMPLES, ...DEV_SAMPLES];

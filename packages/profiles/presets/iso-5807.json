@@ -10,7 +10,11 @@
     "node": 10,
     "layer": 10,
     "clearance": 5,
-    "line": 3
+    "line": 3,
+    "note": 10,
+    "frame": 6,
+    "parallelGap": 2,
+    "parallelMargin": 0
   },
   "line": {
     "width": 0.5,
@@ -26,7 +30,9 @@
       "width": 1.6
     },
     "jump": 2,
-    "stub": 6
+    "stub": 6,
+    "markLength": 6,
+    "markClearance": 4
   },
   "font": {
     "family": "'Arial', 'Helvetica', sans-serif",
@@ -60,6 +66,66 @@
     },
     "connector": {
       "minWidth": 10,
+      "minHeight": 10
+    },
+    "storedData": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "internalStorage": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "sequentialStorage": {
+      "minWidth": 10,
+      "minHeight": 10
+    },
+    "directStorage": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "document": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "paperTape": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "manualInput": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "card": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "display": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "manualOperation": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "parallel": {
+      "minWidth": 30,
+      "minHeight": 5
+    },
+    "loopStart": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "loopEnd": {
+      "minWidth": 15,
+      "minHeight": 10
+    },
+    "transfer": {
+      "minWidth": 10,
+      "minHeight": 10
+    },
+    "comment": {
+      "minWidth": 15,
       "minHeight": 10
     }
   },

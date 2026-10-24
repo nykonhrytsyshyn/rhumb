@@ -252,19 +252,96 @@ widths and port connections.
   Blocks
 </h3>
 
-| Syntax                     | Block                     |
-|----------------------------|---------------------------|
-| `A[text]`                  | Process                   |
-| `A([text])` or `A(text)`   | Terminator                |
-| `A{text}`                  | Decision                  |
-| `A[/text/]` or `A[\text\]` | Input / output            |
-| `A{{text}}`                | Preparation               |
-| `A[[text]]`                | Predefined process        |
-| `A((text))`                | Connector                 |
+| Syntax                           | Block                     |
+|----------------------------------|---------------------------|
+| `A[text]`                        | Process                   |
+| `A([text])` or `A(text)`         | Terminator                |
+| `A{text}`                        | Decision                  |
+| `A[/text/]` or `A[\text\]`       | Input / output            |
+| `A{{text}}`                      | Preparation               |
+| `A[[text]]`                      | Predefined process        |
+| `A((text))`                      | Connector                 |
+| `A[)text(]`                      | Stored data               |
+| `A[#text#]`                      | Internal storage          |
+| `A(@text@)`                      | Sequential-access storage |
+| `A[(text)]`                      | Direct-access storage     |
+| `A[~text~]`                      | Document                  |
+| `A[~~text~~]`                    | Paper tape                |
+| `A[^text^]`                      | Manual input              |
+| `A[:text:]`                      | Card                      |
+| `A(=text=)`                      | Display                   |
+| `A[\text/]`                      | Manual operation          |
+| `A[=]`                           | Parallel actions          |
+| `A{^name: text^}`                | Loop limit, start         |
+| `A{_name_}` or `A{_name: text_}` | Loop limit, end           |
+| `A(>P>)`                         | Transfer of control       |
+| `A[*text*]`                      | Comment                   |
+
+Every block has a short form. A short form counts only when it is closed:
+`A[~x]` is a process whose text is `~x`, and putting the text in quotes
+(`A["~x~"]`) always gives a process.
 
 Node identifiers may contain Unicode letters, numbers and underscores. Labels
 support `<br>` and `\n` for line breaks. Statements are separated by newlines or
-semicolons, and `%%` starts a comment that runs to the end of the line.
+semicolons, and `%%` starts a comment that runs to the end of the line; both are
+ignored inside quotes.
+
+<h3 id="shapes">
+  Blocks by name
+</h3>
+
+Mermaid's own syntax for shapes works too, so a source that uses it stays valid
+for GitHub: `A@{ shape: doc, label: "Report" }`. The braces may run over several
+lines. Besides the names Mermaid defines (`rect`, `stadium`, `fr-rect`, `diam`,
+`hex`, `lean-r`, `circ`, `bow-rect`, `win-pane`, `h-cyl`, `doc`, `docs`, `flag`,
+`sl-rect`, `notch-rect`, `curv-trap`, `trap-t`, `fork`, `notch-pent`, `tri`,
+`bolt`, `brace`, `st-rect`, `div-rect` and their aliases) Rhumb accepts
+`seq-store`, `loop-start` and `loop-end`. A shape that is not a block of the
+standard is an error. Blocks Rhumb names itself (`seq-store`, `loop-start`,
+`loop-end`) are not known to Mermaid, so GitHub will not draw a source that
+uses them.
+
+The same braces carry properties, in a short form or on their own:
+
+| Property          | Effect                                                              |
+|-------------------|---------------------------------------------------------------------|
+| `shape`, `label`  | The block's shape and text                                          |
+| `ident: "P1"`     | Identifier above the block, on the left (ISO 5807, 4.1.5)           |
+| `desc: "text"`    | Description above the block, on the right (4.1.6, 4.1.7)            |
+| `input: "text"`   | Description below the block, on the right, for inputs (4.1.7)       |
+| `ref: "X84"`      | Stripe with a reference to a detailed sheet (4.1.8)                 |
+| `stack: 3`        | Overlapping copies of the block, 2 to 8 (4.3.2)                     |
+| `loop: "i"`       | Name that joins the two loop limits                                 |
+| `side: left`      | Side of a comment: `right`, `left`, `top` or `bottom`               |
+| `legend: "text"`  | What the letter of a transfer of control stands for                 |
+
+`A[Text] @{ ref: "X84" }` and `A@{ ref: "X84" }` on an existing block both work;
+the new values are merged into the block.
+
+<h3 id="frames">
+  Frames, comments, loops and omissions
+</h3>
+
+```text
+flowchart TD
+  a[/"Input A"/] --> one
+  subgraph part [" "]
+    one["Process 1"] --> two["Process 2"]
+  end
+  note[*"Runs once"*] -.- part
+  two --> done(["End"])
+```
+
+- `subgraph name ["Title"]` ... `end` draws a dashed frame around the blocks
+  named inside it. Frames nest. A frame has a title only when you give one. A
+  block belongs to the frame it is first named in.
+- A comment is linked to one block or one frame. Its link is always dashed and
+  has no arrow; the comment is placed beside the block, on the side that is free.
+- The two parts of a loop limit are paired by their name: the text before the
+  first colon, or the `loop` property. Every start needs an end of the same name.
+- A line labelled `...` shows the omission symbol instead of the label, and a
+  line labelled `~` shows the communication-link symbol (a zigzag) in its middle.
+  Both are line symbols, so they carry no other label.
 
 <h3 id="links">
   Links
@@ -298,7 +375,7 @@ diagram. All lengths are in millimetres.
 | Section           | Controls                                                                                            |
 |-------------------|-----------------------------------------------------------------------------------------------------|
 | `grid`, `padding` | The drawing grid and the gap between a block's border and its text                                  |
-| `spacing`         | Distance between blocks and layers, clearance around blocks, distance between parallel lines        |
+| `spacing`         | Distance between blocks and layers, clearance around blocks                                         |
 | `line`            | Line and thick-line widths, dash pattern, label style (beside / inline), crossing jumps, arrowheads |
 | `font`            | Family, size and line height                                                                        |
 | `shapes`          | Minimum width and height of every block kind                                                        |
@@ -416,6 +493,11 @@ sequenceDiagram
 <div align="center">
   <h2 id="development">Development</h2>
 </div>
+
+In the editor's Config tab, the **Other** section holds the **Developer mode**
+switch. It shows what is meant for working on Rhumb itself, such as the test
+diagrams; it is always on in the development build and off elsewhere until you
+turn it on.
 
 Run everything from the repository root:
 
