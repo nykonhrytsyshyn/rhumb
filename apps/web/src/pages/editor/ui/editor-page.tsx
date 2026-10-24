@@ -9,6 +9,7 @@ import { ThemeToggler } from "@features/theme";
 import { useT } from "@shared/i18n";
 
 import { EDITOR_TABS } from "../config/editor-tabs";
+import { useDeveloperMode } from "../model/use-developer-mode";
 import { useEditorPage } from "../model/use-editor-page";
 import { RepositoryButton } from "./diagram";
 import {
@@ -23,6 +24,7 @@ import {
 export function EditorPage(): JSX.Element {
   const t = useT();
   const page = useEditorPage();
+  const developer = useDeveloperMode();
 
   const tabs = EDITOR_TABS.map((tab) => ({
     value: tab.value,
@@ -59,6 +61,7 @@ export function EditorPage(): JSX.Element {
               <ConfigTab
                 editor={page.editor}
                 onProfileSelect={page.selectProfile}
+                developer={developer}
               />
             </EditorPanel.Pane>
 
@@ -76,7 +79,7 @@ export function EditorPage(): JSX.Element {
               <DocsTab />
             </EditorPanel.Pane>
 
-            {process.env.NODE_ENV === "development" && (
+            {developer.enabled && (
               <SamplesSection onSelect={page.selectSample} />
             )}
 

@@ -80,6 +80,13 @@ export function ProfileFields({
           number("spacing.layer", "editor.config.fields.layerSpacing"),
           number("spacing.clearance", "editor.config.fields.clearance"),
           number("spacing.line", "editor.config.fields.lineSpacing"),
+          number("spacing.note", "editor.config.fields.noteGap"),
+          number("spacing.frame", "editor.config.fields.framePadding"),
+          number("spacing.parallelGap", "editor.config.fields.parallelGap"),
+          number(
+            "spacing.parallelMargin",
+            "editor.config.fields.parallelMargin",
+          ),
         ]}
       </ProfileForm.Group>
 
@@ -95,6 +102,8 @@ export function ProfileFields({
           number("line.dashGap", "editor.config.fields.dashGap"),
           number("line.jump", "editor.config.fields.jump"),
           number("line.stub", "editor.config.fields.stub"),
+          number("line.markLength", "editor.config.fields.markLength"),
+          number("line.markClearance", "editor.config.fields.markClearance"),
           number("line.arrowLength", "editor.config.fields.arrowLength"),
           number("line.arrowWidth", "editor.config.fields.arrowWidth"),
           <ProfileForm.Choice

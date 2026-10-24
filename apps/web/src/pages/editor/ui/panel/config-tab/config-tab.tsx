@@ -25,11 +25,14 @@ import {
 import { downloadProfile } from "../../../lib/export-diagram";
 import { CUSTOM_PROFILE_ID } from "../../../model/profile/profile-catalog";
 import type { ProfileEditor } from "../../../model/profile/use-profile-editor";
+import type { DeveloperMode } from "../../../model/use-developer-mode";
+import { OtherSection } from "./other-section";
 import { ProfileFields } from "./profile-fields";
 
 export interface ConfigTabProps {
   readonly editor: ProfileEditor;
   readonly onProfileSelect: (id: string) => void;
+  readonly developer: DeveloperMode;
 }
 
 interface Notice {
@@ -40,6 +43,7 @@ interface Notice {
 export function ConfigTab({
   editor,
   onProfileSelect,
+  developer,
 }: ConfigTabProps): JSX.Element {
   const t = useT();
   const input = useRef<HTMLInputElement>(null);
@@ -210,6 +214,8 @@ export function ConfigTab({
           </p>
         ) : null}
       </div>
+
+      <OtherSection developer={developer} />
     </div>
   );
 }

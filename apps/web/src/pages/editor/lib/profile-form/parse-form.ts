@@ -36,6 +36,10 @@ export function parseForm(state: FormState, base: StandardProfile): ParsedForm {
       layer: number("spacing.layer"),
       clearance: number("spacing.clearance"),
       line: number("spacing.line"),
+      note: number("spacing.note"),
+      frame: number("spacing.frame"),
+      parallelGap: number("spacing.parallelGap"),
+      parallelMargin: number("spacing.parallelMargin"),
     },
     line: {
       width: number("line.width"),
@@ -44,6 +48,8 @@ export function parseForm(state: FormState, base: StandardProfile): ParsedForm {
       labelStyle: text("line.labelStyle"),
       jump: number("line.jump"),
       stub: number("line.stub"),
+      markLength: number("line.markLength"),
+      markClearance: number("line.markClearance"),
       arrow: {
         style: text("line.arrowStyle"),
         length: number("line.arrowLength"),
