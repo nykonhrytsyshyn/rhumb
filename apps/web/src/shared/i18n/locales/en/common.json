@@ -43,5 +43,27 @@
   "language": {
     "label": "Change language",
     "heading": "Languages"
+  },
+  "agentKit": {
+    "download": "Download",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "failed": "Could not get the file",
+    "files": {
+      "diagramsSkill": {
+        "title": "Skill: Rhumb diagrams",
+        "description": "A folder for agents that support skills. Syntax, every block, pitfalls and a checker script."
+      },
+      "diagramsPrompt": {
+        "title": "Prompt: full",
+        "description": "The whole skill as one text for any chat or system prompt."
+      },
+      "diagramsPromptShort": {
+        "title": "Prompt: short",
+        "description": "A cheat sheet that fits small context windows."
+      }
+    }
   }
 }
