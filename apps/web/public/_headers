@@ -11,6 +11,14 @@
   Cache-Control: public, max-age=31536000, immutable
   Cross-Origin-Resource-Policy: cross-origin
 
+/agents/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=600
+  Cross-Origin-Resource-Policy: cross-origin
+  Access-Control-Allow-Origin: *
+
+/agents/*.md
+  Content-Type: text/markdown; charset=utf-8
+
 /manifest.webmanifest
   Content-Type: application/manifest+json
   Cache-Control: public, max-age=86400, stale-while-revalidate=3600

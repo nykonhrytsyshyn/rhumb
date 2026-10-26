@@ -272,6 +272,9 @@ importers:
       '@lezer/highlight':
         specifier: ^1.2.5
         version: 1.2.5
+      '@rhumb/agent-kit':
+        specifier: workspace:*
+        version: link:../../packages/agent-kit
       '@rhumb/engine':
         specifier: workspace:*
         version: link:../../packages/engine

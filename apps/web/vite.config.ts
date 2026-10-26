@@ -1,11 +1,11 @@
-import { copyFileSync } from "node:fs";
 import path from "node:path";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
+
+import { agentKit, notFoundShell } from "./vite";
 
 const LAYERS = [
   "app",
@@ -17,29 +17,6 @@ const LAYERS = [
 ] as const;
 
 /**
- * Static hosts answer an unknown URL with `/404.html` and a real 404 status.
- * The app shell is served there, so the client can draw its own not-found page
- * and search engines still see the right status.
- */
-function notFoundShell(): Plugin {
-  let outDir = "";
-
-  return {
-    name: "rhumb:not-found-shell",
-    apply: "build",
-    configResolved(config) {
-      outDir = path.resolve(config.root, config.build.outDir);
-    },
-    closeBundle() {
-      copyFileSync(
-        path.join(outDir, "index.html"),
-        path.join(outDir, "404.html"),
-      );
-    },
-  };
-}
-
-/**
  * Vite configuration.
  *
  * @see {@link https://vitejs.dev/config Vite documentation}
@@ -49,6 +26,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     notFoundShell(),
+    agentKit(),
     VitePWA({
       registerType: "autoUpdate",
       includeManifestIcons: false,
@@ -177,6 +155,7 @@ export default defineConfig({
           /^\/sitemap.*\.xml$/,
           /^\/\.well-known\//,
           /^\/manifest\.webmanifest$/,
+          /^\/agents\//,
         ],
       },
     }),

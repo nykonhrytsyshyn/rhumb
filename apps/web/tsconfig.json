@@ -5,6 +5,7 @@
     "lib": ["esnext", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "node"],
     "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
 
     "paths": {
       "@app/*": ["./src/app/*"],
@@ -16,5 +17,5 @@
     }
   },
 
-  "include": ["src", "*.config.ts"]
+  "include": ["src", "vite", "*.config.ts"]
 }
