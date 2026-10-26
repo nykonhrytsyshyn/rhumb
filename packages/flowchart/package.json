@@ -16,7 +16,7 @@
   "devDependencies": {
     "@rhumb/layout-elk": "workspace:*",
     "@rhumb/source-mermaid": "workspace:*",
-    "vite": "^8.3.4",
+    "vite": "^8.3.5",
     "elkjs": "^0.12.0"
   }
 }
