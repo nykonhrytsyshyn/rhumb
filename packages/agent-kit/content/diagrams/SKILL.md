@@ -1,5 +1,5 @@
 ---
-name: "rhumb-diagrams"
+name: rhumb-diagrams
 description: "Write, fix and explain flowcharts in Rhumb's Mermaid-like text syntax, which Rhumb draws as standard-conforming block diagrams (GOST 19.701-90, ISO 5807). Use whenever the user mentions Rhumb or rhumb.nykon.me, asks for a flowchart, block diagram, algorithm scheme or program flow in the style of a standard (блок-схема, схема алгоритму, схема за ГОСТ або ДСТУ), or pastes Rhumb or Mermaid flowchart text to repair or convert. Rhumb's syntax is NOT Mermaid: it has extra blocks (document, manual input, loop limits, parallel actions, transfer of control, comments) and rejects styling, so do not answer from general Mermaid knowledge. Not for sequence, class, state, ER or Gantt diagrams."
 license: "MIT"
 metadata:

@@ -3,11 +3,11 @@
 
 @layer base {
   ::-webkit-scrollbar {
-    @apply w-2;
+    @apply size-2;
   }
 
   ::-webkit-scrollbar-track {
-    @apply border-l border-border bg-transparent;
+    @apply border-t border-l border-border bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {

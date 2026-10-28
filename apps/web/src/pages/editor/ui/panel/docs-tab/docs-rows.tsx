@@ -3,8 +3,7 @@ import type { JSX } from "react";
 import { IconCheck } from "@tabler/icons-react";
 
 import { useT } from "@shared/i18n";
-
-import { useCopyFeedback } from "./use-copy-feedback";
+import { useCopyFeedback } from "@shared/lib/use-copy-feedback";
 
 function CopyCode({ code }: { readonly code: string }): JSX.Element {
   const t = useT();
@@ -31,7 +30,7 @@ export interface DocsRowsProps {
 
 export function DocsRows({ rows }: DocsRowsProps): JSX.Element {
   return (
-    <dl className="divide-y rounded-2xl border bg-background">
+    <dl className="divide-y rounded-2xl border bg-background/25">
       {rows.map(([code, text]) => (
         <div
           key={code}

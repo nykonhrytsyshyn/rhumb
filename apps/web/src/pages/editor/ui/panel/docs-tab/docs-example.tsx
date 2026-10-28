@@ -1,15 +1,25 @@
-import type { JSX } from "react";
+import { type JSX, type ReactNode, useEffect, useMemo, useState } from "react";
 
-import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { IconCode, IconTextWrap } from "@tabler/icons-react";
+
+import { loadMermaidHighlighter } from "@widgets/source-editor";
 
 import { useI18n } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
+import {
+  CodeBlock,
+  CodeBlockActions,
+  CodeBlockContent,
+  CodeBlockCopyButton,
+  CodeBlockHeader,
+  CodeBlockLine,
+  CodeBlockTitle,
+} from "@shared/ui/code-block";
 
 import {
   DOCS_EXAMPLES,
   type DocsExampleId,
 } from "../../../config/docs-examples";
-import { useCopyFeedback } from "./use-copy-feedback";
 
 export interface DocsExampleProps {
   readonly id: DocsExampleId;
@@ -17,29 +27,64 @@ export interface DocsExampleProps {
 
 export function DocsExample({ id }: DocsExampleProps): JSX.Element {
   const { language, t } = useI18n();
-  const { copied, copy } = useCopyFeedback();
+  const [wrap, setWrap] = useState(false);
   const code = DOCS_EXAMPLES[id][language];
 
+  const [highlight, setHighlight] = useState<
+    ((value: string) => ReactNode[][]) | null
+  >(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadMermaidHighlighter()
+      .then((next) => {
+        if (!cancelled) {
+          setHighlight(() => next);
+        }
+      })
+      .catch(() => {
+        /* plain text fallback */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const lines = useMemo<ReactNode[]>(
+    () => (highlight ? highlight(code) : code.split("\n")),
+    [highlight, code],
+  );
+
   return (
-    <figure className="overflow-hidden rounded-2xl border bg-background">
-      <figcaption className="flex items-center justify-between gap-2 border-b px-3 py-1 text-xs text-muted-foreground">
-        {t("docs.example")}
-
-        <Button
-          variant="ghost"
-          size="xs"
-          onClick={() => {
-            copy(code);
-          }}
-        >
-          {copied ? <IconCheck /> : <IconCopy />}
-          {copied ? t("docs.copied") : t("docs.copy")}
-        </Button>
-      </figcaption>
-
-      <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed">
-        <code>{code}</code>
-      </pre>
-    </figure>
+    <CodeBlock size="sm">
+      <CodeBlockHeader>
+        <CodeBlockTitle>
+          <IconCode />
+          {t("docs.example")}
+        </CodeBlockTitle>
+        <CodeBlockActions>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label="Wrap lines"
+            aria-pressed={wrap}
+            className="aria-pressed:text-foreground"
+            onClick={() => {
+              setWrap(!wrap);
+            }}
+          >
+            <IconTextWrap />
+          </Button>
+          <CodeBlockCopyButton value={code} />
+        </CodeBlockActions>
+      </CodeBlockHeader>
+      <CodeBlockContent id={id} wrap={wrap} lineNumbers>
+        {lines.map((line, index) => (
+          <CodeBlockLine key={index}>{line}</CodeBlockLine>
+        ))}
+      </CodeBlockContent>
+    </CodeBlock>
   );
 }
