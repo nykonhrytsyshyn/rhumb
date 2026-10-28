@@ -35,13 +35,15 @@ export const editorTheme = EditorView.theme({
   },
 });
 
-const highlightStyle = HighlightStyle.define([
+export const SYNTAX_STYLES = [
   { tag: tags.keyword, color: "var(--syntax-keyword)", fontWeight: "600" },
   { tag: tags.atom, color: "var(--syntax-keyword)" },
   { tag: tags.operator, color: "var(--syntax-operator)" },
   { tag: tags.string, color: "var(--syntax-string)" },
   { tag: tags.comment, color: "var(--syntax-comment)", fontStyle: "italic" },
   { tag: tags.bracket, color: "var(--muted-foreground)" },
-]);
+];
+
+const highlightStyle = HighlightStyle.define(SYNTAX_STYLES);
 
 export const editorHighlighting = syntaxHighlighting(highlightStyle);

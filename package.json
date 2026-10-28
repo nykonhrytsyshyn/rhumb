@@ -1,6 +1,6 @@
 {
   "name": "rhumb",
-  "version": "26.10.7",
+  "version": "26.10.8",
   "description": "Standard-conforming flowcharts from Mermaid-like text",
   "author": "Nykon Hrytsyshyn (https://nykon.me)",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "url": "https://github.com/nykonhrytsyshyn/rhumb/issues",
     "email": "contact@nykon.me"
   },
-  "packageManager": "pnpm@12.14.0",
+  "packageManager": "pnpm@12.15.0",
   "engines": {
     "node": ">=22.16.0",
     "pnpm": ">=11.0.0"
@@ -66,7 +66,7 @@
     "tree-node-cli": "^3.0.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.0",
-    "vite": "^8.3.4",
+    "vite": "^8.3.5",
     "vitest": "^5.0.5"
   }
 }

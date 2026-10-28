@@ -1,20 +1,39 @@
 {
   "intro": "Describe the diagram in Mermaid-like text. Rhumb draws it as a block diagram that follows the selected standard.",
-  "syntax": {
-    "title": "Structure",
+  "copy": "Copy",
+  "copied": "Copied",
+  "example": "Example",
+  "start": {
+    "title": "Quick start",
+    "text": "A diagram is plain text. Rhumb redraws it as you type; an error message tells you which line to fix.",
+    "steps": {
+      "header": "Start with flowchart TD (or LR for a wide diagram).",
+      "blocks": "Give every block an identifier and a form, text in quotes: check{\"x > 0?\"}.",
+      "lines": "Join blocks with arrows: A --> B --> C.",
+      "branches": "Label the branches of a decision: A -->|Yes| B.",
+      "export": "Pick the standard on the Config tab, then export SVG or PNG with the Actions buttons."
+    }
+  },
+  "structure": {
+    "title": "Text rules",
     "header": "Start with flowchart (or graph) and a direction: TD, TB, BT, LR or RL.",
-    "chain": "Connect blocks with arrows. Chains work: A --> B --> C.",
-    "label": "Label a line with |text| or -- text -->.",
-    "comment": "Lines that start with %% are comments."
+    "statements": "One statement per line, or several on a line separated by ;.",
+    "comment": "Everything after %% on a line is a comment.",
+    "identifier": "An identifier is letters, digits and _ with no spaces or hyphens: step_1.",
+    "define": "Write a block's form once; later mention only its identifier.",
+    "quotes": "Always put the text in double quotes: A[\"text\"]. Without quotes the text ends at the first closing bracket, so a[i] or f(x) would break it. A double quote cannot be used inside the text; use ' or « » instead.",
+    "breaks": "Break a line inside the quotes with <br/>."
   },
   "blocks": {
     "title": "Blocks",
+    "text": "Pick the block by what the step means, not by looks. In the forms below, A is any identifier. Click a form to copy it.",
+    "tip": "Input or output is the general block. Use manual input only for typing, display only for a screen and document only for print.",
     "process": "Process",
     "terminator": "Start or end",
     "decision": "Decision",
     "io": "Input or output",
-    "preparation": "Preparation",
-    "predefined": "Predefined process",
+    "preparation": "Preparation, head of a counted loop",
+    "predefined": "Predefined process, a call",
     "connector": "Connector",
     "storedData": "Stored data",
     "internalStorage": "Internal storage",
@@ -26,15 +45,16 @@
     "card": "Card",
     "display": "Display",
     "manualOperation": "Manual operation",
-    "parallel": "Parallel actions",
+    "parallel": "Parallel actions, no text",
     "loopStart": "Loop limit: start",
     "loopEnd": "Loop limit: end",
     "transfer": "Transfer of control (one letter)",
     "comment": "Comment"
   },
   "shapes": {
-    "title": "Blocks by name and their extras",
-    "text": "Any block can also be written as A@{ shape: name, label: \"text\" } with the shape names Mermaid uses (doc, sl-rect, trap-t, fork, ...); Rhumb adds seq-store, loop-start and loop-end. The same braces carry properties of a block. In the short forms, put the text in quotes to keep it from being read as part of the form."
+    "title": "Blocks by name and properties",
+    "text": "Any block can also be written as A@{ shape: name, label: \"text\" } with the shape names Mermaid uses (doc, sl-rect, trap-t, fork, ...); Rhumb adds seq-store, loop-start and loop-end. The same braces carry the properties of a block, also after a short form: A[\"text\"] @{ ident: \"P1\" }.",
+    "warning": "Give the shape once: either in brackets or in shape:, never both."
   },
   "extras": {
     "shape": "Shape by name",
@@ -47,32 +67,62 @@
     "side": "Side of a comment: right, left, top or bottom",
     "legend": "What the letter of a transfer stands for, shown under the diagram"
   },
-  "structure": {
-    "title": "Frames, comments and omissions",
-    "text": "A frame is a dashed outline around blocks. A comment is tied to a block or a frame with a dashed line and always stands beside it. Loop limits are paired by the name before the colon. A line labelled with three dots shows that blocks are left out. A line labelled with a tilde carries the zigzag of a communication link.",
-    "frame": "Dashed frame around blocks",
-    "comment": "Comment on a block",
-    "frameComment": "Comment on a frame",
-    "skip": "Omission on a line",
-    "channel": "Communication link on a line"
-  },
   "lines": {
-    "title": "Lines",
+    "title": "Lines and labels",
+    "text": "Longer runs such as ---> mean the same. Mermaid's --o, --x and <--> are not supported.",
     "solid": "Line with an arrow",
     "plain": "Line without an arrow",
-    "dashed": "Dashed line",
-    "thick": "Thick line"
+    "dashed": "Dashed line with an arrow",
+    "dashedPlain": "Dashed line without an arrow",
+    "thick": "Thick line",
+    "label": "Label on a line",
+    "labelSpaced": "The same; spaces around the text",
+    "skip": "Omission: blocks left out",
+    "channel": "Communication link (zigzag)"
   },
   "decisions": {
-    "title": "Decisions",
-    "text": "Label the branches Yes and No. The profile decides which side each one leaves from; unlabeled branches use the free sides in order. Where the profile leaves the side open, a branch that goes back to a preparation block leaves on the side that block takes returning lines on."
+    "title": "Decisions and loops",
+    "branches": "Label every branch of a decision, Yes and No for two exits, one value per exit for more. The profile decides which side each one leaves from; unlabeled branches use the free sides in order. Where the profile leaves the side open, a branch that goes back to a preparation block leaves on the side that block takes returning lines on.",
+    "preparation": "When the flow comes back to a preparation block, the line into the repeated section leaves from the bottom, returning lines enter one side corner and the other lines leave from the opposite one. Write the line into the body first, then the exit.",
+    "limits": "Loop limits are another way to draw a loop. The name before the colon joins the start to its end, so nested loops need different names. Pick one style per diagram."
   },
-  "preparation": {
-    "title": "Returning to a preparation block",
-    "text": "When the flow comes back to a preparation block, the line into the repeated section leaves from the bottom, returning lines enter one side corner and the other lines leave from the opposite one."
+  "frames": {
+    "title": "Frames and comments",
+    "frame": "A frame is a dashed outline around blocks: subgraph id [\"Title\"] ... end. The identifier is required, frames nest, a frame holds at least one block, and a block belongs to the frame it is first named in.",
+    "comment": "A comment is tied to a block or a frame with a dashed link, exactly one per comment, and stands beside it. It takes no label.",
+    "frameBlock": "Dashed frame around blocks",
+    "commentBlock": "Comment on a block",
+    "commentFrame": "Comment on a frame"
+  },
+  "parallel": {
+    "title": "Parallel actions, transfers and sheets",
+    "bars": "One bar [=] splits the flow, another joins it. Use two bars, never one for both.",
+    "transfer": "A transfer of control is one letter; its meaning goes in legend and is listed under the diagram. One letter cannot stand for two meanings.",
+    "sheets": "A break in a line between sheets is two connectors with the same text and different identifiers. A stripe (ref) marks a block that is drawn in detail on another sheet."
+  },
+  "errors": {
+    "title": "Common errors",
+    "text": "An error message starts with the line to fix. These are the usual ones.",
+    "unsupported": "Remove classDef, class, style, linkStyle, click and direction. Rhumb has no styling.",
+    "link": "Something between two blocks is not a line: look for an unquoted bracket in the text, a hyphen in an identifier, or & joining blocks.",
+    "quote": "There is a double quote inside the text. Use ' or « » instead.",
+    "shape": "Use one of the shape names; see Blocks by name and properties.",
+    "end": "Close every subgraph with end.",
+    "empty": "Put at least one block in the frame.",
+    "note": "Tie every comment to exactly one block or frame with -.-.",
+    "loop": "Every loop start needs an end with the same name.",
+    "type": "Rhumb draws flowcharts only; start with flowchart."
   },
   "standards": {
     "title": "Standards",
     "text": "A standard is a JSON profile with block sizes, line widths, fonts and branch sides. Pick a built-in one on the Config tab or load your own."
+  },
+  "agents": {
+    "title": "For AI agents",
+    "text": "An AI agent can write Rhumb diagrams for you, but what it knows about Mermaid does not cover Rhumb's own blocks and rules. Give it one of these files. A skill is a folder an agent loads when it needs it; a prompt is plain text for any chat.",
+    "skill": "Skill: upload the .zip in the skills settings of your agent, or unpack it into its skills folder.",
+    "prompt": "Prompt: paste it into custom instructions, a project or a system prompt. The short one fits small context windows.",
+    "link": "An agent that can open links can read a file by its link.",
+    "note": "The files are made from the same source as this help and carry the version of the app."
   }
 }
