@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import type { PointerEvent, WheelEvent } from "react";
 
 import { act, renderHook } from "@testing-library/react";

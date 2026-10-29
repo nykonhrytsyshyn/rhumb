@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import type { JSX } from "react";
 
 import { render } from "@testing-library/react";

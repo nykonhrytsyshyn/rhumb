@@ -179,7 +179,7 @@ export default defineConfig({
   },
 
   test: {
-    environment: "jsdom",
+    environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/shared/lib/testing/setup.ts"],
   },
