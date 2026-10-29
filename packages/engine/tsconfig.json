@@ -1,7 +1,6 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "@rhumb/tsconfig/dom.json",
   "compilerOptions": {
-    "lib": ["esnext", "DOM"],
     "types": ["vite/client"]
   },
   "include": ["src"]

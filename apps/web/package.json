@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite",
     "staging": "pnpm run build && vite preview",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc-native --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc-native --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@rhumb/source-mermaid": "workspace:*",
+    "@rhumb/tsconfig": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/react": "^16.3.3",
     "@types/matter-js": "^0.20.2",

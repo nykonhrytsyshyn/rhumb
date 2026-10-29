@@ -1,0 +1,24 @@
+{
+  "name": "@rhumb/eslint-config",
+  "version": "26.10.8",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc-native --noEmit"
+  },
+  "dependencies": {
+    "@eslint/js": "^10.0.0",
+    "@rhumb/eslint-plugin-fsd": "workspace:*",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "typescript-eslint": "^8.72.0"
+  },
+  "devDependencies": {
+    "@rhumb/tsconfig": "workspace:*",
+    "@types/node": "^26.6.5"
+  }
+}

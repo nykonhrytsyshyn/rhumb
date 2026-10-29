@@ -1,0 +1,17 @@
+{
+  "name": "@rhumb/tsconfig",
+  "version": "26.10.8",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./base.json": "./base.json",
+    "./dom.json": "./dom.json",
+    "./react.json": "./react.json"
+  },
+  "dependencies": {
+    "typescript-native": "npm:typescript@^7.0.2"
+  },
+  "bin": {
+    "tsc-native": "./bin/tsc-native.mjs"
+  }
+}

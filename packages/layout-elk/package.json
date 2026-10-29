@@ -7,10 +7,13 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc-native --noEmit"
   },
   "dependencies": {
     "@rhumb/kernel": "workspace:*",
     "elkjs": "^0.12.0"
+  },
+  "devDependencies": {
+    "@rhumb/tsconfig": "workspace:*"
   }
 }

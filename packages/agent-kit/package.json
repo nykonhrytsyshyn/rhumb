@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc-native --noEmit"
   },
   "dependencies": {
     "@rhumb/kernel": "workspace:*",
@@ -19,6 +19,7 @@
     "@rhumb/engine": "workspace:*",
     "@rhumb/layout-elk": "workspace:*",
     "@rhumb/profiles": "workspace:*",
+    "@rhumb/tsconfig": "workspace:*",
     "elkjs": "^0.12.0"
   }
 }

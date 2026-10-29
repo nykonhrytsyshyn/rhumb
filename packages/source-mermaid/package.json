@@ -7,9 +7,12 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc-native --noEmit"
   },
   "dependencies": {
     "@rhumb/kernel": "workspace:*"
+  },
+  "devDependencies": {
+    "@rhumb/tsconfig": "workspace:*"
   }
 }

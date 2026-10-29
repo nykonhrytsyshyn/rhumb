@@ -1,20 +1,9 @@
-import path from "node:path";
-
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
 
 import { agentKit, notFoundShell } from "./vite";
-
-const LAYERS = [
-  "app",
-  "pages",
-  "widgets",
-  "features",
-  "entities",
-  "shared",
-] as const;
 
 /**
  * Vite configuration.
@@ -162,12 +151,7 @@ export default defineConfig({
   ],
 
   resolve: {
-    alias: Object.fromEntries(
-      LAYERS.map((layer) => [
-        `@${layer}`,
-        path.resolve(import.meta.dirname, "src", layer),
-      ]),
-    ),
+    tsconfigPaths: true,
   },
 
   build: {
