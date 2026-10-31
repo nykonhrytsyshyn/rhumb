@@ -219,7 +219,7 @@ export function LibraryTab({
                   new Blob([diagram.source], {
                     type: "text/plain;charset=utf-8",
                   }),
-                  `${toFileName(diagram.name)}.mmd`,
+                  `${toFileName(diagram.name)}.md`,
                 );
               }}
               onDelete={() => {
