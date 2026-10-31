@@ -518,11 +518,12 @@ Run everything from the repository root:
 |---------------------|-------------------------------------------------------------------------------|
 | `pnpm dev`          | Start the web editor                                                          |
 | `pnpm staging`      | Build, then serve a production-like preview                                   |
-| `pnpm build`        | Type-check and build the web app                                              |
+| `pnpm build`        | Type-check and build the web app (cached)                                     |
 | `pnpm preview`      | Serve the last build of the web app                                           |
-| `pnpm check`        | The complete verification pipeline                                            |
-| `pnpm typecheck`    | Type-check every workspace package                                            |
-| `pnpm lint`         | ESLint and Feature-Sliced checks                                              |
+| `pnpm check`        | The complete verification pipeline, checks run in parallel                    |
+| `pnpm quality`      | Typecheck, ESLint and Prettier only (what the Quality workflow runs)          |
+| `pnpm typecheck`    | Type-check every workspace package (cached per package)                       |
+| `pnpm lint`         | ESLint and Feature-Sliced checks (cached)                                     |
 | `pnpm test`         | Run the Vitest suite (`test:watch`, `test:coverage` and `test:ui` also exist) |
 | `pnpm format`       | Format the code with Prettier                                                 |
 | `pnpm format:check` | Verify Prettier formatting                                                    |
@@ -533,11 +534,18 @@ Run everything from the repository root:
 
 ```mermaid
 flowchart LR
-  A["typecheck"] --> B["lint"] --> C["format:check"] --> D["test"] --> E["build"]
+  A["typecheck"] & B["lint"] & C["format:check"] & D["test"] & E["build"] --> F([" check passed "])
 
   classDef step stroke:#666, rx:6, ry:6
   class A,B,C,D,E step
 ```
+
+The scripts go through [Turborepo](https://turborepo.dev) (`turbo.json`): the
+checks of `pnpm check` run in parallel, and the result of every task is cached
+in `.turbo/` by the content of its inputs. A task whose files did not change is
+replayed instead of run again; a change in a package invalidates the packages
+that depend on it. Add `--force` to run a task anyway, e.g.
+`pnpm check --force`.
 
 The project uses TypeScript, React, Vite, Vitest, ELK and pnpm workspaces. Tests
 live next to the implementation and cover the parser, layout, exporter,

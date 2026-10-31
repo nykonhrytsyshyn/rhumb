@@ -23,6 +23,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "tsconfig*.json"
+      - "turbo.json"
       - "*.config.*"
   pull_request:
     branches: ["dev", "release"]
@@ -30,6 +31,9 @@ on:
 concurrency:
   group: "test-${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
+
+env:
+  TURBO_TELEMETRY_DISABLED: "1"
 
 permissions:
   contents: "read"
@@ -78,6 +82,13 @@ jobs:
 
       - name: "Setup: Install dependencies"
         run: "pnpm install --frozen-lockfile"
+
+      - name: "Setup: Turborepo cache"
+        uses: actions/cache@v6
+        with:
+          path: ".turbo/cache"
+          key: "turbo-${{ runner.os }}-test-${{ github.event.pull_request.head.sha || github.sha }}"
+          restore-keys: "turbo-${{ runner.os }}-test-"
 
       - name: "Run: Test suite"
         if: github.event_name != 'pull_request'

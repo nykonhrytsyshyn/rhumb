@@ -23,6 +23,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "tsconfig*.json"
+      - "turbo.json"
       - "*.config.*"
       - ".prettierrc*"
       - ".prettierignore"
@@ -33,6 +34,9 @@ on:
 concurrency:
   group: "quality-${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
+
+env:
+  TURBO_TELEMETRY_DISABLED: "1"
 
 permissions:
   contents: "read"
@@ -78,11 +82,12 @@ jobs:
       - name: "Setup: Install dependencies"
         run: "pnpm install --frozen-lockfile"
 
-      - name: "Run: Typecheck"
-        run: "pnpm run typecheck"
+      - name: "Setup: Turborepo cache"
+        uses: actions/cache@v6
+        with:
+          path: ".turbo/cache"
+          key: "turbo-${{ runner.os }}-quality-${{ github.event.pull_request.head.sha || github.sha }}"
+          restore-keys: "turbo-${{ runner.os }}-quality-"
 
-      - name: "Run: ESLint"
-        run: "pnpm run lint"
-
-      - name: "Run: Prettier format check"
-        run: "pnpm run format:check"
+      - name: "Run: Typecheck, ESLint and Prettier"
+        run: "pnpm run quality"

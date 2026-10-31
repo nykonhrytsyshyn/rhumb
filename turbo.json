@@ -1,0 +1,70 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "stream",
+  "globalDependencies": [
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "tsconfig.json",
+    "packages/tsconfig/*.json"
+  ],
+  "globalPassThroughEnv": [
+    "CI",
+    "GITHUB_ACTIONS"
+  ],
+  "tasks": {
+    "typecheck": {
+      "dependsOn": [
+        "^typecheck"
+      ]
+    },
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "//#typecheck:root": {
+      "inputs": [
+        "*.config.ts",
+        "tsconfig.json",
+        "packages/tsconfig/*.json"
+      ]
+    },
+    "//#lint:root": {
+      "inputs": [
+        "apps/**",
+        "packages/**",
+        ".github/scripts/**",
+        "*.config.ts",
+        "tsconfig.json",
+        "!**/node_modules/**",
+        "!**/dist/**",
+        "!**/.turbo/**",
+        "!**/*.md"
+      ]
+    },
+    "//#test:root": {
+      "inputs": [
+        "apps/**",
+        "packages/**",
+        "*.config.ts",
+        "tsconfig.json",
+        "!**/node_modules/**",
+        "!**/dist/**",
+        "!**/.turbo/**"
+      ]
+    },
+    "//#format:check:root": {
+      "inputs": [
+        "**",
+        "!**/node_modules/**",
+        "!**/dist/**",
+        "!**/.turbo/**",
+        "!**/.vitest/**",
+        "!**/coverage/**"
+      ]
+    }
+  }
+}
