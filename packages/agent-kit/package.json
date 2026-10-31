@@ -1,6 +1,6 @@
 {
   "name": "@rhumb/agent-kit",
-  "version": "26.10.8",
+  "version": "26.10.9",
   "description": "Skills and prompts that teach AI agents to write Rhumb diagrams",
   "type": "module",
   "private": true,
