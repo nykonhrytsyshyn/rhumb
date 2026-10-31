@@ -64,6 +64,7 @@ export function DocsExample({ id }: DocsExampleProps): JSX.Element {
           <IconCode />
           {t("docs.example")}
         </CodeBlockTitle>
+
         <CodeBlockActions>
           <Button
             variant="ghost"
@@ -77,9 +78,11 @@ export function DocsExample({ id }: DocsExampleProps): JSX.Element {
           >
             <IconTextWrap />
           </Button>
+
           <CodeBlockCopyButton value={code} />
         </CodeBlockActions>
       </CodeBlockHeader>
+
       <CodeBlockContent id={id} wrap={wrap} lineNumbers>
         {lines.map((line, index) => (
           <CodeBlockLine key={index}>{line}</CodeBlockLine>

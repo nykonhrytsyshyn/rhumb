@@ -1,13 +1,49 @@
 import type { JSX } from "react";
 
-import { useT } from "@shared/i18n";
+import { IconBinaryTree2, IconFilterOff } from "@tabler/icons-react";
 
-export function DiagramLibraryNoMatches(): JSX.Element {
+import { useT } from "@shared/i18n";
+import { Button } from "@shared/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@shared/ui/empty";
+
+export interface DiagramLibraryNoMatchesProps {
+  readonly onReset?: () => void;
+}
+
+export function DiagramLibraryNoMatches({
+  onReset,
+}: DiagramLibraryNoMatchesProps): JSX.Element {
   const t = useT();
 
   return (
-    <p className="p-4 text-sm text-muted-foreground">
-      {t("editor.library.noMatches")}
-    </p>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <IconBinaryTree2 />
+        </EmptyMedia>
+
+        <EmptyTitle>{t("editor.library.noMatchesTitle")}</EmptyTitle>
+
+        <EmptyDescription>
+          {t("editor.library.noMatchesDescription")}
+        </EmptyDescription>
+      </EmptyHeader>
+
+      <EmptyContent>
+        {onReset === undefined ? null : (
+          <Button type="button" variant="outline" size="sm" onClick={onReset}>
+            <IconFilterOff />
+            {t("editor.library.filter.resetAll")}
+          </Button>
+        )}
+      </EmptyContent>
+    </Empty>
   );
 }

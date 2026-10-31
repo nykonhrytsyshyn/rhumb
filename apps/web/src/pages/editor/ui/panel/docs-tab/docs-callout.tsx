@@ -9,7 +9,7 @@ export interface DocsCalloutProps {
 
 export function DocsCallout({ tone, children }: DocsCalloutProps): JSX.Element {
   return (
-    <div className="flex items-start gap-2 rounded-2xl border bg-muted/50 p-3 text-xs">
+    <div className="flex items-start gap-2 rounded-xl border bg-muted/50 p-3 text-xs">
       {tone === "tip" ? (
         <IconBulb className="mt-0.5 size-4 shrink-0" aria-hidden />
       ) : (

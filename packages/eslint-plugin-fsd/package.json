@@ -10,11 +10,11 @@
     "typecheck": "tsc-native --noEmit"
   },
   "dependencies": {
-    "eslint": "^10.13.0"
+    "eslint": "^10.14.0"
   },
   "devDependencies": {
     "@rhumb/tsconfig": "workspace:*",
-    "@types/estree": "^1.0.8",
-    "@types/node": "^26.6.5"
+    "@types/estree": "^1.0.10",
+    "@types/node": "^26.6.6"
   }
 }

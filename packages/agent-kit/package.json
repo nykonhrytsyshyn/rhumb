@@ -20,6 +20,6 @@
     "@rhumb/layout-elk": "workspace:*",
     "@rhumb/profiles": "workspace:*",
     "@rhumb/tsconfig": "workspace:*",
-    "elkjs": "^0.12.0"
+    "elkjs": "^0.12.1"
   }
 }
