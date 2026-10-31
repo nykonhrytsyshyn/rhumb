@@ -121,6 +121,25 @@
   </a>
 </div>
 
+```mermaid
+flowchart LR
+  S["Source text<br/>(Mermaid-like)"] --> P["Parse<br/>flowchart model"]
+  P --> PL["Plan<br/>sizes + shape ports"]
+  PL --> L["Layout<br/>ELK, orthogonal"]
+  L --> D["Paint<br/>routes, labels, arrows"]
+  D --> O(["SVG / PNG"])
+  PF[("Profile<br/>JSON")] -.-> PL
+  PF -.-> D
+
+  classDef stage  filter:none, fill:#39363f1e, stroke:#3d444d, rx:16, ry:16
+  classDef data   filter:none, fill:#39363f1e, stroke:#3d444d, stroke-dasharray:4 3
+  classDef result filter:none, fill:#1f6feb1e, stroke:#1f6feb
+
+  class S,P,PL,L,D stage
+  class PF data
+  class O result
+```
+
 <div align="center">
   <h2 id="overview">Overview</h2>
 </div>
@@ -137,25 +156,6 @@ engineering document.
 | **Browser-first**         | The editor is a static web app; your source, current diagram and saved library never leave the browser                             |
 | **Useful exports**        | Download SVG or PNG, copy the rendered image, or download the source and a profile for reuse                                       |
 | **Strict on purpose**     | Unsupported syntax is rejected with a line-numbered error instead of producing an approximate drawing                              |
-
-```mermaid
-flowchart LR
-  S["Source text<br/>(Mermaid-like)"] --> P["Parse<br/>flowchart model"]
-  P --> PL["Plan<br/>sizes + shape ports"]
-  PL --> L["Layout<br/>ELK, orthogonal"]
-  L --> D["Paint<br/>routes, labels, arrows"]
-  D --> O(["SVG / PNG"])
-  PF[("Profile<br/>JSON")] -.-> PL
-  PF -.-> D
-
-  classDef stage  stroke:#666, rx:6, ry:6
-  classDef data   stroke:#666, stroke-dasharray:4 3
-  classDef result stroke:#1f6feb
-
-  class S,P,PL,L,D stage
-  class PF data
-  class O result
-```
 
 | Tab        | What it does                                                             |
 |------------|--------------------------------------------------------------------------|
@@ -423,9 +423,9 @@ flowchart LR
   C --> R(["Rendered diagram"])
   B --> R
 
-  classDef stage  stroke:#666, rx:6, ry:6
-  classDef data   stroke:#666, stroke-dasharray:4 3
-  classDef result stroke:#1f6feb
+  classDef stage  filter:none, fill:#39363f1e, stroke:#3d444d, rx:16, ry:16
+  classDef data   filter:none, fill:#39363f1e, stroke:#3d444d, stroke-dasharray:4 3
+  classDef result filter:none, fill:#1f6feb1e, stroke:#1f6feb
 
   class B,C stage
   class F data
@@ -460,8 +460,8 @@ flowchart TD
   flow   --> prof
   web    -.  "creates and injects" .-> elk
 
-  classDef app stroke:#1f6feb, rx:6, ry:6
-  classDef pkg stroke:#666,    rx:6, ry:6
+  classDef pkg filter:none, fill:#39363f1e, stroke:#3d444d, rx:16, ry:16
+  classDef app filter:none, fill:#1f6feb1e, stroke:#1f6feb, rx:16, ry:16
 
   class web app
   class engine,src,flow,exp,prof,elk pkg
@@ -548,8 +548,10 @@ Run everything from the repository root:
 flowchart LR
   A["typecheck"] & B["lint"] & C["format:check"] & D["test"] & E["build"] --> F([" check passed "])
 
-  classDef step stroke:#666, rx:6, ry:6
+  classDef step filter:none, fill:#39363f1e, stroke:#3d444d, rx:16, ry:16
+  classDef good filter:none, fill:#1f6feb1e, stroke:#1f6feb
   class A,B,C,D,E step
+  class F good
 ```
 
 The scripts go through [Turborepo](https://turborepo.dev) (`turbo.json`): the

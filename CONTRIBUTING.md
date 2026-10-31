@@ -59,9 +59,8 @@ flowchart LR
   D --> E["CI + review"]
   E --> F(["Merged into dev"])
 
-  classDef step stroke:#666, rx:6, ry:6
-  classDef bad  stroke:#a33
-  classDef good stroke:#1f6feb
+  classDef step filter:none, fill:#39363f1e, stroke:#3d444d, rx:16, ry:16
+  classDef good filter:none, fill:#1f6feb1e, stroke:#1f6feb
 
   class A,B,C,D,E step
   class F good
