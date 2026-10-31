@@ -91,6 +91,19 @@
 </div>
 
 <div align="center">
+  <br />
+  <a href="https://rhumb.nykon.me">
+    <img alt="Rhumb Multidevice Mockup" src="./.github/assets/multidevice-mockup.png" width="95%" />
+  </a>
+</div>
+
+The hosted editor is available at **[rhumb.nykon.me](https://rhumb.nykon.me)**.
+
+Preview environments:
+- **Release Candidate:** [release-candidate.rhumb.pages.dev](https://release-candidate.rhumb.pages.dev)
+- **Development:** [dev.rhumb.pages.dev](https://dev.rhumb.pages.dev)
+
+<div align="center">
   <h2 id="overview">Overview</h2>
 </div>
 
@@ -125,25 +138,6 @@ flowchart LR
   class PF data
   class O result
 ```
-
-<div align="center">
-  <h2 id="editor">Try it in the browser</h2>
-</div>
-
-<div align="center">
-  <br />
-  <a href="https://rhumb.nykon.me">
-    <img alt="Rhumb Multidevice Mockup" src="./.github/assets/multidevice-mockup.png" width="95%" />
-  </a>
-</div>
-
-The hosted editor is available at **[rhumb.nykon.me](https://rhumb.nykon.me)**.
-
-Preview environments:
-- **Release Candidate:** [release-candidate.rhumb.pages.dev](https://release-candidate.rhumb.pages.dev)
-- **Development:** [dev.rhumb.pages.dev](https://dev.rhumb.pages.dev)
-
-It opens with a working algorithm example.
 
 | Tab        | What it does                                                             |
 |------------|--------------------------------------------------------------------------|
