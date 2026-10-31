@@ -1,15 +1,18 @@
 {
   "name": "@rhumb/source-mermaid",
-  "version": "26.10.8",
+  "version": "26.10.9",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc-native --noEmit"
   },
   "dependencies": {
     "@rhumb/kernel": "workspace:*"
+  },
+  "devDependencies": {
+    "@rhumb/tsconfig": "workspace:*"
   }
 }

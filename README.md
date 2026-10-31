@@ -7,8 +7,8 @@
   -->
   <a rel="noopener noreferrer" href="https://github.com/nykonhrytsyshyn/rhumb">
     <picture>
-      <source media="(prefers-color-scheme: light)" srcset="./.github/assets/logo-text-light.png">
-      <img alt="Rhumb" src="./.github/assets/logo-text-dark.png">
+      <source media="(prefers-color-scheme: light)" srcset="./.github/assets/logo-text-light.png" />
+      <img alt="Rhumb" src="./.github/assets/logo-text-dark.png" />
     </picture>
   </a>
   <br />
@@ -128,6 +128,13 @@ flowchart LR
 
 <div align="center">
   <h2 id="editor">Try it in the browser</h2>
+</div>
+
+<div align="center">
+  <br />
+  <a href="https://rhumb.nykon.me">
+    <img alt="Rhumb Multidevice Mockup" src="./.github/assets/multidevice-mockup.png" width="95%" />
+  </a>
 </div>
 
 The hosted editor is available at **[rhumb.nykon.me](https://rhumb.nykon.me)**.

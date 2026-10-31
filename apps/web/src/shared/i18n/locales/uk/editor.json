@@ -146,7 +146,8 @@
     "saveNew": "Зберегти як нову",
     "update": "Оновити «{name}»",
     "search": "Пошук серед збережених схем",
-    "noMatches": "Жодна схема не підходить під пошук.",
+    "noMatchesTitle": "Жодних збігів",
+    "noMatchesDescription": "Жодна схема не підходить під ваш пошук або фільтри. Спробуйте змінити пошук або фільтри.",
     "open": "Відкрити {name}",
     "current": "Відкрито зараз",
     "rename": "Перейменувати",
@@ -163,6 +164,41 @@
     "actions": "Дії для {name}",
     "previewFailed": "Не вдалося намалювати схему",
     "untitled": "Схема без назви",
-    "storageFailed": "Сховище не спрацювало"
+    "storageFailed": "Сховище не спрацювало",
+    "filter": {
+      "open": "Фільтри",
+      "openActive": "Фільтри, активних: {count}",
+      "sort": "Сортування",
+      "sorts": {
+        "updatedDesc": "Нещодавно оновлені",
+        "updatedAsc": "Давно не оновлені",
+        "createdDesc": "Спочатку нові",
+        "createdAsc": "Спочатку старі",
+        "nameAsc": "Назва, А–Я",
+        "nameDesc": "Назва, Я–А"
+      },
+      "date": "Дата",
+      "dateField": "Яку дату порівнювати",
+      "dateFields": {
+        "updated": "Оновлено",
+        "created": "Створено"
+      },
+      "anyDate": "Будь-яка дата",
+      "clearDates": "Очистити дати",
+      "range": "{from} – {to}",
+      "standard": "Стандарт",
+      "allStandards": "Усі стандарти",
+      "pageSize": "На сторінці",
+      "reset": "Скинути",
+      "resetAll": "Скинути пошук і фільтри"
+    },
+    "pagination": {
+      "label": "Сторінки збережених схем",
+      "previous": "Попередня сторінка",
+      "next": "Наступна сторінка",
+      "goTo": "Перейти на сторінку {page}",
+      "current": "Сторінка {page} з {pageCount}",
+      "range": "{first}–{last} з {total}"
+    }
   }
 }

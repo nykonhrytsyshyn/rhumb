@@ -35,6 +35,7 @@ updates:
       typescript:
         patterns:
           - "typescript"
+          - "typescript-native"
           - "typescript-eslint"
 
       # ESLint ecosystem

@@ -1,6 +1,6 @@
 {
   "name": "rhumb",
-  "version": "26.10.8",
+  "version": "26.10.9",
   "description": "Standard-conforming flowcharts from Mermaid-like text",
   "author": "Nykon Hrytsyshyn (https://nykon.me)",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "url": "https://github.com/nykonhrytsyshyn/rhumb/issues",
     "email": "contact@nykon.me"
   },
-  "packageManager": "pnpm@12.15.0",
+  "packageManager": "pnpm@12.16.1",
   "engines": {
     "node": ">=22.16.0",
     "pnpm": ">=11.0.0"
@@ -33,9 +33,9 @@
     "build": "pnpm --filter @rhumb/web build",
     "preview": "pnpm --filter @rhumb/web preview",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run test && pnpm run build",
-    "typecheck": "pnpm --filter \"./packages/**\" --filter \"./apps/**\" run typecheck && tsc --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "typecheck": "pnpm --filter \"./packages/**\" --filter \"./apps/**\" run typecheck && tsc-native --noEmit",
+    "lint": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint/ --concurrency=auto",
+    "lint:fix": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint/ --concurrency=auto --fix",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -50,22 +50,19 @@
     "tree:export": "pnpm run tree --silent > .project-structure.txt"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.0",
+    "@rhumb/eslint-config": "workspace:*",
+    "@rhumb/tsconfig": "workspace:*",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
-    "@types/estree": "^1.0.8",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.0.5",
     "@vitest/ui": "^5.0.5",
-    "eslint": "^10.13.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint": "^10.14.0",
     "jiti": "^2.7.0",
     "prettier": "^3.9.9",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "prettier-plugin-yaml": "^1.3.0",
     "tree-node-cli": "^3.0.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.72.0",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
   }

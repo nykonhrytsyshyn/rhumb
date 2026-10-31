@@ -1,4 +1,4 @@
-import { type JSX, useState } from "react";
+import { type JSX, useMemo, useState } from "react";
 
 import { DiagramLibrary } from "@widgets/diagram-library";
 
@@ -7,10 +7,27 @@ import { downloadBlob } from "@shared/lib/download-blob";
 import { toFileName } from "@shared/lib/to-file-name";
 import { Button } from "@shared/ui/button";
 
+import {
+  ALL_PROFILES,
+  LIBRARY_DATE_FIELDS,
+  LIBRARY_PAGE_SIZES,
+  LIBRARY_SORTS,
+} from "../../../config/library-view";
+import {
+  applyLibraryView,
+  countActiveFilters,
+  hasFilterChanges,
+  isNarrowed,
+} from "../../../lib/library-view";
+import { scrollToTop, useScrollMemory } from "../../../lib/use-scroll-memory";
 import type { SavedDiagram } from "../../../model/diagram/is-saved-diagram";
 import { useDiagramLibrary } from "../../../model/diagram/use-diagram-library";
+import { CUSTOM_PROFILE_ID } from "../../../model/profile";
 import { useProfiles } from "../../../model/profile/use-profiles";
+import { useLibraryView } from "../../../model/use-library-view.ts";
 import { DiagramThumbnail } from "../../diagram/diagram-thumbnail";
+
+const NO_ITEMS: readonly SavedDiagram[] = [];
 
 export interface LibraryTabProps {
   readonly source: string;
@@ -27,18 +44,48 @@ export function LibraryTab({
   onCurrentChange,
   onOpen,
 }: LibraryTabProps): JSX.Element {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const profiles = useProfiles();
   const library = useDiagramLibrary();
   const [name, setName] = useState("");
-  const [query, setQuery] = useState("");
+  const state = useLibraryView();
+  const { view } = state;
+  const scrollRef = useScrollMemory("library", library.items !== undefined);
 
-  const items = library.items ?? [];
+  const items = library.items ?? NO_ITEMS;
   const current = items.find((item) => item.id === currentId);
-  const needle = query.trim().toLowerCase();
-  const visible = items.filter((item) =>
-    item.name.toLowerCase().includes(needle),
+  const shown = useMemo(
+    () => applyLibraryView(items, view, language),
+    [items, view, language],
   );
+
+  const sortOptions = LIBRARY_SORTS.map((sort) => ({
+    value: sort,
+    label: t(`editor.library.filter.sorts.${sort}`),
+  }));
+  const dateFieldOptions = LIBRARY_DATE_FIELDS.map((field) => ({
+    value: field,
+    label: t(`editor.library.filter.dateFields.${field}`),
+  }));
+  const profileOptions = [
+    { value: ALL_PROFILES, label: t("editor.library.filter.allStandards") },
+    ...profiles.map((profile) => ({
+      value: profile.id,
+      label:
+        profile.id === CUSTOM_PROFILE_ID
+          ? t("editor.config.custom")
+          : profile.title,
+    })),
+  ];
+  const pageSizeOptions = LIBRARY_PAGE_SIZES.map((size) => ({
+    value: String(size),
+    label: String(size),
+  }));
+
+  function changePage(page: number): void {
+    state.setPage(page);
+    scrollToTop(scrollRef.current);
+  }
 
   async function saveAsNew(): Promise<void> {
     const trimmed = name.trim();
@@ -68,7 +115,7 @@ export function LibraryTab({
   }
 
   return (
-    <DiagramLibrary>
+    <DiagramLibrary ref={scrollRef}>
       <DiagramLibrary.SaveForm
         name={name}
         onNameChange={setName}
@@ -97,59 +144,100 @@ export function LibraryTab({
         <DiagramLibrary.Error message={library.error} />
       )}
 
-      <DiagramLibrary.Search value={query} onChange={setQuery} />
+      <DiagramLibrary.Search value={view.query} onChange={state.setQuery}>
+        <DiagramLibrary.Filter
+          activeCount={countActiveFilters(view)}
+          changed={hasFilterChanges(view)}
+          sort={{
+            value: view.sort,
+            options: sortOptions,
+            onChange: state.setSort,
+          }}
+          dateField={{
+            value: view.dateField,
+            options: dateFieldOptions,
+            onChange: state.setDateField,
+          }}
+          range={state.range}
+          onRangeChange={state.setRange}
+          profile={{
+            value: view.profileId ?? ALL_PROFILES,
+            options: profileOptions,
+            onChange: (value) => {
+              state.setProfile(value === ALL_PROFILES ? null : value);
+            },
+          }}
+          pageSize={{
+            value: String(view.pageSize),
+            options: pageSizeOptions,
+            onChange: (value) => {
+              state.setPageSize(Number(value));
+            },
+          }}
+          onReset={state.resetFilters}
+        />
+      </DiagramLibrary.Search>
 
-      {library.items === undefined ? <DiagramLibrary.Loading /> : null}
-
-      {library.items !== undefined && items.length === 0 ? (
+      {library.items === undefined ? (
+        <DiagramLibrary.Loading />
+      ) : items.length === 0 ? (
         <DiagramLibrary.Empty />
-      ) : null}
+      ) : shown.total === 0 ? (
+        <DiagramLibrary.NoMatches
+          {...(isNarrowed(view) ? { onReset: state.resetAll } : {})}
+        />
+      ) : (
+        <DiagramLibrary.Grid>
+          {shown.items.map((diagram) => (
+            <DiagramLibrary.Card
+              key={diagram.id}
+              name={diagram.name}
+              updatedAt={diagram.updatedAt}
+              current={diagram.id === currentId}
+              thumbnail={
+                <DiagramThumbnail
+                  source={diagram.source}
+                  profile={
+                    profiles.find(
+                      (profile) => profile.id === diagram.profileId,
+                    ) ?? profiles[0]
+                  }
+                />
+              }
+              onOpen={() => {
+                onCurrentChange(diagram.id);
+                onOpen(diagram);
+              }}
+              onRename={(next) => {
+                void library.update(diagram.id, { name: next });
+              }}
+              onDuplicate={() => {
+                void duplicate(diagram);
+              }}
+              onDownload={() => {
+                downloadBlob(
+                  new Blob([diagram.source], {
+                    type: "text/plain;charset=utf-8",
+                  }),
+                  `${toFileName(diagram.name)}.mmd`,
+                );
+              }}
+              onDelete={() => {
+                void remove(diagram);
+              }}
+            />
+          ))}
+        </DiagramLibrary.Grid>
+      )}
 
-      {items.length > 0 && visible.length === 0 ? (
-        <DiagramLibrary.NoMatches />
-      ) : null}
-
-      <DiagramLibrary.Grid>
-        {visible.map((diagram) => (
-          <DiagramLibrary.Card
-            key={diagram.id}
-            name={diagram.name}
-            updatedAt={diagram.updatedAt}
-            current={diagram.id === currentId}
-            thumbnail={
-              <DiagramThumbnail
-                source={diagram.source}
-                profile={
-                  profiles.find(
-                    (profile) => profile.id === diagram.profileId,
-                  ) ?? profiles[0]
-                }
-              />
-            }
-            onOpen={() => {
-              onCurrentChange(diagram.id);
-              onOpen(diagram);
-            }}
-            onRename={(next) => {
-              void library.update(diagram.id, { name: next });
-            }}
-            onDuplicate={() => {
-              void duplicate(diagram);
-            }}
-            onDownload={() => {
-              downloadBlob(
-                new Blob([diagram.source], {
-                  type: "text/plain;charset=utf-8",
-                }),
-                `${toFileName(diagram.name)}.mmd`,
-              );
-            }}
-            onDelete={() => {
-              void remove(diagram);
-            }}
-          />
-        ))}
-      </DiagramLibrary.Grid>
+      <DiagramLibrary.Pagination
+        page={shown.page}
+        pageCount={shown.pageCount}
+        first={shown.first}
+        last={shown.last}
+        total={shown.total}
+        onPageChange={changePage}
+      />
     </DiagramLibrary>
   );
 }

@@ -1,6 +1,6 @@
 {
   "name": "@rhumb/agent-kit",
-  "version": "26.10.8",
+  "version": "26.10.9",
   "description": "Skills and prompts that teach AI agents to write Rhumb diagrams",
   "type": "module",
   "private": true,
@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc-native --noEmit"
   },
   "dependencies": {
     "@rhumb/kernel": "workspace:*",
@@ -19,6 +19,7 @@
     "@rhumb/engine": "workspace:*",
     "@rhumb/layout-elk": "workspace:*",
     "@rhumb/profiles": "workspace:*",
-    "elkjs": "^0.12.0"
+    "@rhumb/tsconfig": "workspace:*",
+    "elkjs": "^0.12.1"
   }
 }

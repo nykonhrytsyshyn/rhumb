@@ -146,7 +146,8 @@
     "saveNew": "Save as new",
     "update": "Update “{name}”",
     "search": "Search saved diagrams",
-    "noMatches": "No diagrams match your search.",
+    "noMatchesTitle": "No matches",
+    "noMatchesDescription": "No diagrams match your search or filters. Try changing the search or filters.",
     "open": "Open {name}",
     "current": "Open now",
     "rename": "Rename",
@@ -163,6 +164,41 @@
     "actions": "Actions for {name}",
     "previewFailed": "Cannot draw this diagram",
     "untitled": "Untitled diagram",
-    "storageFailed": "The storage did not work"
+    "storageFailed": "The storage did not work",
+    "filter": {
+      "open": "Filters",
+      "openActive": "Filters, {count} active",
+      "sort": "Sort by",
+      "sorts": {
+        "updatedDesc": "Recently updated",
+        "updatedAsc": "Least recently updated",
+        "createdDesc": "Newest first",
+        "createdAsc": "Oldest first",
+        "nameAsc": "Name, A–Z",
+        "nameDesc": "Name, Z–A"
+      },
+      "date": "Date",
+      "dateField": "Date to compare",
+      "dateFields": {
+        "updated": "Updated",
+        "created": "Created"
+      },
+      "anyDate": "Any date",
+      "clearDates": "Clear dates",
+      "range": "{from} – {to}",
+      "standard": "Standard",
+      "allStandards": "All standards",
+      "pageSize": "Per page",
+      "reset": "Reset",
+      "resetAll": "Reset search and filters"
+    },
+    "pagination": {
+      "label": "Pages of saved diagrams",
+      "previous": "Previous page",
+      "next": "Next page",
+      "goTo": "Go to page {page}",
+      "current": "Page {page} of {pageCount}",
+      "range": "{first}–{last} of {total}"
+    }
   }
 }
