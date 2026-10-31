@@ -7,8 +7,8 @@
   -->
   <a rel="noopener noreferrer" href="https://github.com/nykonhrytsyshyn/rhumb">
     <picture>
-      <source media="(prefers-color-scheme: light)" srcset="./.github/assets/logo-text-light.png" />
-      <img alt="Rhumb" src="./.github/assets/logo-text-dark.png" />
+      <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo/logo-text-light.png" />
+      <img alt="Rhumb" src=".github/assets/logo/logo-text-dark.png" />
     </picture>
   </a>
   <br />
@@ -93,15 +93,33 @@
 <div align="center">
   <br />
   <a href="https://rhumb.nykon.me">
-    <img alt="Rhumb Multidevice Mockup" src="./.github/assets/multidevice-mockup.png" width="95%" />
+    <img alt="Rhumb Multidevice Mockup" src="./.github/assets/mockup/multidevice.png" width="95%" />
   </a>
 </div>
 
-The hosted editor is available at **[rhumb.nykon.me](https://rhumb.nykon.me)**.
-
-Preview environments:
-- **Release Candidate:** [release-candidate.rhumb.pages.dev](https://release-candidate.rhumb.pages.dev)
-- **Development:** [dev.rhumb.pages.dev](https://dev.rhumb.pages.dev)
+<div align="center">
+  <!-- Release Card -->
+  <a href="https://rhumb.nykon.me">
+    <picture>
+      <source media="(prefers-color-scheme: light)" srcset=".github/assets/interactive/card-release-light.svg" />
+      <img alt="Open Release" src=".github/assets/interactive/card-release.svg" width="32.5%" />
+    </picture>
+  </a>
+  <!-- Release Candidate Card -->
+  <a href="https://release-candidate.rhumb.pages.dev">
+    <picture>
+      <source media="(prefers-color-scheme: light)" srcset=".github/assets/interactive/card-release-candidate-light.svg" />
+      <img alt="Open Release Candidate" src=".github/assets/interactive/card-release-candidate.svg" width="32.5%" />
+    </picture>
+  </a>
+  <!-- Development Card -->
+  <a href="https://dev.rhumb.pages.dev">
+    <picture>
+      <source media="(prefers-color-scheme: light)" srcset=".github/assets/interactive/card-dev-light.svg" />
+      <img alt="Open Development" src=".github/assets/interactive/card-dev.svg" width="32.5%" />
+    </picture>
+  </a>
+</div>
 
 <div align="center">
   <h2 id="overview">Overview</h2>
