@@ -29,6 +29,7 @@ export function EditorPanelToggle({
       onClick={() => {
         onOpenChange(!open);
       }}
+      className="bg-background"
     >
       {open ? (
         <IconLayoutSidebarLeftCollapse />

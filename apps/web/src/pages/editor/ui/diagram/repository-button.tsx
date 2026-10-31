@@ -13,7 +13,7 @@ export function RepositoryButton(): JSX.Element {
       onClick={() => {
         window.open(SITE.repositoryUrl, "_blank", "noopener,noreferrer");
       }}
-      className="gap-3"
+      className="gap-3 bg-background"
     >
       <span className="font-mono text-xs text-muted-foreground">
         v{SITE.version}

@@ -34,6 +34,7 @@ export function ThemeToggler(): JSX.Element {
       onClick={() => {
         setTheme(nextTheme(theme));
       }}
+      className="bg-background"
     >
       {ICONS[theme]}
     </Button>
