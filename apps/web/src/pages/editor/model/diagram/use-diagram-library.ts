@@ -26,6 +26,7 @@ export interface DiagramLibrary {
     name: string,
   ) => Promise<SavedDiagram | undefined>;
   readonly remove: (id: string) => Promise<boolean>;
+  readonly removeMany: (ids: readonly string[]) => Promise<readonly string[]>;
 }
 
 function newestFirst(items: readonly SavedDiagram[]): readonly SavedDiagram[] {
@@ -151,5 +152,31 @@ export function useDiagramLibrary(
     [store],
   );
 
-  return { items, error, create, update, duplicate, remove };
+  const removeMany = useCallback(
+    async (ids: readonly string[]): Promise<readonly string[]> => {
+      const results = await Promise.allSettled(
+        ids.map((id) => store.remove(id)),
+      );
+      const removed = ids.filter(
+        (_, index) => results[index]?.status === "fulfilled",
+      );
+      const failure = results.find(
+        (result): result is PromiseRejectedResult =>
+          result.status === "rejected",
+      );
+
+      setError(failure === undefined ? null : getErrorMessage(failure.reason));
+
+      if (removed.length > 0) {
+        const gone = new Set(removed);
+
+        setItems((previous) => previous?.filter((item) => !gone.has(item.id)));
+      }
+
+      return removed;
+    },
+    [store],
+  );
+
+  return { items, error, create, update, duplicate, remove, removeMany };
 }

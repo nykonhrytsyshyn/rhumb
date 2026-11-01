@@ -36,7 +36,7 @@ export function DocsRows({ rows }: DocsRowsProps): JSX.Element {
           key={code}
           className="flex items-center justify-between gap-3 px-3 py-2"
         >
-          <dt className="min-w-0 break-words">
+          <dt className="min-w-0 wrap-break-word">
             <CopyCode code={code} />
           </dt>
 

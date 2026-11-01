@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -138,6 +139,47 @@ describe("useDiagramLibrary", () => {
     expect(removed).toBe(true);
     expect(result.current.items?.map((item) => item.id)).toEqual(["b"]);
     expect(await store.list()).toHaveLength(1);
+  });
+
+  it("removes many diagrams at once", async () => {
+    const { result, store } = setup(
+      new MemoryDiagramStore([saved("a", 1), saved("b", 2), saved("c", 3)]),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toBeDefined();
+    });
+
+    let removed: readonly string[] = [];
+    await act(async () => {
+      removed = await result.current.removeMany(["a", "c"]);
+    });
+
+    expect(removed).toEqual(["a", "c"]);
+    expect(result.current.items?.map((item) => item.id)).toEqual(["b"]);
+    expect(await store.list()).toHaveLength(1);
+  });
+
+  it("reports the diagrams that could not be removed", async () => {
+    const store = new MemoryDiagramStore([saved("a", 1), saved("b", 2)]);
+    const remove = store.remove.bind(store);
+    vi.spyOn(store, "remove").mockImplementation((id) =>
+      id === "a" ? Promise.reject(new Error("locked")) : remove(id),
+    );
+    const { result } = setup(store);
+
+    await waitFor(() => {
+      expect(result.current.items).toBeDefined();
+    });
+
+    let removed: readonly string[] = [];
+    await act(async () => {
+      removed = await result.current.removeMany(["a", "b"]);
+    });
+
+    expect(removed).toEqual(["b"]);
+    expect(result.current.items?.map((item) => item.id)).toEqual(["a"]);
+    expect(result.current.error).toBe("locked");
   });
 
   it("reports storage failures instead of throwing", async () => {

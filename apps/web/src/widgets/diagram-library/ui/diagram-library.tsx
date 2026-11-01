@@ -1,28 +1,46 @@
 import type { JSX } from "react";
 
+import { DiagramLibraryBulkDeleteDialog } from "./diagram-library-bulk-delete-dialog";
 import { DiagramLibraryCard } from "./diagram-library-card";
+import { DiagramLibraryCompare } from "./diagram-library-compare";
 import { DiagramLibraryEmpty } from "./diagram-library-empty";
 import { DiagramLibraryError } from "./diagram-library-error";
+import { DiagramLibraryFilter } from "./diagram-library-filter";
 import { DiagramLibraryGrid } from "./diagram-library-grid";
 import { DiagramLibraryLoading } from "./diagram-library-loading";
 import { DiagramLibraryNoMatches } from "./diagram-library-no-matches";
+import { DiagramLibraryPagination } from "./diagram-library-pagination";
 import { DiagramLibrarySaveForm } from "./diagram-library-save-form";
 import { DiagramLibrarySearch } from "./diagram-library-search";
+import { DiagramLibrarySelectToggle } from "./diagram-library-select-toggle";
+import { DiagramLibrarySelectionAction } from "./diagram-library-selection-action";
+import { DiagramLibrarySelectionBar } from "./diagram-library-selection-bar";
 import {
   DiagramLibraryShell,
   type DiagramLibraryShellProps,
 } from "./diagram-library-shell";
+import { DiagramLibraryUpdateChanges } from "./diagram-library-update-changes";
+import { DiagramLibraryUpdateDialog } from "./diagram-library-update-dialog";
 
 interface DiagramLibraryComponent {
   (props: DiagramLibraryShellProps): JSX.Element;
   SaveForm: typeof DiagramLibrarySaveForm;
   Error: typeof DiagramLibraryError;
   Search: typeof DiagramLibrarySearch;
+  Filter: typeof DiagramLibraryFilter;
   Loading: typeof DiagramLibraryLoading;
   Empty: typeof DiagramLibraryEmpty;
   NoMatches: typeof DiagramLibraryNoMatches;
   Grid: typeof DiagramLibraryGrid;
+  Pagination: typeof DiagramLibraryPagination;
   Card: typeof DiagramLibraryCard;
+  SelectToggle: typeof DiagramLibrarySelectToggle;
+  SelectionBar: typeof DiagramLibrarySelectionBar;
+  SelectionAction: typeof DiagramLibrarySelectionAction;
+  BulkDeleteDialog: typeof DiagramLibraryBulkDeleteDialog;
+  UpdateDialog: typeof DiagramLibraryUpdateDialog;
+  Compare: typeof DiagramLibraryCompare;
+  UpdateChanges: typeof DiagramLibraryUpdateChanges;
 }
 
 export const DiagramLibrary: DiagramLibraryComponent = Object.assign(
@@ -31,10 +49,19 @@ export const DiagramLibrary: DiagramLibraryComponent = Object.assign(
     SaveForm: DiagramLibrarySaveForm,
     Error: DiagramLibraryError,
     Search: DiagramLibrarySearch,
+    Filter: DiagramLibraryFilter,
     Loading: DiagramLibraryLoading,
     Empty: DiagramLibraryEmpty,
     NoMatches: DiagramLibraryNoMatches,
     Grid: DiagramLibraryGrid,
+    Pagination: DiagramLibraryPagination,
     Card: DiagramLibraryCard,
+    SelectToggle: DiagramLibrarySelectToggle,
+    SelectionBar: DiagramLibrarySelectionBar,
+    SelectionAction: DiagramLibrarySelectionAction,
+    BulkDeleteDialog: DiagramLibraryBulkDeleteDialog,
+    UpdateDialog: DiagramLibraryUpdateDialog,
+    Compare: DiagramLibraryCompare,
+    UpdateChanges: DiagramLibraryUpdateChanges,
   },
 );

@@ -14,12 +14,22 @@ export default defineConfig({
     environment: "node",
     passWithNoTests: true,
     globals: true,
-    projects: ["packages/*", "apps/*"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "packages",
+          include: ["packages/*/src/**/*.test.ts"],
+          isolate: false,
+        },
+      },
+      "apps/*",
+    ],
 
     reporters:
       process.env.GITHUB_ACTIONS === "true"
         ? ["default", ["html", { singleFile: true }], "github-actions"]
-        : ["default", ["html", { singleFile: true }]],
+        : ["default"],
 
     outputFile: {
       html: ".vitest/index.html",

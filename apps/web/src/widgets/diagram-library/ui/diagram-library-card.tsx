@@ -2,16 +2,25 @@ import { type JSX, type ReactNode, useState } from "react";
 
 import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
+import { Checkbox } from "@shared/ui/checkbox";
 
 import { DiagramLibraryCardDeleteDialog } from "./diagram-library-card-delete-dialog";
+import { type DiagramLibraryCardDetails } from "./diagram-library-card-details";
 import { DiagramLibraryCardMenu } from "./diagram-library-card-menu";
 import { DiagramLibraryCardTitle } from "./diagram-library-card-title";
+
+export interface DiagramLibraryCardSelection {
+  readonly selected: boolean;
+  readonly onSelectedChange: (selected: boolean) => void;
+}
 
 export interface DiagramLibraryCardProps {
   readonly name: string;
   readonly updatedAt: number;
+  readonly details: DiagramLibraryCardDetails;
   readonly current: boolean;
   readonly thumbnail: ReactNode;
+  readonly selection?: DiagramLibraryCardSelection;
   readonly onOpen: () => void;
   readonly onRename: (name: string) => void;
   readonly onDuplicate: () => void;
@@ -22,8 +31,10 @@ export interface DiagramLibraryCardProps {
 export function DiagramLibraryCard({
   name,
   updatedAt,
+  details,
   current,
   thumbnail,
+  selection,
   onOpen,
   onRename,
   onDuplicate,
@@ -47,24 +58,57 @@ export function DiagramLibraryCard({
     }
   }
 
+  const selected = selection?.selected === true;
+
   return (
     <li
       data-current={current}
+      data-selected={selected}
       className={cn(
         "relative aspect-square overflow-hidden border-r border-b bg-card bg-drafting-grid",
-        current &&
+        (current || selected) &&
           "after:pointer-events-none after:absolute after:inset-0 after:ring-1 after:ring-foreground after:ring-inset",
+        selected && "after:ring-2",
       )}
     >
       {/* Thumbnail */}
       <button
         type="button"
-        aria-label={t("editor.library.open", { name })}
+        aria-label={t(
+          selection === undefined
+            ? "editor.library.open"
+            : "editor.library.selectCard",
+          { name },
+        )}
+        aria-pressed={selection === undefined ? undefined : selected}
         className="absolute inset-0 pb-12 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-        onClick={onOpen}
+        onClick={
+          selection === undefined
+            ? onOpen
+            : () => {
+                selection.onSelectedChange(!selected);
+              }
+        }
       >
         {thumbnail}
       </button>
+
+      {selected ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-foreground/5"
+        />
+      ) : null}
+
+      {/* Selection checkbox */}
+      {selection === undefined ? null : (
+        <Checkbox
+          checked={selected}
+          aria-label={t("editor.library.selectCard", { name })}
+          className="absolute top-2 right-2"
+          onCheckedChange={selection.onSelectedChange}
+        />
+      )}
 
       {/* Current badge */}
       {current ? (
@@ -88,6 +132,7 @@ export function DiagramLibraryCard({
 
         <DiagramLibraryCardMenu
           name={name}
+          details={details}
           onRename={() => {
             setDraftName(name);
             setRenaming(true);

@@ -1,12 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
-
+  "extends": "@rhumb/tsconfig/react.json",
   "compilerOptions": {
-    "lib": ["esnext", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "node"],
-    "jsx": "react-jsx",
-    "allowImportingTsExtensions": true,
-
     "paths": {
       "@app/*": ["./src/app/*"],
       "@pages/*": ["./src/pages/*"],
@@ -16,6 +11,5 @@
       "@shared/*": ["./src/shared/*"]
     }
   },
-
   "include": ["src", "vite", "*.config.ts"]
 }

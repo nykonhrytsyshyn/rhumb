@@ -18,10 +18,25 @@ function scrollParentOf(element: HTMLElement): HTMLElement | undefined {
   return undefined;
 }
 
-export function useScrollMemory(key: string): RefObject<HTMLDivElement | null> {
+export function scrollToTop(element: HTMLElement | null): void {
+  const parent = element === null ? undefined : scrollParentOf(element);
+
+  if (parent !== undefined) {
+    parent.scrollTop = 0;
+  }
+}
+
+export function useScrollMemory(
+  key: string,
+  ready = true,
+): RefObject<HTMLDivElement | null> {
   const ref = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
+    if (!ready) {
+      return undefined;
+    }
+
     const element = ref.current;
     const parent = element === null ? undefined : scrollParentOf(element);
 
@@ -46,7 +61,7 @@ export function useScrollMemory(key: string): RefObject<HTMLDivElement | null> {
       cancelAnimationFrame(frame);
       parent.removeEventListener("scroll", remember);
     };
-  }, [key]);
+  }, [key, ready]);
 
   return ref;
 }

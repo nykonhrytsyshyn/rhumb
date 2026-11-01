@@ -146,7 +146,8 @@
     "saveNew": "Save as new",
     "update": "Update “{name}”",
     "search": "Search saved diagrams",
-    "noMatches": "No diagrams match your search.",
+    "noMatchesTitle": "No matches",
+    "noMatchesDescription": "No diagrams match your search or filters. Try changing the search or filters.",
     "open": "Open {name}",
     "current": "Open now",
     "rename": "Rename",
@@ -163,6 +164,73 @@
     "actions": "Actions for {name}",
     "previewFailed": "Cannot draw this diagram",
     "untitled": "Untitled diagram",
-    "storageFailed": "The storage did not work"
+    "storageFailed": "The storage did not work",
+    "filter": {
+      "open": "Filters",
+      "openActive": "Filters, {count} active",
+      "sort": "Sort by",
+      "sorts": {
+        "updatedDesc": "Recently updated",
+        "updatedAsc": "Least recently updated",
+        "createdDesc": "Newest first",
+        "createdAsc": "Oldest first",
+        "nameAsc": "Name, A–Z",
+        "nameDesc": "Name, Z–A"
+      },
+      "date": "Date",
+      "dateField": "Date to compare",
+      "dateFields": {
+        "updated": "Updated",
+        "created": "Created"
+      },
+      "anyDate": "Any date",
+      "clearDates": "Clear dates",
+      "range": "{from} – {to}",
+      "standard": "Standard",
+      "allStandards": "All standards",
+      "pageSize": "Per page",
+      "reset": "Reset",
+      "resetAll": "Reset search and filters"
+    },
+    "pagination": {
+      "label": "Pages of saved diagrams",
+      "previous": "Previous page",
+      "next": "Next page",
+      "goTo": "Go to page {page}",
+      "current": "Page {page} of {pageCount}",
+      "range": "{first}–{last} of {total}"
+    },
+    "selectCard": "Select {name}",
+    "select": {
+      "start": "Select several",
+      "stop": "Stop selecting",
+      "all": "Select all matching diagrams",
+      "count": "Selected: {count} of {total}",
+      "clear": "Clear",
+      "download": "Download selected as ZIP",
+      "delete": "Delete selected",
+      "deleteTitle": "Delete selected diagrams ({count})?",
+      "deleteText": "The diagrams will be removed from your device. This cannot be undone.",
+      "confirmDelete": "Delete ({count})"
+    },
+    "info": {
+      "title": "Information",
+      "standard": "Standard",
+      "created": "Created",
+      "updated": "Updated",
+      "size": "Source",
+      "sizeValue": "{lines} lines, {characters} chars"
+    },
+    "updateDialog": {
+      "title": "Update “{name}”?",
+      "text": "The saved version will be replaced with the diagram from the editor. The previous version cannot be restored. Drag the divider to compare.",
+      "unchanged": "The diagram in the editor is the same as the saved one, so there is nothing to update.",
+      "saved": "Saved",
+      "current": "New",
+      "lines": "Lines",
+      "slider": "Compare the saved and the new diagram",
+      "sliderValue": "Saved diagram: {saved}%, new diagram: {current}%",
+      "confirm": "Update"
+    }
   }
 }
