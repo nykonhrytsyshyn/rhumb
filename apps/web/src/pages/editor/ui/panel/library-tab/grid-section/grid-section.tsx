@@ -1,5 +1,7 @@
 import type { JSX } from "react";
 
+import type { StandardProfile } from "@rhumb/profiles";
+
 import { DiagramLibrary } from "@widgets/diagram-library";
 
 import { useT } from "@shared/i18n";
@@ -12,7 +14,6 @@ import type {
   DiagramLibrary as DiagramLibraryModel,
   SavedDiagram,
 } from "../../../../model/diagram";
-import { CUSTOM_PROFILE_ID, useProfiles } from "../../../../model/profile";
 import type { LibrarySelection } from "../../../../model/use-library-selection";
 import type { LibraryViewState } from "../../../../model/use-library-view";
 import { DiagramThumbnail } from "../../../diagram";
@@ -23,6 +24,8 @@ export interface GridSectionProps {
   readonly state: LibraryViewState;
   readonly selection: LibrarySelection;
   readonly library: DiagramLibraryModel;
+  readonly profiles: readonly StandardProfile[];
+  readonly standardTitle: (profileId: string) => string;
   readonly currentId: string | null;
   readonly onCurrentChange: (id: string | null) => void;
   readonly onOpen: (diagram: SavedDiagram) => void;
@@ -34,12 +37,13 @@ export function GridSection({
   state,
   selection,
   library,
+  profiles,
+  standardTitle,
   currentId,
   onCurrentChange,
   onOpen,
 }: GridSectionProps): JSX.Element {
   const t = useT();
-  const profiles = useProfiles();
 
   async function duplicate(diagram: SavedDiagram): Promise<void> {
     await library.duplicate(
@@ -52,14 +56,6 @@ export function GridSection({
     if ((await library.remove(diagram.id)) && diagram.id === currentId) {
       onCurrentChange(null);
     }
-  }
-
-  function standardTitle(id: string): string {
-    const profile = profiles.find((item) => item.id === id);
-
-    return id === CUSTOM_PROFILE_ID
-      ? t("editor.config.custom")
-      : (profile?.title ?? id);
   }
 
   if (library.items === undefined) {

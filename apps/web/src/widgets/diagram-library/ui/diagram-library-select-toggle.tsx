@@ -29,9 +29,9 @@ export function DiagramLibrarySelectToggle({
       title={t(
         active ? "editor.library.select.stop" : "editor.library.select.start",
       )}
+      data-state={active ? "on" : "off"}
       className={cn(
-        "h-full w-12 rounded-none border-0 border-l",
-        active && "bg-muted text-foreground",
+        "h-full w-12 rounded-none border-0 border-l data-[state=on]:bg-muted",
       )}
       onClick={() => {
         onActiveChange(!active);

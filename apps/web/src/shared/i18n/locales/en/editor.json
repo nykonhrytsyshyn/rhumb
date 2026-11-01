@@ -220,6 +220,17 @@
       "updated": "Updated",
       "size": "Source",
       "sizeValue": "{lines} lines, {characters} chars"
+    },
+    "updateDialog": {
+      "title": "Update “{name}”?",
+      "text": "The saved version will be replaced with the diagram from the editor. The previous version cannot be restored. Drag the divider to compare.",
+      "unchanged": "The diagram in the editor is the same as the saved one, so there is nothing to update.",
+      "saved": "Saved",
+      "current": "New",
+      "lines": "Lines",
+      "slider": "Compare the saved and the new diagram",
+      "sliderValue": "Saved diagram: {saved}%, new diagram: {current}%",
+      "confirm": "Update"
     }
   }
 }

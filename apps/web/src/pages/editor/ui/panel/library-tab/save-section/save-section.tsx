@@ -9,12 +9,14 @@ import type {
   DiagramLibrary as DiagramLibraryModel,
   SavedDiagram,
 } from "../../../../model/diagram";
+import { LibraryUpdateDialog } from "./library-update-dialog";
 
 export interface SaveSectionProps {
   readonly source: string;
   readonly profileId: string;
   readonly current: SavedDiagram | undefined;
   readonly library: DiagramLibraryModel;
+  readonly standardTitle: (profileId: string) => string;
   readonly onCurrentChange: (id: string | null) => void;
 }
 
@@ -23,10 +25,12 @@ export function SaveSection({
   profileId,
   current,
   library,
+  standardTitle,
   onCurrentChange,
 }: SaveSectionProps): JSX.Element {
   const t = useT();
   const [name, setName] = useState("");
+  const [confirmingUpdate, setConfirmingUpdate] = useState(false);
 
   async function saveAsNew(): Promise<void> {
     const trimmed = name.trim();
@@ -57,10 +61,7 @@ export function SaveSection({
             type="button"
             variant="outline"
             onClick={() => {
-              void library.update(current.id, {
-                source,
-                profileId,
-              });
+              setConfirmingUpdate(true);
             }}
           >
             {t("editor.library.update", { name: current.name })}
@@ -70,6 +71,20 @@ export function SaveSection({
 
       {library.error === null ? null : (
         <DiagramLibrary.Error message={library.error} />
+      )}
+
+      {current === undefined ? null : (
+        <LibraryUpdateDialog
+          saved={current}
+          source={source}
+          profileId={profileId}
+          open={confirmingUpdate}
+          onOpenChange={setConfirmingUpdate}
+          onConfirm={() => {
+            void library.update(current.id, { source, profileId });
+          }}
+          standardTitle={standardTitle}
+        />
       )}
     </>
   );

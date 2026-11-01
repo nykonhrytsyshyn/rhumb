@@ -7,6 +7,7 @@ import { useI18n } from "@shared/i18n";
 import { applyLibraryView, filterDiagrams } from "../../../lib/library-view";
 import { scrollToTop, useScrollMemory } from "../../../lib/use-scroll-memory";
 import { type SavedDiagram, useDiagramLibrary } from "../../../model/diagram";
+import { CUSTOM_PROFILE_ID, useProfiles } from "../../../model/profile";
 import { useLibrarySelection } from "../../../model/use-library-selection";
 import { useLibraryView } from "../../../model/use-library-view";
 import { GridSection } from "./grid-section";
@@ -31,9 +32,10 @@ export function LibraryTab({
   onCurrentChange,
   onOpen,
 }: LibraryTabProps): JSX.Element {
-  const { language } = useI18n();
+  const { t, language } = useI18n();
   const library = useDiagramLibrary();
   const state = useLibraryView();
+  const profiles = useProfiles();
   const { view } = state;
   const scrollRef = useScrollMemory("library", library.items !== undefined);
 
@@ -56,6 +58,14 @@ export function LibraryTab({
     scrollToTop(scrollRef.current);
   }
 
+  function standardTitle(id: string): string {
+    const profile = profiles.find((item) => item.id === id);
+
+    return id === CUSTOM_PROFILE_ID
+      ? t("editor.config.custom")
+      : (profile?.title ?? id);
+  }
+
   return (
     <DiagramLibrary ref={scrollRef}>
       <SaveSection
@@ -63,6 +73,7 @@ export function LibraryTab({
         profileId={profileId}
         current={current}
         library={library}
+        standardTitle={standardTitle}
         onCurrentChange={onCurrentChange}
       />
 
@@ -83,6 +94,8 @@ export function LibraryTab({
         state={state}
         selection={selection}
         library={library}
+        profiles={profiles}
+        standardTitle={standardTitle}
         currentId={currentId}
         onCurrentChange={onCurrentChange}
         onOpen={onOpen}

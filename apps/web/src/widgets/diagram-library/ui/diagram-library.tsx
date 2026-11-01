@@ -2,6 +2,7 @@ import type { JSX } from "react";
 
 import { DiagramLibraryBulkDeleteDialog } from "./diagram-library-bulk-delete-dialog";
 import { DiagramLibraryCard } from "./diagram-library-card";
+import { DiagramLibraryCompare } from "./diagram-library-compare";
 import { DiagramLibraryEmpty } from "./diagram-library-empty";
 import { DiagramLibraryError } from "./diagram-library-error";
 import { DiagramLibraryFilter } from "./diagram-library-filter";
@@ -18,6 +19,8 @@ import {
   DiagramLibraryShell,
   type DiagramLibraryShellProps,
 } from "./diagram-library-shell";
+import { DiagramLibraryUpdateChanges } from "./diagram-library-update-changes";
+import { DiagramLibraryUpdateDialog } from "./diagram-library-update-dialog";
 
 interface DiagramLibraryComponent {
   (props: DiagramLibraryShellProps): JSX.Element;
@@ -35,6 +38,9 @@ interface DiagramLibraryComponent {
   SelectionBar: typeof DiagramLibrarySelectionBar;
   SelectionAction: typeof DiagramLibrarySelectionAction;
   BulkDeleteDialog: typeof DiagramLibraryBulkDeleteDialog;
+  UpdateDialog: typeof DiagramLibraryUpdateDialog;
+  Compare: typeof DiagramLibraryCompare;
+  UpdateChanges: typeof DiagramLibraryUpdateChanges;
 }
 
 export const DiagramLibrary: DiagramLibraryComponent = Object.assign(
@@ -54,5 +60,8 @@ export const DiagramLibrary: DiagramLibraryComponent = Object.assign(
     SelectionBar: DiagramLibrarySelectionBar,
     SelectionAction: DiagramLibrarySelectionAction,
     BulkDeleteDialog: DiagramLibraryBulkDeleteDialog,
+    UpdateDialog: DiagramLibraryUpdateDialog,
+    Compare: DiagramLibraryCompare,
+    UpdateChanges: DiagramLibraryUpdateChanges,
   },
 );

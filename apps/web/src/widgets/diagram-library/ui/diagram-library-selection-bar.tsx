@@ -24,7 +24,7 @@ export function DiagramLibrarySelectionBar({
   const t = useT();
 
   return (
-    <div className="flex h-12 items-center gap-3 border-b pl-4">
+    <div className="flex h-12 shrink-0 items-center gap-3 border-b pl-4">
       <Checkbox
         checked={allSelected}
         indeterminate={count > 0 && !allSelected}
@@ -38,7 +38,13 @@ export function DiagramLibrarySelectionBar({
       </p>
 
       {count === 0 ? null : (
-        <Button type="button" variant="text" size="xs" onClick={onClear}>
+        <Button
+          type="button"
+          variant="text"
+          size="xs"
+          onClick={onClear}
+          className="h-full"
+        >
           {t("editor.library.select.clear")}
         </Button>
       )}
