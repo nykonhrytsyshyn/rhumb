@@ -27,7 +27,7 @@ export function DiagramLibrarySelectionAction({
       disabled={disabled}
       className={
         destructive
-          ? "h-full w-12 rounded-none border-0 border-l text-destructive hover:text-destructive"
+          ? "h-full w-12 rounded-none border-0 border-l text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
           : "h-full w-12 rounded-none border-0 border-l"
       }
       onClick={onClick}

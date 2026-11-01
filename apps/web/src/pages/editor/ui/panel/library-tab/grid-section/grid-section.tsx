@@ -7,11 +7,12 @@ import { downloadBlob } from "@shared/lib/download-blob";
 import { toFileName } from "@shared/lib/to-file-name";
 
 import { type LibraryPage, isNarrowed } from "../../../../lib/library-view";
+import { sourceStats } from "../../../../lib/source-stats";
 import type {
   DiagramLibrary as DiagramLibraryModel,
   SavedDiagram,
 } from "../../../../model/diagram";
-import { useProfiles } from "../../../../model/profile";
+import { CUSTOM_PROFILE_ID, useProfiles } from "../../../../model/profile";
 import type { LibrarySelection } from "../../../../model/use-library-selection";
 import type { LibraryViewState } from "../../../../model/use-library-view";
 import { DiagramThumbnail } from "../../../diagram";
@@ -53,6 +54,14 @@ export function GridSection({
     }
   }
 
+  function standardTitle(id: string): string {
+    const profile = profiles.find((item) => item.id === id);
+
+    return id === CUSTOM_PROFILE_ID
+      ? t("editor.config.custom")
+      : (profile?.title ?? id);
+  }
+
   if (library.items === undefined) {
     return <DiagramLibrary.Loading />;
   }
@@ -76,6 +85,12 @@ export function GridSection({
           key={diagram.id}
           name={diagram.name}
           updatedAt={diagram.updatedAt}
+          details={{
+            standard: standardTitle(diagram.profileId),
+            createdAt: diagram.createdAt,
+            updatedAt: diagram.updatedAt,
+            ...sourceStats(diagram.source),
+          }}
           current={diagram.id === currentId}
           {...(selection.active
             ? {
@@ -111,7 +126,7 @@ export function GridSection({
               new Blob([diagram.source], {
                 type: "text/plain;charset=utf-8",
               }),
-              `${toFileName(diagram.name)}.md`,
+              `${toFileName(diagram.name)}.mmd`,
             );
           }}
           onDelete={() => {

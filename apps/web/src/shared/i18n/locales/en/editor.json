@@ -212,6 +212,14 @@
       "deleteTitle": "Delete selected diagrams ({count})?",
       "deleteText": "The diagrams will be removed from your device. This cannot be undone.",
       "confirmDelete": "Delete ({count})"
+    },
+    "info": {
+      "title": "Information",
+      "standard": "Standard",
+      "created": "Created",
+      "updated": "Updated",
+      "size": "Source",
+      "sizeValue": "{lines} lines, {characters} chars"
     }
   }
 }

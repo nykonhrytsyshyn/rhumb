@@ -18,8 +18,14 @@ import {
   DropdownMenuTrigger,
 } from "@shared/ui/dropdown-menu";
 
+import {
+  type DiagramLibraryCardDetails,
+  DiagramLibraryCardInfo,
+} from "./diagram-library-card-details";
+
 export interface DiagramLibraryCardMenuProps {
   readonly name: string;
+  readonly details: DiagramLibraryCardDetails;
   readonly onRename: () => void;
   readonly onDuplicate: () => void;
   readonly onDownload: () => void;
@@ -28,6 +34,7 @@ export interface DiagramLibraryCardMenuProps {
 
 export function DiagramLibraryCardMenu({
   name,
+  details,
   onRename,
   onDuplicate,
   onDownload,
@@ -50,20 +57,28 @@ export function DiagramLibraryCardMenu({
         <IconDots />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuItem onClick={onRename}>
           <IconPencil /> {t("editor.library.rename")}
         </DropdownMenuItem>
+
         <DropdownMenuItem onClick={onDuplicate}>
           <IconCopy /> {t("editor.library.duplicate")}
         </DropdownMenuItem>
+
         <DropdownMenuItem onClick={onDownload}>
           <IconDownload /> {t("editor.library.download")}
         </DropdownMenuItem>
+
         <DropdownMenuSeparator />
+
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
           <IconTrash /> {t("editor.library.delete")}
         </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DiagramLibraryCardInfo details={details} />
       </DropdownMenuContent>
     </DropdownMenu>
   );

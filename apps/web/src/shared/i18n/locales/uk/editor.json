@@ -212,6 +212,14 @@
       "deleteTitle": "Видалити вибрані схеми ({count})?",
       "deleteText": "Схеми буде видалено з цього пристрою. Цю дію не можна скасувати.",
       "confirmDelete": "Видалити ({count})"
+    },
+    "info": {
+      "title": "Інформація",
+      "standard": "Стандарт",
+      "created": "Створено",
+      "updated": "Оновлено",
+      "size": "Код",
+      "sizeValue": "рядків: {lines}, символів: {characters}"
     }
   }
 }

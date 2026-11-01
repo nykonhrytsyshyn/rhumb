@@ -5,6 +5,7 @@ import { cn } from "@shared/lib/cn";
 import { Checkbox } from "@shared/ui/checkbox";
 
 import { DiagramLibraryCardDeleteDialog } from "./diagram-library-card-delete-dialog";
+import { type DiagramLibraryCardDetails } from "./diagram-library-card-details";
 import { DiagramLibraryCardMenu } from "./diagram-library-card-menu";
 import { DiagramLibraryCardTitle } from "./diagram-library-card-title";
 
@@ -16,6 +17,7 @@ export interface DiagramLibraryCardSelection {
 export interface DiagramLibraryCardProps {
   readonly name: string;
   readonly updatedAt: number;
+  readonly details: DiagramLibraryCardDetails;
   readonly current: boolean;
   readonly thumbnail: ReactNode;
   readonly selection?: DiagramLibraryCardSelection;
@@ -29,6 +31,7 @@ export interface DiagramLibraryCardProps {
 export function DiagramLibraryCard({
   name,
   updatedAt,
+  details,
   current,
   thumbnail,
   selection,
@@ -129,6 +132,7 @@ export function DiagramLibraryCard({
 
         <DiagramLibraryCardMenu
           name={name}
+          details={details}
           onRename={() => {
             setDraftName(name);
             setRenaming(true);
