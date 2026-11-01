@@ -199,6 +199,19 @@
       "goTo": "Go to page {page}",
       "current": "Page {page} of {pageCount}",
       "range": "{first}–{last} of {total}"
+    },
+    "selectCard": "Select {name}",
+    "select": {
+      "start": "Select several",
+      "stop": "Stop selecting",
+      "all": "Select all matching diagrams",
+      "count": "Selected: {count} of {total}",
+      "clear": "Clear",
+      "download": "Download selected as ZIP",
+      "delete": "Delete selected",
+      "deleteTitle": "Delete selected diagrams ({count})?",
+      "deleteText": "The diagrams will be removed from your device. This cannot be undone.",
+      "confirmDelete": "Delete ({count})"
     }
   }
 }

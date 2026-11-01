@@ -20,9 +20,13 @@ export function PaginationLink({
       data-active={isActive}
       aria-current={isActive ? "page" : undefined}
       type={type}
-      variant={isActive ? "default" : "ghost"}
+      variant="ghost"
       size={size}
-      className={cn("rounded-none", className)}
+      className={cn(
+        "rounded-none",
+        isActive && "bg-muted dark:bg-muted/50",
+        className,
+      )}
       {...props}
     />
   );

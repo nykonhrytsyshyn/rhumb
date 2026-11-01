@@ -41,7 +41,13 @@ export function DiagramLibraryCardDeleteDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel>{t("editor.library.cancel")}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onConfirm}>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={() => {
+              onConfirm();
+              onOpenChange(false);
+            }}
+          >
             {t("editor.library.confirmDelete")}
           </AlertDialogAction>
         </AlertDialogFooter>

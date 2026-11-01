@@ -6,8 +6,8 @@ import {
   isLibraryDateField,
   isLibraryPageSize,
   isLibrarySort,
-} from "../config/library-view.ts";
-import { LIBRARY_VIEW_KEY } from "../config/storage-keys.ts";
+} from "../config/library-view";
+import { LIBRARY_VIEW_KEY } from "../config/storage-keys";
 import {
   DEFAULT_LIBRARY_VIEW,
   type LibraryView,

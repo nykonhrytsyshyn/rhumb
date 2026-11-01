@@ -89,7 +89,7 @@ export function DiagramLibraryPagination({
                   onClick={() => {
                     onPageChange(item);
                   }}
-                  className="border-y-0 tabular-nums"
+                  className="tabular-nums"
                 >
                   {item}
                 </PaginationLink>

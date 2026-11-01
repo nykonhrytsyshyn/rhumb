@@ -1,31 +1,18 @@
-import { type JSX, useMemo, useState } from "react";
+import { type JSX, useMemo } from "react";
 
 import { DiagramLibrary } from "@widgets/diagram-library";
 
 import { useI18n } from "@shared/i18n";
-import { downloadBlob } from "@shared/lib/download-blob";
-import { toFileName } from "@shared/lib/to-file-name";
-import { Button } from "@shared/ui/button";
 
-import {
-  ALL_PROFILES,
-  LIBRARY_DATE_FIELDS,
-  LIBRARY_PAGE_SIZES,
-  LIBRARY_SORTS,
-} from "../../../config/library-view";
-import {
-  applyLibraryView,
-  countActiveFilters,
-  hasFilterChanges,
-  isNarrowed,
-} from "../../../lib/library-view";
+import { applyLibraryView, filterDiagrams } from "../../../lib/library-view";
 import { scrollToTop, useScrollMemory } from "../../../lib/use-scroll-memory";
-import type { SavedDiagram } from "../../../model/diagram/is-saved-diagram";
-import { useDiagramLibrary } from "../../../model/diagram/use-diagram-library";
-import { CUSTOM_PROFILE_ID } from "../../../model/profile";
-import { useProfiles } from "../../../model/profile/use-profiles";
-import { useLibraryView } from "../../../model/use-library-view.ts";
-import { DiagramThumbnail } from "../../diagram/diagram-thumbnail";
+import { type SavedDiagram, useDiagramLibrary } from "../../../model/diagram";
+import { useLibrarySelection } from "../../../model/use-library-selection";
+import { useLibraryView } from "../../../model/use-library-view";
+import { GridSection } from "./grid-section";
+import { SaveSection } from "./save-section";
+import { SearchSection } from "./search-section";
+import { SelectionSection } from "./selection-section";
 
 const NO_ITEMS: readonly SavedDiagram[] = [];
 
@@ -44,10 +31,8 @@ export function LibraryTab({
   onCurrentChange,
   onOpen,
 }: LibraryTabProps): JSX.Element {
-  const { t, language } = useI18n();
-  const profiles = useProfiles();
+  const { language } = useI18n();
   const library = useDiagramLibrary();
-  const [name, setName] = useState("");
   const state = useLibraryView();
   const { view } = state;
   const scrollRef = useScrollMemory("library", library.items !== undefined);
@@ -59,176 +44,49 @@ export function LibraryTab({
     [items, view, language],
   );
 
-  const sortOptions = LIBRARY_SORTS.map((sort) => ({
-    value: sort,
-    label: t(`editor.library.filter.sorts.${sort}`),
-  }));
-  const dateFieldOptions = LIBRARY_DATE_FIELDS.map((field) => ({
-    value: field,
-    label: t(`editor.library.filter.dateFields.${field}`),
-  }));
-  const profileOptions = [
-    { value: ALL_PROFILES, label: t("editor.library.filter.allStandards") },
-    ...profiles.map((profile) => ({
-      value: profile.id,
-      label:
-        profile.id === CUSTOM_PROFILE_ID
-          ? t("editor.config.custom")
-          : profile.title,
-    })),
-  ];
-  const pageSizeOptions = LIBRARY_PAGE_SIZES.map((size) => ({
-    value: String(size),
-    label: String(size),
-  }));
+  const itemIds = useMemo(() => items.map((item) => item.id), [items]);
+  const selection = useLibrarySelection(itemIds);
+  const matchingIds = useMemo(
+    () => filterDiagrams(items, view).map((item) => item.id),
+    [items, view],
+  );
 
   function changePage(page: number): void {
     state.setPage(page);
     scrollToTop(scrollRef.current);
   }
 
-  async function saveAsNew(): Promise<void> {
-    const trimmed = name.trim();
-    const created = await library.create({
-      name: trimmed === "" ? t("editor.library.untitled") : trimmed,
-      source,
-      profileId,
-    });
-
-    if (created !== undefined) {
-      setName("");
-      onCurrentChange(created.id);
-    }
-  }
-
-  async function duplicate(diagram: SavedDiagram): Promise<void> {
-    await library.duplicate(
-      diagram.id,
-      t("editor.library.copyName", { name: diagram.name }),
-    );
-  }
-
-  async function remove(diagram: SavedDiagram): Promise<void> {
-    if ((await library.remove(diagram.id)) && diagram.id === currentId) {
-      onCurrentChange(null);
-    }
-  }
-
   return (
     <DiagramLibrary ref={scrollRef}>
-      <DiagramLibrary.SaveForm
-        name={name}
-        onNameChange={setName}
-        onSubmit={() => {
-          void saveAsNew();
-        }}
-        disabled={source.trim() === ""}
-      >
-        {current === undefined ? null : (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              void library.update(current.id, {
-                source,
-                profileId,
-              });
-            }}
-          >
-            {t("editor.library.update", { name: current.name })}
-          </Button>
-        )}
-      </DiagramLibrary.SaveForm>
+      <SaveSection
+        source={source}
+        profileId={profileId}
+        current={current}
+        library={library}
+        onCurrentChange={onCurrentChange}
+      />
 
-      {library.error === null ? null : (
-        <DiagramLibrary.Error message={library.error} />
-      )}
+      <SearchSection state={state} selection={selection} />
 
-      <DiagramLibrary.Search value={view.query} onChange={state.setQuery}>
-        <DiagramLibrary.Filter
-          activeCount={countActiveFilters(view)}
-          changed={hasFilterChanges(view)}
-          sort={{
-            value: view.sort,
-            options: sortOptions,
-            onChange: state.setSort,
-          }}
-          dateField={{
-            value: view.dateField,
-            options: dateFieldOptions,
-            onChange: state.setDateField,
-          }}
-          range={state.range}
-          onRangeChange={state.setRange}
-          profile={{
-            value: view.profileId ?? ALL_PROFILES,
-            options: profileOptions,
-            onChange: (value) => {
-              state.setProfile(value === ALL_PROFILES ? null : value);
-            },
-          }}
-          pageSize={{
-            value: String(view.pageSize),
-            options: pageSizeOptions,
-            onChange: (value) => {
-              state.setPageSize(Number(value));
-            },
-          }}
-          onReset={state.resetFilters}
-        />
-      </DiagramLibrary.Search>
+      <SelectionSection
+        items={items}
+        matchingIds={matchingIds}
+        selection={selection}
+        currentId={currentId}
+        library={library}
+        onCurrentChange={onCurrentChange}
+      />
 
-      {library.items === undefined ? (
-        <DiagramLibrary.Loading />
-      ) : items.length === 0 ? (
-        <DiagramLibrary.Empty />
-      ) : shown.total === 0 ? (
-        <DiagramLibrary.NoMatches
-          {...(isNarrowed(view) ? { onReset: state.resetAll } : {})}
-        />
-      ) : (
-        <DiagramLibrary.Grid>
-          {shown.items.map((diagram) => (
-            <DiagramLibrary.Card
-              key={diagram.id}
-              name={diagram.name}
-              updatedAt={diagram.updatedAt}
-              current={diagram.id === currentId}
-              thumbnail={
-                <DiagramThumbnail
-                  source={diagram.source}
-                  profile={
-                    profiles.find(
-                      (profile) => profile.id === diagram.profileId,
-                    ) ?? profiles[0]
-                  }
-                />
-              }
-              onOpen={() => {
-                onCurrentChange(diagram.id);
-                onOpen(diagram);
-              }}
-              onRename={(next) => {
-                void library.update(diagram.id, { name: next });
-              }}
-              onDuplicate={() => {
-                void duplicate(diagram);
-              }}
-              onDownload={() => {
-                downloadBlob(
-                  new Blob([diagram.source], {
-                    type: "text/plain;charset=utf-8",
-                  }),
-                  `${toFileName(diagram.name)}.md`,
-                );
-              }}
-              onDelete={() => {
-                void remove(diagram);
-              }}
-            />
-          ))}
-        </DiagramLibrary.Grid>
-      )}
+      <GridSection
+        items={items}
+        shown={shown}
+        state={state}
+        selection={selection}
+        library={library}
+        currentId={currentId}
+        onCurrentChange={onCurrentChange}
+        onOpen={onOpen}
+      />
 
       <DiagramLibrary.Pagination
         page={shown.page}
