@@ -40,7 +40,7 @@
   "devDependencies": {
     "@rhumb/source-mermaid": "workspace:*",
     "@rhumb/tsconfig": "workspace:*",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.5",
     "@testing-library/react": "^16.3.3",
     "@types/matter-js": "^0.20.2",
     "@types/react": "^19.3.0",
