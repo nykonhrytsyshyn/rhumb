@@ -20,6 +20,6 @@
     "@rhumb/layout-elk": "workspace:*",
     "@rhumb/tsconfig": "workspace:*",
     "elkjs": "^0.12.1",
-    "vite": "^8.3.5"
+    "vite": "^8.3.6"
   }
 }
