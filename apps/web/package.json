@@ -1,6 +1,6 @@
 {
   "name": "@rhumb/web",
-  "version": "26.11.1",
+  "version": "26.11.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -40,16 +40,16 @@
   "devDependencies": {
     "@rhumb/source-mermaid": "workspace:*",
     "@rhumb/tsconfig": "workspace:*",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.5",
     "@testing-library/react": "^16.3.3",
     "@types/matter-js": "^0.20.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react": "^6.2.1",
     "fake-indexeddb": "^6.2.7",
-    "jsdom": "^30.1.3",
-    "tailwindcss": "^4.3.3",
-    "vite": "^8.3.5",
+    "jsdom": "^31.0.0",
+    "tailwindcss": "^4.3.5",
+    "vite": "^8.3.6",
     "vite-plugin-pwa": "^2.0.0"
   }
 }

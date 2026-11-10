@@ -1,6 +1,6 @@
 {
   "name": "@rhumb/profiles",
-  "version": "26.11.1",
+  "version": "26.11.2",
   "private": true,
   "type": "module",
   "exports": {
@@ -15,6 +15,6 @@
   },
   "devDependencies": {
     "@rhumb/tsconfig": "workspace:*",
-    "vite": "^8.3.5"
+    "vite": "^8.3.6"
   }
 }
