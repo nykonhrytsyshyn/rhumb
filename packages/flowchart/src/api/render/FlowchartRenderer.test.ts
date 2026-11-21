@@ -215,9 +215,14 @@ describe("FlowchartRenderer", () => {
     const { nodes } = await render(0);
     const lines = edgePaths(nodes);
 
-    expect(nodes.some((node) => node.tag === "marker")).toBe(true);
+    const heads = nodes.filter(
+      (node) => node.attrs["data-arrow"] !== undefined,
+    );
+
+    expect(heads.length).toBeGreaterThan(0);
+    expect(nodes.some((node) => node.tag === "marker")).toBe(false);
     expect(lines.some((line) => line.attrs["marker-end"] !== undefined)).toBe(
-      true,
+      false,
     );
     expect(lines.filter((line) => line.attrs["stroke-dasharray"])).toHaveLength(
       1,
@@ -229,10 +234,7 @@ describe("FlowchartRenderer", () => {
       const { nodes } = await render(index);
 
       return nodes.find(
-        (node) =>
-          node.tag === "path" &&
-          node.attrs["data-edge"] === undefined &&
-          node.attrs.stroke !== undefined,
+        (node) => node.tag === "path" && node.attrs["data-arrow"] !== undefined,
       );
     };
     const shapes = await Promise.all([arrowPath(0), arrowPath(1)]);

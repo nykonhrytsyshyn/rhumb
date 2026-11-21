@@ -15,17 +15,15 @@ import {
   svgNode,
 } from "@rhumb/kernel";
 
-import type { Appearance, RenderedDiagram } from "../api/render/types";
+import type { Appearance, RenderedDiagram } from "../api/render";
 import { CrossingFinder, type Hop, type RoutedEdge } from "./EdgeCrossings";
 import { joinMergingLines } from "./EdgeMerges";
-import { buildEdgePath } from "./EdgePath";
+import { type EdgeGap, buildEdgePath } from "./EdgePath";
 import { LabelPlacer, type PlacedLabel } from "./LabelPlacer";
 import { type Stretch, openGap } from "./LayoutGaps";
 import type { Metrics } from "./Metrics";
 import { NodeFrame } from "./NodeFrame";
-import { triangleCorners } from "./shapes/TransferShape";
-
-const ARROW_ID = "rhumb-arrow";
+import { triangleCorners } from "./shapes";
 
 /** A line label whose position has been decided. */
 interface Extent {
@@ -54,6 +52,14 @@ const RECTANGULAR = new Set<DiagramNode["kind"]>([
   "predefinedProcess",
   "internalStorage",
 ]);
+
+function samePoint(a: Point, b: Point): boolean {
+  return Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6;
+}
+
+function pointText(point: Point): string {
+  return `${String(roundTo(point.x))},${String(roundTo(point.y))}`;
+}
 
 /** Turns a computed layout into the final SVG tree. */
 export class DiagramPainter {
@@ -111,7 +117,7 @@ export class DiagramPainter {
       [
         ...this.frameLayer(diagram, layout),
         ...this.stackLayer(diagram, shapes, layout),
-        this.edgeLayer(diagram, layout, hops),
+        this.edgeLayer(diagram, layout, hops, labels),
         ...this.markLayer(layout, labels),
         this.nodeLayer(diagram, shapes, layout),
         ...this.labelBackdropLayer(labels),
@@ -133,38 +139,9 @@ export class DiagramPainter {
         height,
         viewBox: `0 0 ${String(width)} ${String(height)}`,
       },
-      [...page, this.definitions(), content],
+      [...page, content],
     );
     return { svg, size: { width, height } };
-  }
-
-  private definitions(): SvgNode {
-    const { arrowLength: length, arrowWidth: width } = this.metrics;
-    const tip = `M0,0 L${String(length)},${String(width / 2)} L0,${String(width)}`;
-    const filled = this.metrics.arrowStyle === "filled";
-    const arrow = svgNode("path", {
-      d: filled ? `${tip} Z` : tip,
-      fill: filled ? this.appearance.ink : "none",
-      stroke: filled ? "none" : this.appearance.ink,
-      "stroke-width": this.metrics.lineWidth,
-      "stroke-linejoin": "round",
-    });
-    return svgNode("defs", {}, [
-      svgNode(
-        "marker",
-        {
-          id: ARROW_ID,
-          markerUnits: "userSpaceOnUse",
-          markerWidth: length,
-          markerHeight: width,
-          refX: length,
-          refY: roundTo(width / 2),
-          orient: "auto",
-          overflow: "visible",
-        },
-        [arrow],
-      ),
-    ]);
   }
 
   /** Stops lines that merge into another one where they meet it. */
@@ -215,32 +192,107 @@ export class DiagramPainter {
     diagram: FlowchartDiagram,
     layout: LayoutResult,
     hops: ReadonlyMap<EdgeId, readonly Hop[]>,
+    labels: readonly PlacedLabel[],
   ): SvgNode {
-    const lines = diagram.edges.flatMap((edge) => {
+    const gaps = this.gapsByEdge(labels);
+    const lines: SvgNode[] = [];
+    const heads: SvgNode[] = [];
+
+    for (const edge of diagram.edges) {
       const points = layout.edges.get(edge.id);
 
       if (points === undefined || points.length < 2) {
-        return [];
+        continue;
       }
 
-      return [this.edgeLine(edge, points, hops.get(edge.id) ?? [])];
-    });
+      lines.push(
+        this.edgeLine(
+          edge,
+          points,
+          hops.get(edge.id) ?? [],
+          gaps.get(edge.id) ?? [],
+        ),
+      );
+
+      const head = edge.arrow ? this.arrowhead(edge, points) : undefined;
+
+      if (head !== undefined) {
+        heads.push(head);
+      }
+    }
 
     return svgNode(
       "g",
       { fill: "none", stroke: this.appearance.ink, "stroke-linejoin": "round" },
-      lines,
+      [...lines, ...heads],
     );
+  }
+
+  /** The stretches of each line that its symbols take the place of. */
+  private gapsByEdge(
+    labels: readonly PlacedLabel[],
+  ): ReadonlyMap<EdgeId, readonly EdgeGap[]> {
+    const gaps = new Map<EdgeId, EdgeGap[]>();
+    const reach = this.metrics.markLength / 2;
+
+    for (const label of labels) {
+      if (label.mark === undefined) {
+        continue;
+      }
+
+      const list = gaps.get(label.mark.edge) ?? [];
+
+      list.push({ x: label.cx, y: label.cy, reach });
+      gaps.set(label.mark.edge, list);
+    }
+
+    return gaps;
+  }
+
+  private arrowhead(
+    edge: DiagramEdge,
+    points: readonly Point[],
+  ): SvgNode | undefined {
+    const tip = points[points.length - 1];
+    const previous = points
+      .slice(0, -1)
+      .reverse()
+      .find((point) => tip !== undefined && !samePoint(point, tip));
+
+    if (tip === undefined || previous === undefined) {
+      return undefined;
+    }
+
+    const { arrowLength: length, arrowWidth: width } = this.metrics;
+    const run = Math.hypot(tip.x - previous.x, tip.y - previous.y);
+    const ux = (tip.x - previous.x) / run;
+    const uy = (tip.y - previous.y) / run;
+    const baseX = tip.x - ux * length;
+    const baseY = tip.y - uy * length;
+    const left = { x: baseX - (uy * width) / 2, y: baseY + (ux * width) / 2 };
+    const right = { x: baseX + (uy * width) / 2, y: baseY - (ux * width) / 2 };
+    const corners = `M${pointText(left)} L${pointText(tip)} L${pointText(right)}`;
+    const filled = this.metrics.arrowStyle === "filled";
+
+    return svgNode("path", {
+      "data-arrow": edge.id,
+      d: filled ? `${corners} Z` : corners,
+      fill: filled ? this.appearance.ink : "none",
+      stroke: filled ? "none" : this.appearance.ink,
+      "stroke-width": this.metrics.lineWidth,
+      "stroke-linejoin": "round",
+    });
   }
 
   private edgeLine(
     edge: DiagramEdge,
     points: readonly Point[],
     hops: readonly Hop[],
+    gaps: readonly EdgeGap[],
   ): SvgNode {
     const attrs: Record<string, string | number> = {
       "data-edge": edge.id,
-      d: buildEdgePath(points, hops, this.metrics.jumpRadius),
+      d: buildEdgePath(points, hops, this.metrics.jumpRadius, gaps),
       "stroke-width":
         edge.line === "thick"
           ? this.metrics.thickWidth
@@ -249,10 +301,6 @@ export class DiagramPainter {
 
     if (edge.line === "dashed") {
       attrs["stroke-dasharray"] = this.metrics.dash.join(" ");
-    }
-
-    if (edge.arrow) {
-      attrs["marker-end"] = `url(#${ARROW_ID})`;
     }
 
     return svgNode("path", attrs);
@@ -436,21 +484,6 @@ export class DiagramPainter {
       const { cx, cy } = label;
       const at = (u: number, v: number): Point =>
         along === "x" ? { x: cx + u, y: cy + v } : { x: cx + v, y: cy + u };
-      const across =
-        mark.kind === "channel" ? reach / 2 + lineWidth * 2 : lineWidth * 2;
-      const corner = at(-reach, -across);
-      const far = at(reach, across);
-
-      marks.push(
-        svgNode("rect", {
-          fill: this.appearance.labelBackground,
-          stroke: "none",
-          x: roundTo(Math.min(corner.x, far.x)),
-          y: roundTo(Math.min(corner.y, far.y)),
-          width: roundTo(Math.abs(far.x - corner.x)),
-          height: roundTo(Math.abs(far.y - corner.y)),
-        }),
-      );
 
       if (mark.kind === "channel") {
         const zigzag = [

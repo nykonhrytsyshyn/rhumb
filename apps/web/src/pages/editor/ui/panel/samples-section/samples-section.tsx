@@ -7,7 +7,7 @@ import { EditorPanel } from "@widgets/editor-panel";
 import { useI18n } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
 
-import { SAMPLES } from "../../config/samples";
+import { SAMPLES } from "../../../config/samples.ts";
 
 export interface SamplesSectionProps {
   readonly onSelect: (source: string) => void;

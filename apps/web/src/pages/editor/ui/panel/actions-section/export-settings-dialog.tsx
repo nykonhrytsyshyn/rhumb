@@ -342,7 +342,7 @@ export function ExportSettingsDialog({
             onClick={() => {
               void actions.run("download");
             }}
-            className="h-12 min-w-0 flex-1 overflow-hidden rounded-none border-border px-6 sm:flex-initial sm:border-l md:flex-1"
+            className="h-12 min-w-0 overflow-hidden rounded-none border-0 px-6 max-sm:flex-1"
           >
             {actions.busy === "download" ? (
               <Spinner className="shrink-0" />

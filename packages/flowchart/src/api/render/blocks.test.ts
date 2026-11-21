@@ -319,6 +319,17 @@ describe("blocks of the standard", () => {
       expect(nodes.flatMap(texts)).not.toContain("~");
     });
 
+    it("cuts the line open instead of painting over it", async () => {
+      const { nodes } = await render("flowchart TD\nA -->|~| B");
+      const line = nodes.find((node) => node.attrs["data-edge"] !== undefined);
+      const patches = nodes.filter(
+        (node) => node.tag === "rect" && node.attrs.stroke === "none",
+      );
+
+      expect(String(line?.attrs.d).match(/M/g)).toHaveLength(2);
+      expect(patches).toHaveLength(0);
+    });
+
     it("writes a legend under the diagram for each letter of a transfer", async () => {
       const { nodes } = await render(
         'flowchart TD\nA --> T(>P>) --> B\nT@{ legend: "permanent" }',

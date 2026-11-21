@@ -109,7 +109,7 @@
       "minHeight": 10
     },
     "parallel": {
-      "minWidth": 30,
+      "minWidth": 10,
       "minHeight": 5
     },
     "loopStart": {

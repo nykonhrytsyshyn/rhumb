@@ -56,6 +56,35 @@ describe("buildEdgePath", () => {
     expect(path.indexOf("L31")).toBeLessThan(path.indexOf("L11"));
   });
 
+  it("cuts a gap out of a line", () => {
+    const path = buildEdgePath(
+      [
+        { x: 0, y: 0 },
+        { x: 0, y: 40 },
+      ],
+      [],
+      2,
+      [{ x: 0, y: 20, reach: 5 }],
+    );
+
+    expect(path).toBe("M0,0 L0,15 M0,25 L0,40");
+  });
+
+  it("keeps the corners on both sides of a gap", () => {
+    const path = buildEdgePath(
+      [
+        { x: 0, y: 0 },
+        { x: 0, y: 20 },
+        { x: 40, y: 20 },
+      ],
+      [],
+      2,
+      [{ x: 20, y: 20, reach: 4 }],
+    );
+
+    expect(path).toBe("M0,0 L0,20 L16,20 M24,20 L40,20");
+  });
+
   it("returns an empty path without points", () => {
     expect(buildEdgePath([], [], 2)).toBe("");
   });
