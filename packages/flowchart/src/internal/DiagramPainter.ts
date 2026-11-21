@@ -53,6 +53,17 @@ const RECTANGULAR = new Set<DiagramNode["kind"]>([
   "internalStorage",
 ]);
 
+function shortHash(text: string): string {
+  let hash = 0x811c9dc5;
+
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return (hash >>> 0).toString(36);
+}
+
 function samePoint(a: Point, b: Point): boolean {
   return Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6;
 }
@@ -375,6 +386,12 @@ export class DiagramPainter {
     return [clip, svgNode("g", { "clip-path": `url(#${id})` }, [rule])];
   }
 
+  private get isHollow(): boolean {
+    const { fill } = this.appearance;
+
+    return fill === "none" || fill === "transparent" || fill.startsWith("var(");
+  }
+
   /** The copies behind blocks that stand for several of the same. */
   private stackLayer(
     diagram: FlowchartDiagram,
@@ -382,6 +399,8 @@ export class DiagramPainter {
     layout: LayoutResult,
   ): readonly SvgNode[] {
     const behind: SvgNode[] = [];
+    const masks: SvgNode[] = [];
+    const hollow = this.isHollow;
 
     for (const node of diagram.nodes) {
       const shape = shapes.get(node.id);
@@ -393,19 +412,65 @@ export class DiagramPainter {
       }
 
       const front = this.frame.front(node, bounds);
-
-      for (let copy = copies - 1; copy >= 1; copy -= 1) {
+      const rects = Array.from({ length: copies }, (_, copy) => {
         const offset = copy * this.frame.shift();
 
-        behind.push(
-          shape.draw({ ...front, x: front.x - offset, y: front.y - offset }),
+        return { ...front, x: front.x - offset, y: front.y - offset };
+      });
+      const pad = this.metrics.lineWidth * 2;
+      const hash = shortHash(
+        `${node.id}:${node.kind}:${String(roundTo(bounds.x))},${String(roundTo(bounds.y))},${String(roundTo(bounds.width))},${String(roundTo(bounds.height))}`,
+      );
+
+      for (let copy = copies - 1; copy >= 1; copy -= 1) {
+        const copyRect = rects[copy];
+
+        if (copyRect === undefined) {
+          continue;
+        }
+
+        const drawn = shape.draw(copyRect);
+
+        if (!hollow) {
+          behind.push(drawn);
+          continue;
+        }
+
+        const maskId = `rhumb-stack-${hash}-${String(copy)}`;
+        const inFront = rects.slice(0, copy).map((rect) => shape.draw(rect));
+
+        masks.push(
+          svgNode(
+            "mask",
+            {
+              id: maskId,
+              maskUnits: "userSpaceOnUse",
+              x: roundTo(bounds.x - pad),
+              y: roundTo(bounds.y - pad),
+              width: roundTo(bounds.width + pad * 2),
+              height: roundTo(bounds.height + pad * 2),
+            },
+            [
+              svgNode("rect", {
+                x: roundTo(bounds.x - pad),
+                y: roundTo(bounds.y - pad),
+                width: roundTo(bounds.width + pad * 2),
+                height: roundTo(bounds.height + pad * 2),
+                fill: "#ffffff",
+                stroke: "none",
+              }),
+              svgNode("g", { fill: "#000000", stroke: "none" }, inFront),
+            ],
+          ),
         );
+        behind.push(svgNode("g", { mask: `url(#${maskId})` }, [drawn]));
       }
     }
 
     return behind.length === 0
       ? []
       : [
+          ...masks,
           svgNode(
             "g",
             {

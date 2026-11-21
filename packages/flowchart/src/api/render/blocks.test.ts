@@ -13,6 +13,7 @@ import { ProfileRegistry } from "@rhumb/profiles";
 import { FlowchartParser } from "@rhumb/source-mermaid";
 
 import { FlowchartRenderer } from "./FlowchartRenderer";
+import type { Appearance } from "./types";
 
 function descendants(node: SvgNode): readonly SvgNode[] {
   return [
@@ -29,7 +30,7 @@ function texts(node: SvgNode): readonly string[] {
   );
 }
 
-async function render(source: string) {
+async function render(source: string, appearance?: Partial<Appearance>) {
   const profile = ProfileRegistry.withBuiltins().list()[0];
 
   if (profile === undefined) {
@@ -49,6 +50,7 @@ async function render(source: string) {
     profile,
     layoutEngine: engine,
     measurer: new ApproximateTextMeasurer(),
+    ...(appearance === undefined ? {} : { appearance }),
   }).render(new FlowchartParser().parse(source));
 
   return { result, nodes: descendants(result.svg), laid };
