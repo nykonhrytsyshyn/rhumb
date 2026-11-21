@@ -6,7 +6,10 @@ import { useI18n } from "@shared/i18n";
 
 import { applyLibraryView, filterDiagrams } from "../../../lib/library-view";
 import { scrollToTop, useScrollMemory } from "../../../lib/use-scroll-memory";
-import { type SavedDiagram, useDiagramLibrary } from "../../../model/diagram";
+import type {
+  DiagramLibrary as DiagramLibraryModel,
+  SavedDiagram,
+} from "../../../model/diagram";
 import { CUSTOM_PROFILE_ID, useProfiles } from "../../../model/profile";
 import { useLibrarySelection } from "../../../model/use-library-selection";
 import { useLibraryView } from "../../../model/use-library-view";
@@ -20,6 +23,7 @@ const NO_ITEMS: readonly SavedDiagram[] = [];
 export interface LibraryTabProps {
   readonly source: string;
   readonly profileId: string;
+  readonly library: DiagramLibraryModel;
   readonly currentId: string | null;
   readonly onCurrentChange: (id: string | null) => void;
   readonly onOpen: (diagram: SavedDiagram) => void;
@@ -28,12 +32,12 @@ export interface LibraryTabProps {
 export function LibraryTab({
   source,
   profileId,
+  library,
   currentId,
   onCurrentChange,
   onOpen,
 }: LibraryTabProps): JSX.Element {
   const { t, language } = useI18n();
-  const library = useDiagramLibrary();
   const state = useLibraryView();
   const profiles = useProfiles();
   const { view } = state;

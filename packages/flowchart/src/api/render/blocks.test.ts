@@ -13,6 +13,7 @@ import { ProfileRegistry } from "@rhumb/profiles";
 import { FlowchartParser } from "@rhumb/source-mermaid";
 
 import { FlowchartRenderer } from "./FlowchartRenderer";
+import type { Appearance } from "./types";
 
 function descendants(node: SvgNode): readonly SvgNode[] {
   return [
@@ -29,7 +30,7 @@ function texts(node: SvgNode): readonly string[] {
   );
 }
 
-async function render(source: string) {
+async function render(source: string, appearance?: Partial<Appearance>) {
   const profile = ProfileRegistry.withBuiltins().list()[0];
 
   if (profile === undefined) {
@@ -49,6 +50,7 @@ async function render(source: string) {
     profile,
     layoutEngine: engine,
     measurer: new ApproximateTextMeasurer(),
+    ...(appearance === undefined ? {} : { appearance }),
   }).render(new FlowchartParser().parse(source));
 
   return { result, nodes: descendants(result.svg), laid };
@@ -317,6 +319,17 @@ describe("blocks of the standard", () => {
 
       expect(nodes.filter((node) => node.tag === "polyline")).toHaveLength(1);
       expect(nodes.flatMap(texts)).not.toContain("~");
+    });
+
+    it("cuts the line open instead of painting over it", async () => {
+      const { nodes } = await render("flowchart TD\nA -->|~| B");
+      const line = nodes.find((node) => node.attrs["data-edge"] !== undefined);
+      const patches = nodes.filter(
+        (node) => node.tag === "rect" && node.attrs.stroke === "none",
+      );
+
+      expect(String(line?.attrs.d).match(/M/g)).toHaveLength(2);
+      expect(patches).toHaveLength(0);
     });
 
     it("writes a legend under the diagram for each letter of a transfer", async () => {

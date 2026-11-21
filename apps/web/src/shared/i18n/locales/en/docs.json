@@ -2,6 +2,7 @@
   "intro": "Describe the diagram in Mermaid-like text. Rhumb draws it as a block diagram that follows the selected standard.",
   "copy": "Copy",
   "copied": "Copied",
+  "wrap": "Wrap lines",
   "example": "Example",
   "start": {
     "title": "Quick start",

@@ -1,6 +1,7 @@
 import type { JSX, ReactNode } from "react";
 
 import { Button } from "@shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 export interface DiagramLibrarySelectionActionProps {
   readonly label: string;
@@ -18,21 +19,30 @@ export function DiagramLibrarySelectionAction({
   children,
 }: DiagramLibrarySelectionActionProps): JSX.Element {
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon-sm"
-      aria-label={label}
-      title={label}
-      disabled={disabled}
-      className={
-        destructive
-          ? "h-full w-12 rounded-none border-0 border-l text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
-          : "h-full w-12 rounded-none border-0 border-l"
-      }
-      onClick={onClick}
-    >
-      {children}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <span className="inline-flex h-full">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              aria-label={label}
+              disabled={disabled}
+              className={
+                destructive
+                  ? "h-full w-12 rounded-none border-0 border-l text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
+                  : "h-full w-12 rounded-none border-0 border-l"
+              }
+              onClick={onClick}
+            >
+              {children}
+            </Button>
+          </span>
+        }
+      />
+
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   );
 }

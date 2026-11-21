@@ -4,6 +4,7 @@ import { IconDeviceDesktop, IconMoon, IconSun } from "@tabler/icons-react";
 
 import { useT } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 import { nextTheme } from "../lib/next-theme";
 import type { Theme } from "../model/theme";
@@ -24,19 +25,27 @@ export function ThemeToggler(): JSX.Element {
     dark: t("common.theme.mode.dark"),
     system: t("common.theme.mode.system"),
   };
+  const label = `${t("common.theme.toggle")}: ${modeLabels[theme]}`;
 
   return (
-    <Button
-      variant="outline"
-      size="icon-sm"
-      aria-label={`${t("common.theme.toggle")}: ${modeLabels[theme]}`}
-      title={modeLabels[theme]}
-      onClick={() => {
-        setTheme(nextTheme(theme));
-      }}
-      className="bg-background"
-    >
-      {ICONS[theme]}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            variant="outline"
+            size="icon-sm"
+            aria-label={label}
+            onClick={() => {
+              setTheme(nextTheme(theme));
+            }}
+            className="bg-background"
+          />
+        }
+      >
+        {ICONS[theme]}
+      </TooltipTrigger>
+
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   );
 }

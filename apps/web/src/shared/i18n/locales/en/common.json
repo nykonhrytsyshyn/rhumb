@@ -44,6 +44,23 @@
     "label": "Change language",
     "heading": "Languages"
   },
+  "source": {
+    "open": "Open repository"
+  },
+  "colorPicker": {
+    "pick": "Choose color",
+    "eyeDropper": "Pick color from screen",
+    "hue": "Hue",
+    "alpha": "Alpha",
+    "selection": "Color saturation and brightness",
+    "format": "Color format",
+    "hex": "Hex color",
+    "red": "Red",
+    "green": "Green",
+    "blue": "Blue",
+    "saturation": "Saturation",
+    "lightness": "Lightness"
+  },
   "agentKit": {
     "download": "Download",
     "copy": "Copy",

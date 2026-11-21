@@ -6,6 +6,7 @@ import { IconFilter, IconRestore } from "@tabler/icons-react";
 import { useT } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@shared/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 import { DiagramLibraryFilterDates } from "./diagram-library-filter-dates";
 import {
@@ -44,27 +45,35 @@ export function DiagramLibraryFilter({
 
   return (
     <Popover>
-      <PopoverTrigger
-        render={
-          <Button
-            variant="outline"
-            size="icon-sm"
-            className="relative h-full w-12 rounded-none border-0 border-l"
-            aria-label={label}
-          />
-        }
-      >
-        <IconFilter />
+      <Tooltip>
+        <PopoverTrigger
+          render={
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  className="relative h-full w-12 rounded-none border-0 border-l"
+                  aria-label={label}
+                />
+              }
+            />
+          }
+        >
+          <IconFilter />
 
-        {activeCount === 0 ? null : (
-          <span
-            aria-hidden
-            className="pointer-events-none absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-foreground text-[10px] leading-none font-medium text-background"
-          >
-            {activeCount}
-          </span>
-        )}
-      </PopoverTrigger>
+          {activeCount === 0 ? null : (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-foreground text-[10px] leading-none font-medium text-background"
+            >
+              {activeCount}
+            </span>
+          )}
+        </PopoverTrigger>
+
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
 
       <PopoverContent align="end">
         <DiagramLibraryFilterSelect

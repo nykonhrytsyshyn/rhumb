@@ -4,23 +4,33 @@ import { IconCheck } from "@tabler/icons-react";
 
 import { useT } from "@shared/i18n";
 import { useCopyFeedback } from "@shared/lib/use-copy-feedback";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 function CopyCode({ code }: { readonly code: string }): JSX.Element {
   const t = useT();
   const { copied, copy } = useCopyFeedback();
 
   return (
-    <button
-      type="button"
-      title={t("docs.copy")}
-      className="inline-flex items-center gap-1.5 rounded-md text-left font-mono text-xs hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-      onClick={() => {
-        copy(code);
-      }}
-    >
-      {code}
-      {copied && <IconCheck className="size-3 shrink-0" aria-hidden />}
-    </button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-md text-left font-mono text-xs hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+            onClick={() => {
+              copy(code);
+            }}
+          />
+        }
+      >
+        {code}
+        {copied && <IconCheck className="size-3 shrink-0" aria-hidden />}
+      </TooltipTrigger>
+
+      <TooltipContent>
+        {copied ? t("docs.copied") : t("docs.copy")}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

@@ -129,12 +129,51 @@
     "noteSides": "Comment sides"
   },
   "actions": {
-    "png": "PNG",
-    "svg": "SVG",
     "copyImage": "Copy image",
     "copied": "Copied",
-    "transparent": "Transparent background",
     "failed": "Export failed"
+  },
+  "export": {
+    "title": "Export image",
+    "close": "Close",
+    "open": "Settings",
+    "download": "Download {format}",
+    "formatMenu": "Choose the export format",
+    "format": "Format",
+    "copySvg": "Copy SVG code",
+    "reset": "Reset",
+    "empty": "Nothing to export yet. Fix the diagram first.",
+    "tooLarge": "Too large to render. Lower the density or padding.",
+    "pinPreview": "Pin preview",
+    "unpinPreview": "Unpin preview",
+    "summary": "{format} · {width} × {height} px",
+    "size": "{width} × {height} px",
+    "sections": {
+      "look": "Look",
+      "image": "Image",
+      "colors": "Colours",
+      "layout": "Layout",
+      "file": "File"
+    },
+    "presets": {
+      "label": "Colour presets",
+      "custom": "Custom",
+      "print": "Print",
+      "paper": "Paper",
+      "dark": "Dark",
+      "blueprint": "Blueprint",
+      "clear": "Clear"
+    },
+    "scale": "Pixel density",
+    "quality": "Quality",
+    "ink": "Lines and text",
+    "fill": "Blocks",
+    "hollow": "See-through blocks",
+    "background": "Page",
+    "transparent": "Transparent page",
+    "padding": "Padding",
+    "radius": "Corner radius",
+    "fileName": "File name"
   },
   "library": {
     "loadingTitle": "Loading saved diagrams",

@@ -10,6 +10,7 @@ import {
 
 import { useT } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 import { useDiagramCanvas } from "../model";
 
@@ -36,16 +37,22 @@ export function DiagramCanvasToolbar(): JSX.Element {
   return (
     <div className="flex items-center gap-1 rounded-full border bg-background p-1">
       {items.map((item) => (
-        <Button
-          key={item.label}
-          variant="ghost"
-          size="icon-sm"
-          aria-label={item.label}
-          title={item.label}
-          onClick={item.run}
-        >
-          {item.icon}
-        </Button>
+        <Tooltip key={item.label}>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={item.label}
+                onClick={item.run}
+              />
+            }
+          >
+            {item.icon}
+          </TooltipTrigger>
+
+          <TooltipContent>{item.label}</TooltipContent>
+        </Tooltip>
       ))}
     </div>
   );

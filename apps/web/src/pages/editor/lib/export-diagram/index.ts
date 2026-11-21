@@ -1,5 +1,8 @@
-export { copyPng } from "./copy-png";
+export { copyImage } from "./copy-image";
+export { copySvg } from "./copy-svg";
+export {
+  defaultExportName,
+  formatExportTimestamp,
+} from "./default-export-name";
 export { downloadProfile } from "./download-profile";
-export type { ExportOptions } from "./export-options";
-export { exportPng } from "./export-png";
-export { exportSvg } from "./export-svg";
+export { exportImage } from "./export-image";
