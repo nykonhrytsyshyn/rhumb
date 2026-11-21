@@ -7,11 +7,13 @@ import { CURRENT_DIAGRAM_KEY, SOURCE_KEY } from "../config/storage-keys";
 import { isWideScreen } from "../lib/is-wide-screen";
 import { sampleSource } from "../lib/sample-source";
 import { translateSample } from "../lib/translate-sample";
-import type { SavedDiagram } from "./diagram/is-saved-diagram";
 import {
+  type DiagramLibrary,
   type RenderState,
+  type SavedDiagram,
+  useDiagramLibrary,
   useRenderedDiagram,
-} from "./diagram/use-rendered-diagram";
+} from "./diagram";
 import {
   type ProfileEditor,
   useProfileEditor,
@@ -19,6 +21,7 @@ import {
 
 export interface EditorPageModel {
   readonly editor: ProfileEditor;
+  readonly library: DiagramLibrary;
   readonly source: string;
   readonly setSource: (source: string) => void;
   readonly rendered: RenderState;
@@ -26,6 +29,7 @@ export interface EditorPageModel {
   readonly setPanelOpen: (open: boolean) => void;
   readonly fitKey: number;
   readonly currentDiagramId: string | null;
+  readonly currentDiagramName: string | undefined;
   readonly setCurrentDiagramId: (id: string | null) => void;
   readonly openDiagram: (diagram: SavedDiagram) => void;
   readonly selectProfile: (id: string) => void;
@@ -36,6 +40,7 @@ export interface EditorPageModel {
 export function useEditorPage(): EditorPageModel {
   const { language } = useI18n();
   const editor = useProfileEditor();
+  const library = useDiagramLibrary();
   const [source, setSource] = usePersistedState(
     SOURCE_KEY,
     sampleSource("algorithm", language),
@@ -48,6 +53,10 @@ export function useEditorPage(): EditorPageModel {
   const [fitKey, setFitKey] = useState(0);
 
   const rendered = useRenderedDiagram(source, editor.active);
+  const currentDiagramId = storedCurrent === "" ? null : storedCurrent;
+  const currentDiagramName = library.items?.find(
+    (item) => item.id === currentDiagramId,
+  )?.name;
 
   function refit(): void {
     setFitKey((key) => key + 1);
@@ -55,13 +64,15 @@ export function useEditorPage(): EditorPageModel {
 
   return {
     editor,
+    library,
     source,
     setSource,
     rendered,
     panelOpen,
     setPanelOpen,
     fitKey,
-    currentDiagramId: storedCurrent === "" ? null : storedCurrent,
+    currentDiagramId,
+    currentDiagramName,
     setCurrentDiagramId: (id) => {
       setStoredCurrent(id ?? "");
     },

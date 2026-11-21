@@ -1,15 +1,6 @@
 import type { SvgNode } from "@rhumb/kernel";
 
-const ESCAPES: Readonly<Record<string, string>> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-};
-
-function escapeText(value: string): string {
-  return value.replace(/[&<>"]/g, (char) => ESCAPES[char] ?? char);
-}
+import { escapeText } from "./escapeText";
 
 export class SvgSerializer {
   public serialize(node: SvgNode): string {

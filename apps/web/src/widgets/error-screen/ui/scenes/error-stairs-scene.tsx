@@ -202,11 +202,14 @@ function useStairsCanvas(
         (Math.random() - 0.5) * stepWidth * 0.3;
       const spawnY = -particle.size;
 
-      Matter.Body.setPosition(particle.body, { x: spawnX, y: spawnY });
-      Matter.Body.setVelocity(particle.body, {
-        x: 2 + Math.random() * 3,
-        y: 0,
-      });
+      Matter.Body.setPosition(
+        particle.body,
+        Matter.Vector.create(spawnX, spawnY),
+      );
+      Matter.Body.setVelocity(
+        particle.body,
+        Matter.Vector.create(2 + Math.random() * 3, 0),
+      );
       Matter.Body.setAngle(
         particle.body,
         ((Math.random() - 0.5) * 40 * Math.PI) / 180,
@@ -225,12 +228,15 @@ function useStairsCanvas(
     let pointerOffsetY = 0;
     let pointerHistory: PointerSample[] = [];
 
-    const toCanvasPoint = (event: PointerEvent) => {
+    const toCanvasPoint = (event: PointerEvent): Matter.Vector => {
       const rect = canvas.getBoundingClientRect();
-      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      return Matter.Vector.create(
+        event.clientX - rect.left,
+        event.clientY - rect.top,
+      );
     };
 
-    const hitTest = (point: { x: number; y: number }): DigitParticle | null => {
+    const hitTest = (point: Matter.Vector): DigitParticle | null => {
       const bodies = digitParticles
         .filter((p) => !p.waiting)
         .map((p) => p.body);
@@ -279,10 +285,10 @@ function useStairsCanvas(
       const targetX = point.x - pointerOffsetX;
       const targetY = point.y - pointerOffsetY;
 
-      Matter.Body.setPosition(draggedParticle.body, {
-        x: targetX,
-        y: targetY,
-      });
+      Matter.Body.setPosition(
+        draggedParticle.body,
+        Matter.Vector.create(targetX, targetY),
+      );
 
       const now = performance.now();
       pointerHistory.push({ time: now, x: point.x, y: point.y });
@@ -306,7 +312,7 @@ function useStairsCanvas(
         const vx = ((point.x - first.x) / dt) * 0.05;
         const vy = ((point.y - first.y) / dt) * 0.05;
 
-        Matter.Body.setVelocity(particle.body, { x: vx, y: vy });
+        Matter.Body.setVelocity(particle.body, Matter.Vector.create(vx, vy));
       }
 
       particle.dragging = false;
@@ -424,7 +430,7 @@ function useStairsCanvas(
             newY += totalHeight;
           }
 
-          Matter.Body.setPosition(body, { x: newX, y: newY });
+          Matter.Body.setPosition(body, Matter.Vector.create(newX, newY));
         });
 
         digitParticles.forEach((particle) => {
@@ -447,8 +453,11 @@ function useStairsCanvas(
               time +
               RESPAWN_MIN_MS +
               Math.random() * (RESPAWN_MAX_MS - RESPAWN_MIN_MS);
-            Matter.Body.setPosition(particle.body, { x: 0, y: -9999 });
-            Matter.Body.setVelocity(particle.body, { x: 0, y: 0 });
+            Matter.Body.setPosition(
+              particle.body,
+              Matter.Vector.create(0, -9999),
+            );
+            Matter.Body.setVelocity(particle.body, Matter.Vector.create(0, 0));
           }
         });
       }
