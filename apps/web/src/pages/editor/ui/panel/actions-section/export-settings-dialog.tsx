@@ -107,6 +107,11 @@ export function ExportSettingsDialog({
                 })
           }
           warning={tooLarge ? t("editor.export.tooLarge") : null}
+          labels={{
+            zoomIn: t("common.canvas.zoomIn"),
+            zoomOut: t("common.canvas.zoomOut"),
+            fit: t("common.canvas.fit"),
+          }}
         />
 
         {/* Settings section */}
