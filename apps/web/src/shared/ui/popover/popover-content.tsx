@@ -23,7 +23,7 @@ export function PopoverContent({
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
-        className="isolate z-40 outline-none"
+        className="isolate z-50 outline-none"
         align={align}
         alignOffset={alignOffset}
         side={side}
@@ -32,7 +32,7 @@ export function PopoverContent({
         <PopoverPrimitive.Popup
           data-slot="popover-content"
           className={cn(
-            "relative z-40 flex max-h-(--available-height) w-72 max-w-(--available-width) origin-(--transform-origin) flex-col gap-3 overflow-x-hidden overflow-y-auto rounded-xl bg-popover p-3 text-sm text-popover-foreground shadow-md ring-1 ring-border duration-100 outline-none data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+            "relative z-50 flex max-h-(--available-height) w-72 max-w-(--available-width) origin-(--transform-origin) flex-col gap-3 overflow-x-hidden overflow-y-auto rounded-xl bg-popover p-3 text-sm text-popover-foreground shadow-md ring-1 ring-border duration-100 outline-none data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
             className,
           )}
           {...props}

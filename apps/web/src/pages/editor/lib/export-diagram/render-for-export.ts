@@ -1,18 +1,22 @@
-import { type EngineResult, PRINT_APPEARANCE } from "@rhumb/engine";
+import type { EngineResult } from "@rhumb/engine";
+import {
+  type ExportSettings,
+  SvgFrame,
+  toAppearance,
+  toFrameOptions,
+} from "@rhumb/export";
 import type { StandardProfile } from "@rhumb/profiles";
 
 import { renderDiagram } from "../../api/render-diagram";
-import type { ExportOptions } from "./export-options";
 
 export async function renderForExport(
   source: string,
   profile: StandardProfile,
-  { transparent }: ExportOptions,
+  settings: ExportSettings,
 ): Promise<EngineResult> {
-  return renderDiagram(source, profile, {
-    appearance: {
-      ...PRINT_APPEARANCE,
-      background: transparent ? null : PRINT_APPEARANCE.background,
-    },
+  const { svg, size } = await renderDiagram(source, profile, {
+    appearance: toAppearance(settings),
   });
+
+  return new SvgFrame().wrap(svg, size, toFrameOptions(settings));
 }

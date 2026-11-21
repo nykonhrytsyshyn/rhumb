@@ -83,7 +83,11 @@ export function EditorPage(): JSX.Element {
               <SamplesSection onSelect={page.selectSample} />
             )}
 
-            <ActionsSection source={page.source} profile={page.editor.active} />
+            <ActionsSection
+              source={page.source}
+              profile={page.editor.active}
+              rendered={page.rendered}
+            />
           </EditorPanel.Content>
         </EditorPanel.Body>
       </EditorPanel>

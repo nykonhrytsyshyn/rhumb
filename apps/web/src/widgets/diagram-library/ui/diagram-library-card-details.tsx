@@ -42,7 +42,7 @@ export function DiagramLibraryCardInfo({
 
   return (
     <DropdownMenuGroup>
-      <DropdownMenuLabel className="flex items-center gap-1">
+      <DropdownMenuLabel className="flex items-center gap-1 p-3">
         <IconInfoCircle className="size-4" />
         {t("editor.library.info.title")}
       </DropdownMenuLabel>

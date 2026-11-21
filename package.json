@@ -15,7 +15,7 @@
     "url": "https://github.com/nykonhrytsyshyn/rhumb/issues",
     "email": "contact@nykon.me"
   },
-  "packageManager": "pnpm@12.16.1",
+  "packageManager": "pnpm@12.21.0",
   "engines": {
     "node": ">=22.16.0",
     "pnpm": ">=11.0.0"
@@ -59,17 +59,17 @@
     "@rhumb/tsconfig": "workspace:*",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/node": "^26.6.6",
-    "@vitest/coverage-v8": "^5.1.0",
-    "@vitest/ui": "^5.1.0",
-    "eslint": "^10.14.0",
+    "@vitest/coverage-v8": "^5.1.1",
+    "@vitest/ui": "^5.1.1",
+    "eslint": "^10.15.0",
     "jiti": "^2.7.0",
-    "prettier": "^3.9.9",
+    "prettier": "^3.10.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "prettier-plugin-yaml": "^1.3.0",
+    "prettier-plugin-yaml": "^1.3.2",
     "tree-node-cli": "^3.0.0",
-    "turbo": "^2.11.10",
+    "turbo": "^2.11.13",
     "typescript": "~6.0.3",
-    "vite": "^8.3.6",
-    "vitest": "^5.1.0"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
   }
 }
