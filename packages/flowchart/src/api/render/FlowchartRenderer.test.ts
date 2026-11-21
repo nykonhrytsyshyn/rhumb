@@ -305,9 +305,17 @@ describe("FlowchartRenderer", () => {
     const top = topLeft[1];
     const bottom = bottomRight[1];
 
+    const arrowCorners = (arrow: SvgNode) =>
+      String(arrow.attrs.d)
+        .replace(/\s*Z$/, "")
+        .split(/(?=[ML])/)
+        .map((command) => command.slice(1).trim().split(/[ ,]+/).map(Number));
+
     const lines = edgePaths(nodes).map(cornersOf);
     const starts = lines.map((points) => points[0]);
-    const ends = lines.map((points) => points.at(-1));
+    const ends = nodes
+      .filter((node) => node.attrs["data-arrow"] !== undefined)
+      .map((arrow) => arrowCorners(arrow)[1]);
     const near = (a: readonly number[] | undefined, b: readonly number[]) =>
       a !== undefined &&
       Math.abs((a[0] ?? 0) - (b[0] ?? 0)) < 0.1 &&

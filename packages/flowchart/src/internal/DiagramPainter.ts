@@ -260,6 +260,83 @@ export class DiagramPainter {
     return gaps;
   }
 
+  private arrowMetrics(line: DiagramEdge["line"]): {
+    readonly length: number;
+    readonly width: number;
+    readonly strokeWidth: number;
+  } {
+    if (line !== "thick") {
+      return {
+        length: this.metrics.arrowLength,
+        width: this.metrics.arrowWidth,
+        strokeWidth: this.metrics.lineWidth,
+      };
+    }
+
+    const ratio = this.metrics.thickWidth / this.metrics.lineWidth;
+    const scale = Math.max(1, 1 + (ratio - 1) * 0.5);
+
+    return {
+      length: this.metrics.arrowLength * scale,
+      width: this.metrics.arrowWidth * scale,
+      strokeWidth: this.metrics.lineWidth * scale,
+    };
+  }
+
+  private stemTrim(edge: DiagramEdge): number {
+    if (!edge.arrow) {
+      return 0;
+    }
+
+    const { length, strokeWidth } = this.arrowMetrics(edge.line);
+
+    return this.metrics.arrowStyle === "filled"
+      ? length * 0.9
+      : strokeWidth * 0.6;
+  }
+
+  private static trimEnd(
+    points: readonly Point[],
+    by: number,
+  ): readonly Point[] {
+    if (by <= 0 || points.length < 2) {
+      return points;
+    }
+
+    const tip = points[points.length - 1];
+    let index = points.length - 2;
+
+    while (index >= 0) {
+      const candidate = points[index];
+
+      if (
+        candidate !== undefined &&
+        tip !== undefined &&
+        !samePoint(candidate, tip)
+      ) {
+        break;
+      }
+
+      index -= 1;
+    }
+
+    const previous = points[index];
+
+    if (tip === undefined || previous === undefined) {
+      return points;
+    }
+
+    const run = Math.hypot(tip.x - previous.x, tip.y - previous.y);
+    const cut = Math.min(by, run * 0.9);
+    const ux = (tip.x - previous.x) / run;
+    const uy = (tip.y - previous.y) / run;
+
+    return [
+      ...points.slice(0, index + 1),
+      { x: tip.x - ux * cut, y: tip.y - uy * cut },
+    ];
+  }
+
   private arrowhead(
     edge: DiagramEdge,
     points: readonly Point[],
@@ -274,7 +351,7 @@ export class DiagramPainter {
       return undefined;
     }
 
-    const { arrowLength: length, arrowWidth: width } = this.metrics;
+    const { length, width, strokeWidth } = this.arrowMetrics(edge.line);
     const run = Math.hypot(tip.x - previous.x, tip.y - previous.y);
     const ux = (tip.x - previous.x) / run;
     const uy = (tip.y - previous.y) / run;
@@ -290,7 +367,7 @@ export class DiagramPainter {
       d: filled ? `${corners} Z` : corners,
       fill: filled ? this.appearance.ink : "none",
       stroke: filled ? "none" : this.appearance.ink,
-      "stroke-width": this.metrics.lineWidth,
+      "stroke-width": strokeWidth,
       "stroke-linejoin": "round",
     });
   }
@@ -301,9 +378,10 @@ export class DiagramPainter {
     hops: readonly Hop[],
     gaps: readonly EdgeGap[],
   ): SvgNode {
+    const trimmed = DiagramPainter.trimEnd(points, this.stemTrim(edge));
     const attrs: Record<string, string | number> = {
       "data-edge": edge.id,
-      d: buildEdgePath(points, hops, this.metrics.jumpRadius, gaps),
+      d: buildEdgePath(trimmed, hops, this.metrics.jumpRadius, gaps),
       "stroke-width":
         edge.line === "thick"
           ? this.metrics.thickWidth
