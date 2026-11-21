@@ -30,6 +30,7 @@ import { ExportDialog } from "@widgets/export-dialog";
 import { useT } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
 import { Spinner } from "@shared/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 import type { RenderState } from "../../../model/diagram";
 import type { ExportActions } from "../../../model/use-export-actions";
@@ -312,15 +313,22 @@ export function ExportSettingsDialog({
         {/* Reset (mobile), copy and download section */}
         <div className="flex min-w-0 flex-row items-stretch md:min-w-90 md:shrink-0">
           {/* Reset (mobile) button */}
-          <Button
-            variant="ghost"
-            onClick={reset}
-            aria-label={t("editor.export.reset")}
-            title={t("editor.export.reset")}
-            className="h-12 w-12 shrink-0 rounded-none border-r border-border px-0 sm:hidden"
-          >
-            <IconRestore className="shrink-0" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  onClick={reset}
+                  aria-label={t("editor.export.reset")}
+                  className="h-12 w-12 shrink-0 rounded-none border-r border-border px-0 sm:hidden"
+                />
+              }
+            >
+              <IconRestore className="shrink-0" />
+            </TooltipTrigger>
+
+            <TooltipContent>{t("editor.export.reset")}</TooltipContent>
+          </Tooltip>
 
           {/* Copy button */}
           <Button

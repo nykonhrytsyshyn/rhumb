@@ -15,6 +15,7 @@ import {
   CodeBlockLine,
   CodeBlockTitle,
 } from "@shared/ui/code-block";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 import {
   DOCS_EXAMPLES,
@@ -66,18 +67,26 @@ export function DocsExample({ id }: DocsExampleProps): JSX.Element {
         </CodeBlockTitle>
 
         <CodeBlockActions>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            aria-label="Wrap lines"
-            aria-pressed={wrap}
-            className="aria-pressed:text-foreground"
-            onClick={() => {
-              setWrap(!wrap);
-            }}
-          >
-            <IconTextWrap />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={t("docs.wrap")}
+                  aria-pressed={wrap}
+                  className="aria-pressed:text-foreground"
+                  onClick={() => {
+                    setWrap(!wrap);
+                  }}
+                />
+              }
+            >
+              <IconTextWrap />
+            </TooltipTrigger>
+
+            <TooltipContent>{t("docs.wrap")}</TooltipContent>
+          </Tooltip>
 
           <CodeBlockCopyButton value={code} />
         </CodeBlockActions>

@@ -7,6 +7,7 @@ import {
 
 import { useT } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 export interface EditorPanelToggleProps {
   readonly open: boolean;
@@ -21,21 +22,28 @@ export function EditorPanelToggle({
   const label = open ? t("common.panel.close") : t("common.panel.open");
 
   return (
-    <Button
-      variant="outline"
-      size="icon-sm"
-      aria-label={label}
-      title={label}
-      onClick={() => {
-        onOpenChange(!open);
-      }}
-      className="bg-background"
-    >
-      {open ? (
-        <IconLayoutSidebarLeftCollapse />
-      ) : (
-        <IconLayoutSidebarLeftExpand />
-      )}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            variant="outline"
+            size="icon-sm"
+            aria-label={label}
+            onClick={() => {
+              onOpenChange(!open);
+            }}
+            className="bg-background"
+          />
+        }
+      >
+        {open ? (
+          <IconLayoutSidebarLeftCollapse />
+        ) : (
+          <IconLayoutSidebarLeftExpand />
+        )}
+      </TooltipTrigger>
+
+      <TooltipContent side="right">{label}</TooltipContent>
+    </Tooltip>
   );
 }

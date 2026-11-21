@@ -2,11 +2,13 @@ import { type JSX, useId, useState } from "react";
 
 import { normalizeHex } from "@rhumb/export";
 
+import { useT } from "@shared/i18n";
 import { Button } from "@shared/ui/button";
 import { ColorPicker } from "@shared/ui/color-picker";
 import { Field, FieldLabel } from "@shared/ui/field";
 import { Input } from "@shared/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@shared/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 export interface ExportDialogColorProps {
   readonly label: string;
@@ -21,8 +23,10 @@ export function ExportDialogColor({
   onChange,
   disabled = false,
 }: ExportDialogColorProps): JSX.Element {
+  const t = useT();
   const id = useId();
   const [draft, setDraft] = useState<string | null>(null);
+  const pickLabel = t("common.colorPicker.pick");
 
   return (
     <Field data-disabled={disabled} className="gap-1.5">
@@ -35,23 +39,31 @@ export function ExportDialogColor({
 
       <div className="flex items-center gap-2">
         <Popover>
-          <PopoverTrigger
-            render={
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                disabled={disabled}
-                aria-label={label}
-                className="shrink-0 rounded-xl p-1"
+          <Tooltip>
+            <PopoverTrigger
+              render={
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled={disabled}
+                      aria-label={`${label}: ${pickLabel}`}
+                      className="shrink-0 rounded-xl p-1"
+                    />
+                  }
+                />
+              }
+            >
+              <span
+                className="size-full rounded-md border"
+                style={{ backgroundColor: value }}
               />
-            }
-          >
-            <span
-              className="size-full rounded-md border"
-              style={{ backgroundColor: value }}
-            />
-          </PopoverTrigger>
+            </PopoverTrigger>
+
+            <TooltipContent>{pickLabel}</TooltipContent>
+          </Tooltip>
 
           <PopoverContent align="start">
             <ColorPicker

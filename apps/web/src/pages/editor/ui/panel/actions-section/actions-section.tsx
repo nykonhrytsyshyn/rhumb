@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@shared/ui/dropdown-menu";
 import { Spinner } from "@shared/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 import {
   defaultExportName,
@@ -114,18 +115,25 @@ export function ActionsSection({
 
           <div className="flex min-w-0 items-stretch">
             {/* Settings icon button */}
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setTimestamp(formatExportTimestamp());
-                setDialogOpen(true);
-              }}
-              aria-label={t("editor.export.open")}
-              title={t("editor.export.open")}
-              className="size-12 shrink-0 rounded-none border-0 border-r border-border px-0"
-            >
-              <IconAdjustmentsHorizontal className="shrink-0" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setTimestamp(formatExportTimestamp());
+                      setDialogOpen(true);
+                    }}
+                    aria-label={t("editor.export.open")}
+                    className="size-12 shrink-0 rounded-none border-0 border-r border-border px-0"
+                  />
+                }
+              >
+                <IconAdjustmentsHorizontal className="shrink-0" />
+              </TooltipTrigger>
+
+              <TooltipContent>{t("editor.export.open")}</TooltipContent>
+            </Tooltip>
 
             {/* Copy button */}
             <Button
@@ -168,16 +176,24 @@ export function ActionsSection({
 
             {/* Format menu */}
             <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    aria-label={t("editor.export.formatMenu")}
-                    className="group size-12 shrink-0 rounded-none border-0 border-l border-primary/60 px-0"
-                  />
-                }
-              >
-                <IconChevronUp className="shrink-0 transition-transform duration-150 group-aria-expanded:rotate-180" />
-              </DropdownMenuTrigger>
+              <Tooltip>
+                <DropdownMenuTrigger
+                  render={
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          aria-label={t("editor.export.formatMenu")}
+                          className="group size-12 shrink-0 rounded-none border-0 border-l border-primary/60 px-0"
+                        />
+                      }
+                    />
+                  }
+                >
+                  <IconChevronUp className="shrink-0 transition-transform duration-150 group-aria-expanded:rotate-180" />
+                </DropdownMenuTrigger>
+
+                <TooltipContent>{t("editor.export.formatMenu")}</TooltipContent>
+              </Tooltip>
 
               <DropdownMenuContent side="top" align="end" className="w-56">
                 <DropdownMenuGroup>

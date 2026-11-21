@@ -2,6 +2,7 @@ import type { JSX } from "react";
 
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
 
+import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
 
 export interface ColorPickerHueProps {
@@ -16,9 +17,12 @@ export function ColorPickerHue({
   hue,
   onChange,
   disabled = false,
-  label = "Hue",
+  label,
   className,
 }: ColorPickerHueProps): JSX.Element {
+  const t = useT();
+  const text = label ?? t("common.colorPicker.hue");
+
   return (
     <SliderPrimitive.Root
       data-slot="color-picker-hue"
@@ -39,7 +43,7 @@ export function ColorPickerHue({
         <SliderPrimitive.Track className="relative h-3 w-full grow rounded-full border bg-[linear-gradient(90deg,#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000)]" />
 
         <SliderPrimitive.Thumb
-          aria-label={label}
+          aria-label={text}
           className="block size-4 rounded-full border-2 border-white shadow-sm ring-1 ring-black/30 transition-shadow outline-none hover:ring-3 hover:ring-ring/30 focus-visible:ring-3 focus-visible:ring-ring/50 data-dragging:ring-3 data-dragging:ring-ring/50"
           style={{ backgroundColor: `hsl(${String(hue)} 100% 50%)` }}
         />

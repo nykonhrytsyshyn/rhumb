@@ -1,5 +1,6 @@
 import { type JSX, useState } from "react";
 
+import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
 import { Input } from "@shared/ui/input";
 
@@ -33,6 +34,18 @@ export function ColorPickerFormat({
   onHexChange,
   className,
 }: ColorPickerFormatProps): JSX.Element {
+  const t = useT();
+  const rgbLabels = [
+    t("common.colorPicker.red"),
+    t("common.colorPicker.green"),
+    t("common.colorPicker.blue"),
+  ] as const;
+  const hslLabels = [
+    t("common.colorPicker.hue"),
+    t("common.colorPicker.saturation"),
+    t("common.colorPicker.lightness"),
+  ] as const;
+
   const [draft, setDraft] = useState<string | null>(null);
 
   const alphaInput = showAlpha ? (
@@ -52,7 +65,7 @@ export function ColorPickerFormat({
           maxLength={7}
           spellCheck={false}
           autoComplete="off"
-          aria-label="Hex color"
+          aria-label={t("common.colorPicker.hex")}
           aria-invalid={draft !== null && normalizeHexColor(draft) === null}
           className="h-8 px-2 font-mono text-xs uppercase tabular-nums"
           onChange={(event) => {
@@ -91,7 +104,7 @@ export function ColorPickerFormat({
           type="text"
           disabled={disabled}
           value={String(channel)}
-          aria-label={labels[index]}
+          aria-label={mode === "rgb" ? rgbLabels[index] : hslLabels[index]}
           className="h-8 px-1.5 text-center font-mono text-xs tabular-nums"
         />
       ))}

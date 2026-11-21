@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 
+import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
 
 export interface ColorPickerSelectionProps {
@@ -34,9 +35,12 @@ export function ColorPickerSelection({
   color,
   onChange,
   disabled = false,
-  label = "Color saturation and brightness",
+  label,
   className,
 }: ColorPickerSelectionProps): JSX.Element {
+  const t = useT();
+  const text = label ?? t("common.colorPicker.selection");
+
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rectRef = useRef<DOMRect | null>(null);
@@ -155,7 +159,7 @@ export function ColorPickerSelection({
       <div
         role="slider"
         tabIndex={disabled ? -1 : 0}
-        aria-label={label}
+        aria-label={text}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(thumbX)}

@@ -2,8 +2,10 @@ import type { JSX } from "react";
 
 import { IconColorPicker } from "@tabler/icons-react";
 
+import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
 import { Button } from "@shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 interface EyeDropperResult {
   readonly sRGBHex: string;
@@ -37,14 +39,17 @@ export interface ColorPickerEyeDropperProps {
 export function ColorPickerEyeDropper({
   onPick,
   disabled = false,
-  label = "Pick color from screen",
+  label,
   className,
 }: ColorPickerEyeDropperProps): JSX.Element | null {
+  const t = useT();
   const EyeDropperApi = getEyeDropperConstructor();
 
   if (EyeDropperApi === undefined) {
     return null;
   }
+
+  const text = label ?? t("common.colorPicker.eyeDropper");
 
   const handlePick = async (): Promise<void> => {
     try {
@@ -57,19 +62,29 @@ export function ColorPickerEyeDropper({
   };
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon-sm"
-      disabled={disabled}
-      aria-label={label}
-      title={label}
-      className={cn("shrink-0 rounded-xl text-muted-foreground", className)}
-      onClick={() => {
-        void handlePick();
-      }}
-    >
-      <IconColorPicker />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            disabled={disabled}
+            aria-label={text}
+            className={cn(
+              "shrink-0 rounded-xl text-muted-foreground",
+              className,
+            )}
+            onClick={() => {
+              void handlePick();
+            }}
+          />
+        }
+      >
+        <IconColorPicker />
+      </TooltipTrigger>
+
+      <TooltipContent>{text}</TooltipContent>
+    </Tooltip>
   );
 }

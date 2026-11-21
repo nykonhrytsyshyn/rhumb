@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 
+import { useT } from "@shared/i18n";
 import { cn } from "@shared/lib/cn";
 import {
   Select,
@@ -29,9 +30,12 @@ export function ColorPickerOutput({
   mode,
   onChange,
   disabled = false,
-  label = "Color format",
+  label,
   className,
 }: ColorPickerOutputProps): JSX.Element {
+  const t = useT();
+  const text = label ?? t("common.colorPicker.format");
+
   return (
     <Select
       value={mode}
@@ -44,7 +48,7 @@ export function ColorPickerOutput({
     >
       <SelectTrigger
         size="sm"
-        aria-label={label}
+        aria-label={text}
         className={cn("w-20 shrink-0", className)}
       >
         <SelectValue>

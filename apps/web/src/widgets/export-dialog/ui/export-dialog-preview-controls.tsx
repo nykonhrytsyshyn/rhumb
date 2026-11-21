@@ -9,6 +9,7 @@ import {
 } from "@tabler/icons-react";
 
 import { Button } from "@shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@shared/ui/tooltip";
 
 export interface ExportDialogPreviewLabels {
   readonly zoomIn: string;
@@ -41,35 +42,49 @@ export function ExportDialogPreviewControls({
     { label: labels.zoomOut, icon: <IconZoomOut />, run: onZoomOut },
     { label: labels.zoomIn, icon: <IconZoomIn />, run: onZoomIn },
   ];
+  const pinLabel = pin?.pinned ? labels.unpin : labels.pin;
 
   return (
     <div className="absolute top-2 right-2 z-10 flex items-center gap-1 md:top-3 md:right-3">
       {pin === null ? null : (
-        <Button
-          variant="outline"
-          size="icon"
-          aria-pressed={pin.pinned}
-          aria-label={pin.pinned ? labels.unpin : labels.pin}
-          title={pin.pinned ? labels.unpin : labels.pin}
-          onClick={pin.onToggle}
-          className="bg-background/40 bg-clip-border p-1 shadow-xs backdrop-blur-xl md:hidden"
-        >
-          {pin.pinned ? <IconPinnedFilled /> : <IconPin />}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                size="icon"
+                aria-pressed={pin.pinned}
+                aria-label={pinLabel}
+                onClick={pin.onToggle}
+                className="bg-background/40 bg-clip-border p-1 shadow-xs backdrop-blur-xl md:hidden"
+              />
+            }
+          >
+            {pin.pinned ? <IconPinnedFilled /> : <IconPin />}
+          </TooltipTrigger>
+
+          <TooltipContent>{pinLabel}</TooltipContent>
+        </Tooltip>
       )}
 
       <div className="flex items-center gap-1 rounded-full border bg-background/40 backdrop-blur-xl">
         {items.map((item) => (
-          <Button
-            key={item.label}
-            variant="ghost"
-            size="icon"
-            aria-label={item.label}
-            title={item.label}
-            onClick={item.run}
-          >
-            {item.icon}
-          </Button>
+          <Tooltip key={item.label}>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={item.label}
+                  onClick={item.run}
+                />
+              }
+            >
+              {item.icon}
+            </TooltipTrigger>
+
+            <TooltipContent>{item.label}</TooltipContent>
+          </Tooltip>
         ))}
       </div>
     </div>
