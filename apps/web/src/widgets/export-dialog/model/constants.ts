@@ -5,3 +5,11 @@ export const WHEEL_ZOOM_STEP = 0.002;
 
 /** Above this the picture counts as magnified and a finger drags it. */
 export const ZOOMED_THRESHOLD = 1.001;
+
+/**
+ * Height the settings need beside a pinned preview to stay usable. A preview
+ * is only pinned while the dialog leaves at least this much room for them.
+ */
+export const MIN_SETTINGS_ROOM = 240;
+
+export const PIN_STORAGE_KEY = "rhumb:export-preview-pinned";

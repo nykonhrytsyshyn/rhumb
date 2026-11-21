@@ -144,6 +144,8 @@
     "reset": "Reset",
     "empty": "Nothing to export yet. Fix the diagram first.",
     "tooLarge": "Too large to render. Lower the density or padding.",
+    "pinPreview": "Pin preview",
+    "unpinPreview": "Unpin preview",
     "summary": "{format} · {width} × {height} px",
     "size": "{width} × {height} px",
     "sections": {

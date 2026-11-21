@@ -3,9 +3,12 @@ import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 
 import { IconAlertTriangle } from "@tabler/icons-react";
 
+import { cn } from "@shared/lib/cn";
+import { usePersistedState } from "@shared/lib/use-persisted-state";
 import { Badge } from "@shared/ui/badge";
 import { Spinner } from "@shared/ui/spinner";
 
+import { MIN_SETTINGS_ROOM, PIN_STORAGE_KEY, useSettingsRoom } from "../model";
 import {
   ExportDialogPreviewControls,
   type ExportDialogPreviewLabels,
@@ -60,9 +63,21 @@ export function ExportDialogPreview({
 }: ExportDialogPreviewProps): JSX.Element {
   const checkerId = useId().replace(/\W/g, "");
   const ready = svg !== null && size !== null;
+  const rootRef = useRef<HTMLDivElement>(null);
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
+  const [stored, store] = usePersistedState(PIN_STORAGE_KEY, "");
+  const roomy = useSettingsRoom(rootRef, MIN_SETTINGS_ROOM);
+  const pinned = stored === "1";
+  const stuck = pinned && roomy;
+
   return (
-    <div className="relative h-64 shrink-0 overflow-hidden bg-card bg-drafting-grid md:h-auto md:min-h-112 md:flex-1">
+    <div
+      ref={rootRef}
+      className={cn(
+        "relative h-64 shrink-0 overflow-hidden bg-card bg-drafting-grid max-md:border-b md:h-auto md:min-h-112 md:flex-1",
+        stuck && `max-md:sticky max-md:top-0 max-md:z-20 max-md:shadow-md`,
+      )}
+    >
       {ready ? (
         <ExportDialogPreviewPage
           svg={svg}
@@ -93,14 +108,14 @@ export function ExportDialogPreview({
 
       <Badge
         variant="outline-secondary"
-        className="pointer-events-none absolute top-3 left-3 z-10 bg-background/40 backdrop-blur-xl"
+        className="pointer-events-none absolute top-2 left-2 z-10 bg-background/40 backdrop-blur-xl md:top-3 md:left-3"
       >
         {format}
       </Badge>
 
       <Badge
         variant="outline-secondary"
-        className="pointer-events-none absolute bottom-3 left-3 z-10 bg-background/40 backdrop-blur-xl"
+        className="pointer-events-none absolute bottom-2 left-2 z-10 bg-background/40 backdrop-blur-xl md:bottom-3 md:left-3"
       >
         {dimensions}
       </Badge>
@@ -109,9 +124,9 @@ export function ExportDialogPreview({
         <Badge
           variant="destructive"
           role="alert"
-          className="pointer-events-none absolute right-3 bottom-3 z-10 h-auto max-w-[60%] py-1 text-left whitespace-normal"
+          className="pointer-events-none absolute right-2 bottom-2 z-10 h-auto max-w-[60%] border-destructive/40 py-1 text-left whitespace-normal backdrop-blur-xl md:right-3 md:bottom-3"
         >
-          <IconAlertTriangle />
+          <IconAlertTriangle className="size-4 shrink-0" />
           {warning}
         </Badge>
       )}
@@ -128,6 +143,16 @@ export function ExportDialogPreview({
           onFit={() => {
             void transformRef.current?.resetTransform();
           }}
+          pin={
+            roomy
+              ? {
+                  pinned,
+                  onToggle: () => {
+                    store(pinned ? "" : "1");
+                  },
+                }
+              : null
+          }
         />
       ) : null}
 

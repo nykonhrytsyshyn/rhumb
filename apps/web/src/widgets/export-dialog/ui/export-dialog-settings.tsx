@@ -10,7 +10,7 @@ export function ExportDialogSettings({
   children,
 }: ExportDialogSettingsProps): JSX.Element {
   return (
-    <div className="shrink-0 max-md:border-t md:w-90 md:overflow-y-auto md:border-l">
+    <div className="shrink-0 md:w-90 md:overflow-y-auto md:border-l">
       <FieldGroup className="gap-4 p-4">{children}</FieldGroup>
     </div>
   );

@@ -111,6 +111,8 @@ export function ExportSettingsDialog({
             zoomIn: t("common.canvas.zoomIn"),
             zoomOut: t("common.canvas.zoomOut"),
             fit: t("common.canvas.fit"),
+            pin: t("editor.export.pinPreview"),
+            unpin: t("editor.export.unpinPreview"),
           }}
         />
 
