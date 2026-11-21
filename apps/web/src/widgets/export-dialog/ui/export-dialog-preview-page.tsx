@@ -1,19 +1,13 @@
-import { type JSX, type RefObject, useState } from "react";
+import type { JSX, RefObject } from "react";
 import {
   type ReactZoomPanPinchRef,
   TransformComponent,
   TransformWrapper,
 } from "react-zoom-pan-pinch";
 
-import {
-  MAX_ZOOM,
-  MIN_ZOOM,
-  WHEEL_ZOOM_STEP,
-  ZOOMED_THRESHOLD,
-} from "../model";
+import { type PreviewFit, WHEEL_ZOOM_STEP } from "../model";
 
 const CELL = 12;
-const MAX_ENLARGEMENT = 2;
 
 export interface ExportDialogPreviewPageProps {
   readonly svg: string;
@@ -24,6 +18,7 @@ export interface ExportDialogPreviewPageProps {
   readonly checkerId: string;
   readonly colors: Record<string, string>;
   readonly transformRef: RefObject<ReactZoomPanPinchRef | null>;
+  readonly fit: PreviewFit;
 }
 
 export function ExportDialogPreviewPage({
@@ -35,79 +30,101 @@ export function ExportDialogPreviewPage({
   checkerId,
   colors,
   transformRef,
+  fit,
 }: ExportDialogPreviewPageProps): JSX.Element {
-  const [zoomed, setZoomed] = useState(false);
+  const {
+    fitScale,
+    maxScale,
+    zoomed,
+    syncZoomed,
+    toggleZoom,
+    fit: fitView,
+  } = fit;
   const width = size.width + padding * 2;
   const height = size.height + padding * 2;
   const corner = Math.min(radius, width / 2, height / 2);
+  const cell = CELL / fitScale;
 
   return (
-    <TransformWrapper
-      ref={transformRef}
-      minScale={MIN_ZOOM}
-      maxScale={MAX_ZOOM}
-      limitToBounds
-      centerZoomedOut
-      doubleClick={{ mode: "reset" }}
-      wheel={{ step: WHEEL_ZOOM_STEP }}
-      panning={{ disabled: !zoomed }}
-      onTransform={(_, state) => {
-        setZoomed(state.scale > ZOOMED_THRESHOLD);
-      }}
-    >
-      <TransformComponent
-        wrapperClass="absolute! inset-0! size-full! cursor-grab active:cursor-grabbing"
-        wrapperStyle={{ touchAction: zoomed ? "none" : "pan-y" }}
-        contentClass="size-full! flex-nowrap! items-center justify-center p-6"
+    <div className="absolute inset-0" onDoubleClick={toggleZoom}>
+      <TransformWrapper
+        ref={transformRef}
+        initialScale={fitScale}
+        minScale={fitScale}
+        maxScale={maxScale}
+        limitToBounds
+        centerOnInit
+        centerZoomedOut
+        doubleClick={{ disabled: true }}
+        wheel={{ step: WHEEL_ZOOM_STEP }}
+        panning={{ disabled: !zoomed }}
+        onInit={() => {
+          fitView(0);
+        }}
+        onTransform={(_, state) => {
+          syncZoomed(state.scale);
+        }}
       >
-        <svg
-          viewBox={`0 0 ${String(width)} ${String(height)}`}
-          className="size-full drop-shadow-md"
-          style={{
-            maxWidth: width * MAX_ENLARGEMENT,
-            maxHeight: height * MAX_ENLARGEMENT,
-          }}
-          aria-hidden
+        <TransformComponent
+          wrapperClass="absolute! inset-0! size-full! cursor-grab active:cursor-grabbing"
+          wrapperStyle={{ touchAction: zoomed ? "none" : "pan-y" }}
+          contentClass="flex-nowrap!"
         >
-          {background === null ? (
-            <>
-              <defs>
-                <pattern
-                  id={checkerId}
-                  width={CELL * 2}
-                  height={CELL * 2}
-                  patternUnits="userSpaceOnUse"
-                >
-                  <rect width={CELL} height={CELL} fill="var(--muted)" />
-                  <rect
-                    x={CELL}
-                    y={CELL}
-                    width={CELL}
-                    height={CELL}
-                    fill="var(--muted)"
-                  />
-                </pattern>
-              </defs>
+          <svg
+            width={width}
+            height={height}
+            viewBox={`0 0 ${String(width)} ${String(height)}`}
+            className="block"
+            style={{
+              borderRadius: background === null ? 0 : corner,
+              boxShadow: `0 ${String(4 / fitScale)}px ${String(12 / fitScale)}px rgb(0 0 0 / 0.14), 0 0 0 ${String(1 / fitScale)}px rgb(0 0 0 / 0.06)`,
+            }}
+            aria-hidden
+          >
+            {background === null ? (
+              <>
+                <defs>
+                  <pattern
+                    id={checkerId}
+                    width={cell * 2}
+                    height={cell * 2}
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <rect width={cell} height={cell} fill="var(--muted)" />
+                    <rect
+                      x={cell}
+                      y={cell}
+                      width={cell}
+                      height={cell}
+                      fill="var(--muted)"
+                    />
+                  </pattern>
+                </defs>
 
-              <rect width={width} height={height} fill={`url(#${checkerId})`} />
-            </>
-          ) : (
-            <rect
-              width={width}
-              height={height}
-              rx={corner}
-              ry={corner}
-              fill={background}
+                <rect
+                  width={width}
+                  height={height}
+                  fill={`url(#${checkerId})`}
+                />
+              </>
+            ) : (
+              <rect
+                width={width}
+                height={height}
+                rx={corner}
+                ry={corner}
+                fill={background}
+              />
+            )}
+
+            <g
+              transform={`translate(${String(padding)} ${String(padding)})`}
+              style={colors}
+              dangerouslySetInnerHTML={{ __html: svg }}
             />
-          )}
-
-          <g
-            transform={`translate(${String(padding)} ${String(padding)})`}
-            style={colors}
-            dangerouslySetInnerHTML={{ __html: svg }}
-          />
-        </svg>
-      </TransformComponent>
-    </TransformWrapper>
+          </svg>
+        </TransformComponent>
+      </TransformWrapper>
+    </div>
   );
 }

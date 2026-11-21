@@ -8,7 +8,12 @@ import { usePersistedState } from "@shared/lib/use-persisted-state";
 import { Badge } from "@shared/ui/badge";
 import { Spinner } from "@shared/ui/spinner";
 
-import { MIN_SETTINGS_ROOM, PIN_STORAGE_KEY, useSettingsRoom } from "../model";
+import {
+  MIN_SETTINGS_ROOM,
+  PIN_STORAGE_KEY,
+  usePreviewFit,
+  useSettingsRoom,
+} from "../model";
 import {
   ExportDialogPreviewControls,
   type ExportDialogPreviewLabels,
@@ -65,6 +70,11 @@ export function ExportDialogPreview({
   const ready = svg !== null && size !== null;
   const rootRef = useRef<HTMLDivElement>(null);
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
+  const pageSize =
+    size === null
+      ? null
+      : { width: size.width + padding * 2, height: size.height + padding * 2 };
+  const previewFit = usePreviewFit(rootRef, transformRef, pageSize);
   const [stored, store] = usePersistedState(PIN_STORAGE_KEY, "");
   const roomy = useSettingsRoom(rootRef, MIN_SETTINGS_ROOM);
   const pinned = stored === "1";
@@ -74,11 +84,11 @@ export function ExportDialogPreview({
     <div
       ref={rootRef}
       className={cn(
-        "relative h-64 shrink-0 overflow-hidden bg-card bg-drafting-grid max-md:border-b md:h-auto md:min-h-112 md:flex-1",
-        stuck && `max-md:sticky max-md:top-0 max-md:z-20 max-md:shadow-md`,
+        "relative h-[min(16rem,40dvh)] shrink-0 overflow-hidden bg-card bg-drafting-grid max-md:border-b md:h-auto md:min-h-0 md:flex-1",
+        stuck && "max-md:sticky max-md:top-0 max-md:z-20",
       )}
     >
-      {ready ? (
+      {ready && previewFit.ready ? (
         <ExportDialogPreviewPage
           svg={svg}
           size={size}
@@ -86,12 +96,13 @@ export function ExportDialogPreview({
           radius={radius}
           background={background}
           checkerId={checkerId}
-          transformRef={transformRef}
           colors={{
             color: ink,
             "--card": fill === "none" ? "transparent" : fill,
             "--background": labelBackground,
           }}
+          transformRef={transformRef}
+          fit={previewFit}
         />
       ) : (
         <p className="absolute inset-0 flex items-center justify-center gap-1.5 p-6 text-center text-xs text-muted-foreground">
@@ -134,14 +145,10 @@ export function ExportDialogPreview({
       {ready ? (
         <ExportDialogPreviewControls
           labels={labels}
-          onZoomIn={() => {
-            void transformRef.current?.zoomIn();
-          }}
-          onZoomOut={() => {
-            void transformRef.current?.zoomOut();
-          }}
+          onZoomIn={previewFit.zoomIn}
+          onZoomOut={previewFit.zoomOut}
           onFit={() => {
-            void transformRef.current?.resetTransform();
+            previewFit.fit();
           }}
           pin={
             roomy

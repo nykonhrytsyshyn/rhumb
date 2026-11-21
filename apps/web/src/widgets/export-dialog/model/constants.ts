@@ -1,9 +1,24 @@
-/** The preview stays at its fitted size at one, and magnifies up to this. */
-export const MIN_ZOOM = 1;
-export const MAX_ZOOM = 8;
+/** Margin kept around the fitted page inside the preview, in pixels. */
+export const PREVIEW_MARGIN = 24;
+
+/** Small diagrams are enlarged at most this much when fitted to the preview. */
+export const MAX_ENLARGEMENT = 2;
+
+/** Lowest fit scale allowed, so even very large diagrams can be fitted. */
+export const MIN_FIT_SCALE = 0.02;
+
+/** Maximum magnification relative to the diagram's natural pixel size. */
+export const MAX_NATURAL_ZOOM = 8;
+
+/** Minimum magnification relative to the fitted view (for small diagrams). */
+export const MIN_RELATIVE_ZOOM = 8;
+
+/** Magnification factor applied when double-clicking or double-tapping to zoom in. */
+export const DOUBLE_CLICK_ZOOM_FACTOR = 3;
+
 export const WHEEL_ZOOM_STEP = 0.002;
 
-/** Above this the picture counts as magnified and a finger drags it. */
+/** Above this multiple of `fitScale`, the picture counts as magnified and a finger drags it. */
 export const ZOOMED_THRESHOLD = 1.001;
 
 /**
