@@ -14,7 +14,7 @@ export const MAX_NATURAL_ZOOM = 8;
 export const MIN_RELATIVE_ZOOM = 8;
 
 /** Magnification factor applied when double-clicking or double-tapping to zoom in. */
-export const DOUBLE_CLICK_ZOOM_FACTOR = 3;
+export const DOUBLE_CLICK_ZOOM_FACTOR = 2;
 
 export const WHEEL_ZOOM_STEP = 0.002;
 

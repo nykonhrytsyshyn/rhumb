@@ -36,6 +36,10 @@ import {
 } from "@shared/ui/dropdown-menu";
 import { Spinner } from "@shared/ui/spinner";
 
+import {
+  defaultExportName,
+  formatExportTimestamp,
+} from "../../../lib/export-diagram";
 import type { RenderState } from "../../../model/diagram";
 import { useExportActions } from "../../../model/use-export-actions";
 import { useExportSettings } from "../../../model/use-export-settings";
@@ -45,17 +49,29 @@ export interface ActionsSectionProps {
   readonly source: string;
   readonly profile: StandardProfile | undefined;
   readonly rendered: RenderState;
+  readonly diagramName?: string | undefined;
 }
 
 export function ActionsSection({
   source,
   profile,
   rendered,
+  diagramName,
 }: ActionsSectionProps): JSX.Element {
   const t = useT();
   const model = useExportSettings();
-  const actions = useExportActions(source, profile, model.settings);
+  const actions = useExportActions(
+    source,
+    profile,
+    model.settings,
+    diagramName,
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [timestamp, setTimestamp] = useState(() => formatExportTimestamp());
+  const defaultFileName =
+    diagramName !== undefined && diagramName.trim() !== ""
+      ? defaultExportName(diagramName)
+      : timestamp;
 
   const { settings } = model;
   const { size } = rendered;
@@ -101,6 +117,7 @@ export function ActionsSection({
             <Button
               variant="ghost"
               onClick={() => {
+                setTimestamp(formatExportTimestamp());
                 setDialogOpen(true);
               }}
               aria-label={t("editor.export.open")}
@@ -211,6 +228,7 @@ export function ActionsSection({
         actions={actions}
         profile={profile}
         rendered={rendered}
+        defaultFileName={defaultFileName}
       />
     </EditorPanel.Section>
   );

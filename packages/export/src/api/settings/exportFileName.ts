@@ -12,10 +12,10 @@ export function exportExtension(format: ExportFormat): string {
   return EXTENSIONS[format];
 }
 
-/** File name for a download; the standard's id is used when none is typed. */
+/** File name for a download; `fallback` is used when none is typed. */
 export function exportFileName(
-  profileId: string,
+  fallback: string,
   { fileName, format }: ExportSettings,
 ): string {
-  return `${toFileName(fileName, profileId)}.${exportExtension(format)}`;
+  return `${toFileName(fileName, toFileName(fallback))}.${exportExtension(format)}`;
 }

@@ -6,7 +6,7 @@ import { ProfileRegistry } from "@rhumb/profiles";
 
 import { downloadBlob } from "@shared/lib/download-blob";
 
-import { copyImage, downloadProfile, exportImage } from ".";
+import { copyImage, defaultExportName, downloadProfile, exportImage } from ".";
 import { renderDiagram } from "../../api/render-diagram";
 
 vi.mock("../../api/render-diagram", () => ({ renderDiagram: vi.fn() }));
@@ -112,7 +112,7 @@ describe("export-diagram", () => {
 
     const { blob, name } = lastDownload();
 
-    expect(name).toBe(`${profile.id}.svg`);
+    expect(name).toMatch(/^rhumb-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.svg$/);
     expect(blob.type).toBe("image/svg+xml");
     expect(await blob.text()).toContain('fill="#778899"');
   });
@@ -169,7 +169,9 @@ describe("export-diagram", () => {
         options: { format: "webp", quality: 0.8 },
       },
     ]);
-    expect(lastDownload().name).toBe(`${profile.id}.webp`);
+    expect(lastDownload().name).toMatch(
+      /^rhumb-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.webp$/,
+    );
   });
 
   it("gives JPEG a solid page because it cannot be see-through", async () => {
@@ -218,5 +220,16 @@ describe("export-diagram", () => {
 
     expect(name).toBe(`${profile.id}.json`);
     expect(blob.type).toBe("application/json");
+  });
+
+  it("uses the saved diagram name when given and cleans unsafe characters", async () => {
+    await exportImage(
+      "src",
+      profile,
+      settings({ format: "svg" }),
+      defaultExportName("Lab 5 / Task 1"),
+    );
+
+    expect(lastDownload().name).toBe("Lab 5 - Task 1.svg");
   });
 });

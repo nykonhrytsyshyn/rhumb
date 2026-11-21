@@ -6,7 +6,12 @@ import type { StandardProfile } from "@rhumb/profiles";
 import { useT } from "@shared/i18n";
 import { getErrorMessage } from "@shared/lib/get-error-message";
 
-import { copyImage, copySvg, exportImage } from "../lib/export-diagram";
+import {
+  copyImage,
+  copySvg,
+  defaultExportName,
+  exportImage,
+} from "../lib/export-diagram";
 
 export type ExportAction = "download" | "copy-image" | "copy-svg";
 
@@ -25,6 +30,7 @@ export function useExportActions(
   source: string,
   profile: StandardProfile | undefined,
   settings: ExportSettings,
+  diagramName?: string,
 ): ExportActions {
   const t = useT();
   const [busy, setBusy] = useState<ExportAction | null>(null);
@@ -61,7 +67,12 @@ export function useExportActions(
       try {
         switch (action) {
           case "download":
-            await exportImage(source, profile, settings);
+            await exportImage(
+              source,
+              profile,
+              settings,
+              defaultExportName(diagramName),
+            );
             break;
           case "copy-image":
             await copyImage(source, profile, settings);
@@ -78,7 +89,7 @@ export function useExportActions(
         setBusy(null);
       }
     },
-    [source, profile, settings, t],
+    [source, profile, settings, diagramName, t],
   );
 
   return { busy, copied, failure, run };

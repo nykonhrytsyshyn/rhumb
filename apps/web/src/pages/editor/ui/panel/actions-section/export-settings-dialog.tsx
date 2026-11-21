@@ -42,6 +42,7 @@ export interface ExportSettingsDialogProps {
   readonly actions: ExportActions;
   readonly profile: StandardProfile | undefined;
   readonly rendered: RenderState;
+  readonly defaultFileName: string;
 }
 
 export function ExportSettingsDialog({
@@ -51,6 +52,7 @@ export function ExportSettingsDialog({
   actions,
   profile,
   rendered,
+  defaultFileName,
 }: ExportSettingsDialogProps): JSX.Element {
   const t = useT();
   const { settings, change, applyPreset, reset } = model;
@@ -261,7 +263,7 @@ export function ExportSettingsDialog({
             <ExportDialog.Name
               label={t("editor.export.fileName")}
               value={settings.fileName}
-              placeholder={profile?.id ?? ""}
+              placeholder={defaultFileName}
               extension={exportExtension(settings.format)}
               onChange={(fileName) => {
                 change({ fileName });

@@ -133,7 +133,7 @@ export function usePreviewFit(
 
     const target = Math.min(
       maxScale,
-      Math.max(fitScale * DOUBLE_CLICK_ZOOM_FACTOR, 1),
+      Math.max(fitScale * DOUBLE_CLICK_ZOOM_FACTOR, 0.1),
     );
     const step = Math.log(target / fitScale);
 

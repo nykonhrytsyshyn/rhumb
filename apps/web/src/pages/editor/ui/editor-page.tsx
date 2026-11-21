@@ -69,6 +69,7 @@ export function EditorPage(): JSX.Element {
               <LibraryTab
                 source={page.source}
                 profileId={page.editor.selected.id}
+                library={page.library}
                 currentId={page.currentDiagramId}
                 onCurrentChange={page.setCurrentDiagramId}
                 onOpen={page.openDiagram}
@@ -87,6 +88,7 @@ export function EditorPage(): JSX.Element {
               source={page.source}
               profile={page.editor.active}
               rendered={page.rendered}
+              diagramName={page.currentDiagramName}
             />
           </EditorPanel.Content>
         </EditorPanel.Body>
