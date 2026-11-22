@@ -1,4 +1,4 @@
-<!--suppress HtmlDeprecatedAttribute, HtmlUnknownTarget -->
+<!--suppress HtmlDeprecatedAttribute, HtmlUnknownTarget, CheckImageSize -->
 <div align="center">
   <!--
   =====================
@@ -157,12 +157,12 @@ engineering document.
 | **Useful exports**        | Download SVG or PNG, copy the rendered image, or download the source and a profile for reuse                                       |
 | **Strict on purpose**     | Unsupported syntax is rejected with a line-numbered error instead of producing an approximate drawing                              |
 
-| Tab        | What it does                                                             |
-|------------|--------------------------------------------------------------------------|
-| **Code**   | Edit the source, pick examples and export the current diagram            |
-| **Saved**  | Keep named diagrams in the browser (IndexedDB) and reopen them later     |
-| **Docs**   | Read the supported source syntax without leaving the editor              |
-| **Config** | Select a built-in standard, tune a custom profile, import or export JSON |
+| Tab        | What it does                                                                                   |
+|------------|------------------------------------------------------------------------------------------------|
+| **Code**   | Edit the source, pick examples and export the current diagram                                  |
+| **Saved**  | Keep named diagrams in the browser (IndexedDB) and reopen them later                           |
+| **Docs**   | Read the supported source syntax without leaving the editor                                    |
+| **Config** | Select a built-in standard, create any number of named custom standards, import or export JSON |
 
 > [!NOTE]
 > There is no server-side workspace and no account. Clearing your browser's site
@@ -412,12 +412,14 @@ A side is `top`, `right`, `bottom` or `left`, or an open choice that Rhumb
 settles for each diagram: `side` means left or right and `vertical` means top
 or bottom, so two open choices can share a pair. A branch that returns to a
 preparation block takes the side that block receives returning lines on.
-Built-in profiles are read-only in the editor - choose **Custom** to change
-values.
+Built-in profiles are read-only in the editor. Create a **custom standard**
+from any profile to change values: you can keep as many as you like, each under
+its own name, and the saved diagrams remember which one they use. Deleting a
+custom standard moves the diagrams saved with it to a standard you choose.
 
 ```mermaid
 flowchart LR
-  B["Built-in profile<br/>(read-only)"] -->|"choose Custom"| C["Custom profile<br/>(editable)"]
+  B["Built-in profile<br/>(read-only)"] -->|"Create"| C["Custom standards<br/>(editable, any number)"]
   C -->|"Save as JSON"| F[("profile.json")]
   F -->|"Load"| C
   C --> R(["Rendered diagram"])

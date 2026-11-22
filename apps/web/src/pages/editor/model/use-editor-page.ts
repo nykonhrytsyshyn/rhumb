@@ -33,6 +33,10 @@ export interface EditorPageModel {
   readonly setCurrentDiagramId: (id: string | null) => void;
   readonly openDiagram: (diagram: SavedDiagram) => void;
   readonly selectProfile: (id: string) => void;
+  readonly removeProfile: (
+    id: string,
+    replacementId: string,
+  ) => Promise<boolean>;
   readonly selectSample: (source: string) => void;
   readonly followLanguage: (language: Language) => void;
 }
@@ -88,6 +92,16 @@ export function useEditorPage(): EditorPageModel {
     selectProfile: (id) => {
       editor.select(id);
       refit();
+    },
+    removeProfile: async (id, replacementId) => {
+      if (!(await library.reassignProfile(id, replacementId))) {
+        return false;
+      }
+
+      editor.remove(id, replacementId);
+      refit();
+
+      return true;
     },
     selectSample: (next) => {
       setSource(next);

@@ -218,7 +218,7 @@ describe("export-diagram", () => {
 
     const { blob, name } = lastDownload();
 
-    expect(name).toBe(`${profile.id}.json`);
+    expect(name).toBe(`${profile.title}.json`);
     expect(blob.type).toBe("application/json");
   });
 

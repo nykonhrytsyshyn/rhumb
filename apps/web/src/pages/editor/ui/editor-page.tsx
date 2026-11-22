@@ -61,6 +61,8 @@ export function EditorPage(): JSX.Element {
               <ConfigTab
                 editor={page.editor}
                 onProfileSelect={page.selectProfile}
+                onProfileRemove={page.removeProfile}
+                library={page.library}
                 developer={developer}
               />
             </EditorPanel.Pane>

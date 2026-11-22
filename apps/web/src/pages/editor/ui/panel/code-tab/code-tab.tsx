@@ -31,7 +31,7 @@ export function CodeTab({
       </div>
 
       {error !== null && (
-        <Alert variant="banner">
+        <Alert variant="banner-destructive">
           <IconAlertTriangle className="size-4 shrink-0" />
           <span>{error}</span>
         </Alert>

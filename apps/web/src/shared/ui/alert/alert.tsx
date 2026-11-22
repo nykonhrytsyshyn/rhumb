@@ -13,8 +13,8 @@ export function Alert({
 }: AlertProps): JSX.Element {
   return (
     <div
-      role="alert"
       data-slot="alert"
+      role="alert"
       className={cn(alertVariants({ variant }), className)}
       {...props}
     />

@@ -155,12 +155,13 @@ describe("the skill against the parser", () => {
     );
 
     for (const { open, close } of added) {
-      expect(spells(blocks, open, close), `blocks.md: ${open}…${close}`).toBe(
+      expect(spells(blocks, open, close), `blocks.md: ${open}...${close}`).toBe(
         true,
       );
-      expect(spells(short, open, close), `prompt-short: ${open}…${close}`).toBe(
-        true,
-      );
+      expect(
+        spells(short, open, close),
+        `prompt-short: ${open}...${close}`,
+      ).toBe(true);
     }
   });
 
@@ -172,7 +173,7 @@ describe("the skill against the parser", () => {
     for (const { open, close } of inherited) {
       expect(
         blocks.includes(`${open}text${close}`) || spells(blocks, open, close),
-        `blocks.md: ${open}…${close}`,
+        `blocks.md: ${open}...${close}`,
       ).toBe(true);
     }
   });
