@@ -10,7 +10,7 @@ import {
 import type { AgentKitFileInfo } from "@rhumb/agent-kit";
 
 import { useT } from "@shared/i18n";
-import { Button } from "@shared/ui/button";
+import { Button, ButtonGroup } from "@shared/ui/button";
 
 import { useAgentKitFile } from "../model";
 
@@ -22,6 +22,21 @@ export function AgentKitItem({ file }: AgentKitItemProps): JSX.Element {
   const t = useT();
   const { busy, done, failure, run } = useAgentKitFile(file);
   const isPrompt = file.kind === "prompt";
+
+  const downloadButton = (
+    <Button
+      variant={isPrompt ? "outline" : "default"}
+      size="sm"
+      disabled={busy !== null}
+      className="min-w-0 flex-auto shrink overflow-hidden"
+      onClick={() => {
+        run("download");
+      }}
+    >
+      {done === "download" ? <IconCheck /> : <IconDownload />}
+      <span className="min-w-0 truncate">{t("common.agentKit.download")}</span>
+    </Button>
+  );
 
   return (
     <li className="flex flex-col gap-2 p-3">
@@ -35,47 +50,47 @@ export function AgentKitItem({ file }: AgentKitItemProps): JSX.Element {
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {isPrompt && (
-          <Button
-            variant="default"
-            size="sm"
-            disabled={busy !== null}
-            onClick={() => {
-              run("copy");
-            }}
-          >
-            {done === "copy" ? <IconCheck /> : <IconCopy />}
-            {done === "copy"
-              ? t("common.agentKit.copied")
-              : t("common.agentKit.copy")}
-          </Button>
-        )}
+      <div className="flex min-w-0 flex-wrap gap-2">
+        {isPrompt ? (
+          <ButtonGroup className="w-auto max-w-full min-w-0 grow">
+            <Button
+              variant="default"
+              size="sm"
+              disabled={busy !== null}
+              className="min-w-0 flex-auto shrink overflow-hidden"
+              onClick={() => {
+                run("copy");
+              }}
+            >
+              {done === "copy" ? <IconCheck /> : <IconCopy />}
+              <span className="min-w-0 truncate">
+                {done === "copy"
+                  ? t("common.agentKit.copied")
+                  : t("common.agentKit.copy")}
+              </span>
+            </Button>
 
-        <Button
-          variant={isPrompt ? "outline" : "default"}
-          size="sm"
-          disabled={busy !== null}
-          onClick={() => {
-            run("download");
-          }}
-        >
-          {done === "download" ? <IconCheck /> : <IconDownload />}
-          {t("common.agentKit.download")}
-        </Button>
+            {downloadButton}
+          </ButtonGroup>
+        ) : (
+          downloadButton
+        )}
 
         <Button
           variant="outline"
           size="sm"
           disabled={busy !== null}
+          className="min-w-0 flex-auto shrink overflow-hidden"
           onClick={() => {
             run("link");
           }}
         >
           {done === "link" ? <IconCheck /> : <IconLink />}
-          {done === "link"
-            ? t("common.agentKit.linkCopied")
-            : t("common.agentKit.copyLink")}
+          <span className="min-w-0 truncate">
+            {done === "link"
+              ? t("common.agentKit.linkCopied")
+              : t("common.agentKit.copyLink")}
+          </span>
         </Button>
       </div>
 
