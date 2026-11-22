@@ -9,9 +9,13 @@ import type { TranslationKey } from "@shared/i18n";
 import { useT } from "@shared/i18n";
 
 import { BLOCK_NAMES } from "../../../../config/block-names";
+import { SITE_FONTS, SITE_FONT_GROUPS } from "../../../../config/site-fonts";
 import { isGroupInvalid } from "../../../../lib/is-group-invalid";
+import { matchSiteFont } from "../../../../lib/match-site-font";
 import { type FormState, readField } from "../../../../lib/profile-form";
 import type { ParsedForm } from "../../../../lib/profile-form";
+
+const FONT_SAMPLE = "Aa Bb Cc Аа Бб Її Єє 0123456789";
 
 export interface ProfileFieldsProps {
   readonly values: FormState;
@@ -45,6 +49,15 @@ export function ProfileFields({
       error={errorOf(path)}
     />
   );
+
+  const fontGroups = SITE_FONT_GROUPS.map((group) => ({
+    label: t(`editor.config.fontPicker.groups.${group}`),
+    options: SITE_FONTS.filter((font) => font.group === group).map((font) => ({
+      value: font.id,
+      label: font.family.replace(" Variable", ""),
+      stack: font.stack,
+    })),
+  }));
 
   const sides = SIDE_CHOICES.map((side) => ({
     value: side,
@@ -146,11 +159,16 @@ export function ProfileFields({
       >
         {[
           <ProfileForm.Wide key="font.family">
-            <ProfileForm.Text
+            <ProfileForm.Font
               path="font.family"
               label={t("editor.config.fields.fontFamily")}
+              hint={t("editor.config.fontPicker.hint")}
               value={readField(values, "font.family")}
               error={errorOf("font.family")}
+              groups={fontGroups}
+              selected={matchSiteFont(readField(values, "font.family"))?.id}
+              customLabel={t("editor.config.fontPicker.custom")}
+              sample={FONT_SAMPLE}
             />
           </ProfileForm.Wide>,
           number("font.size", "editor.config.fields.fontSize"),
