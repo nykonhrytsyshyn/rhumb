@@ -1,4 +1,4 @@
-import { type JSX, useMemo } from "react";
+import { type JSX, useEffect, useMemo } from "react";
 
 import { DiagramLibrary } from "@widgets/diagram-library";
 
@@ -10,7 +10,7 @@ import type {
   DiagramLibrary as DiagramLibraryModel,
   SavedDiagram,
 } from "../../../model/diagram";
-import { CUSTOM_PROFILE_ID, useProfiles } from "../../../model/profile";
+import { useProfiles } from "../../../model/profile";
 import { useLibrarySelection } from "../../../model/use-library-selection";
 import { useLibraryView } from "../../../model/use-library-view";
 import { GridSection } from "./grid-section";
@@ -37,10 +37,23 @@ export function LibraryTab({
   onCurrentChange,
   onOpen,
 }: LibraryTabProps): JSX.Element {
-  const { t, language } = useI18n();
+  const { language } = useI18n();
   const state = useLibraryView();
   const profiles = useProfiles();
   const { view } = state;
+  const { profileId: filteredProfileId } = view;
+  const { setProfile } = state;
+
+  // A standard that was deleted can no longer be a filter
+  useEffect(() => {
+    if (
+      filteredProfileId !== null &&
+      !profiles.some((profile) => profile.id === filteredProfileId)
+    ) {
+      setProfile(null);
+    }
+  }, [filteredProfileId, profiles, setProfile]);
+
   const scrollRef = useScrollMemory("library", library.items !== undefined);
 
   const items = library.items ?? NO_ITEMS;
@@ -63,11 +76,7 @@ export function LibraryTab({
   }
 
   function standardTitle(id: string): string {
-    const profile = profiles.find((item) => item.id === id);
-
-    return id === CUSTOM_PROFILE_ID
-      ? t("editor.config.custom")
-      : (profile?.title ?? id);
+    return profiles.find((item) => item.id === id)?.title ?? id;
   }
 
   return (

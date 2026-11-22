@@ -14,7 +14,7 @@ import {
   countActiveFilters,
   hasFilterChanges,
 } from "../../../../lib/library-view";
-import { CUSTOM_PROFILE_ID, useProfiles } from "../../../../model/profile";
+import { useProfiles } from "../../../../model/profile";
 import type { LibrarySelection } from "../../../../model/use-library-selection";
 import type { LibraryViewState } from "../../../../model/use-library-view";
 
@@ -43,10 +43,7 @@ export function SearchSection({
     { value: ALL_PROFILES, label: t("editor.library.filter.allStandards") },
     ...profiles.map((profile) => ({
       value: profile.id,
-      label:
-        profile.id === CUSTOM_PROFILE_ID
-          ? t("editor.config.custom")
-          : profile.title,
+      label: profile.title,
     })),
   ];
   const pageSizeOptions = LIBRARY_PAGE_SIZES.map((size) => ({

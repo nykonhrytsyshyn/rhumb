@@ -27,6 +27,7 @@ export interface DiagramLibrary {
   ) => Promise<SavedDiagram | undefined>;
   readonly remove: (id: string) => Promise<boolean>;
   readonly removeMany: (ids: readonly string[]) => Promise<readonly string[]>;
+  readonly reassignProfile: (from: string, to: string) => Promise<boolean>;
 }
 
 function newestFirst(items: readonly SavedDiagram[]): readonly SavedDiagram[] {
@@ -178,5 +179,49 @@ export function useDiagramLibrary(
     [store],
   );
 
-  return { items, error, create, update, duplicate, remove, removeMany };
+  const reassignProfile = useCallback(
+    async (from: string, to: string): Promise<boolean> => {
+      const affected = (items ?? []).filter((item) => item.profileId === from);
+
+      if (affected.length === 0) {
+        return true;
+      }
+
+      const moved = affected.map((item) => ({ ...item, profileId: to }));
+      const results = await Promise.allSettled(
+        moved.map((item) => store.put(item)),
+      );
+      const saved = moved.filter(
+        (_, index) => results[index]?.status === "fulfilled",
+      );
+      const failure = results.find(
+        (result): result is PromiseRejectedResult =>
+          result.status === "rejected",
+      );
+
+      setError(failure === undefined ? null : getErrorMessage(failure.reason));
+
+      if (saved.length > 0) {
+        const byId = new Map(saved.map((item) => [item.id, item]));
+
+        setItems((previous) =>
+          previous?.map((item) => byId.get(item.id) ?? item),
+        );
+      }
+
+      return failure === undefined;
+    },
+    [items, store],
+  );
+
+  return {
+    items,
+    error,
+    create,
+    update,
+    duplicate,
+    remove,
+    removeMany,
+    reassignProfile,
+  };
 }

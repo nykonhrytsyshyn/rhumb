@@ -19,16 +19,16 @@ describe("translate", () => {
 
   it("fills in placeholders and keeps unknown ones", () => {
     expect(translate("editor.config.loaded", "en", { title: "ISO" })).toBe(
-      "Profile loaded: ISO",
+      "Standard added: ISO",
     );
     expect(translate("editor.config.loaded", "uk", { title: "ISO" })).toBe(
-      "Профіль завантажено: ISO",
+      "Стандарт додано: ISO",
     );
     expect(translate("editor.config.loaded", "en")).toBe(
-      "Profile loaded: {title}",
+      "Standard added: {title}",
     );
     expect(translate("editor.config.loaded", "en", { other: 1 })).toBe(
-      "Profile loaded: {title}",
+      "Standard added: {title}",
     );
   });
 });

@@ -24,6 +24,22 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "OpenGost Type A";
+  src: url("../assets/fonts/OpenGost-Type-A.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OpenGost Type B";
+  src: url("../assets/fonts/OpenGost-Type-B.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans:
     "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",

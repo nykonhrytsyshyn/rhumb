@@ -10,6 +10,7 @@ import { ElkLayoutEngine } from "@rhumb/layout-elk";
 import type { StandardProfile } from "@rhumb/profiles";
 
 import { CanvasTextMeasurer } from "../lib/canvas-text-measurer";
+import { loadProfileFont } from "../lib/load-profile-font";
 
 const PIXELS_PER_MM = 4;
 
@@ -35,11 +36,13 @@ export interface RenderOptions {
   readonly appearance?: Partial<Appearance>;
 }
 
-export function renderDiagram(
+export async function renderDiagram(
   source: string,
   profile: StandardProfile,
   options: RenderOptions = {},
 ): Promise<EngineResult> {
+  await loadProfileFont(profile);
+
   return getEngine().render(source, {
     profile,
     scale: PIXELS_PER_MM,

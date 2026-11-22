@@ -1,4 +1,4 @@
-<!--suppress HtmlDeprecatedAttribute, HtmlUnknownTarget -->
+<!--suppress HtmlDeprecatedAttribute, HtmlUnknownTarget, CheckImageSize -->
 <div align="center">
   <!--
   =====================
@@ -157,12 +157,12 @@ engineering document.
 | **Useful exports**        | Download SVG or PNG, copy the rendered image, or download the source and a profile for reuse                                       |
 | **Strict on purpose**     | Unsupported syntax is rejected with a line-numbered error instead of producing an approximate drawing                              |
 
-| Tab        | What it does                                                             |
-|------------|--------------------------------------------------------------------------|
-| **Code**   | Edit the source, pick examples and export the current diagram            |
-| **Saved**  | Keep named diagrams in the browser (IndexedDB) and reopen them later     |
-| **Docs**   | Read the supported source syntax without leaving the editor              |
-| **Config** | Select a built-in standard, tune a custom profile, import or export JSON |
+| Tab        | What it does                                                                                   |
+|------------|------------------------------------------------------------------------------------------------|
+| **Code**   | Edit the source, pick examples and export the current diagram                                  |
+| **Saved**  | Keep named diagrams in the browser (IndexedDB) and reopen them later                           |
+| **Docs**   | Read the supported source syntax without leaving the editor                                    |
+| **Config** | Select a built-in standard, create any number of named custom standards, import or export JSON |
 
 > [!NOTE]
 > There is no server-side workspace and no account. Clearing your browser's site
@@ -396,15 +396,15 @@ diagram. All lengths are in millimetres.
 | **ISO 5807**       | `iso-5807`       | The default profile |
 | **GOST 19.701-90** | `gost-19.701-90` |                     |
 
-| Section           | Controls                                                                                            |
-|-------------------|-----------------------------------------------------------------------------------------------------|
-| `grid`, `padding` | The drawing grid and the gap between a block's border and its text                                  |
-| `spacing`         | Distance between blocks and layers, clearance around blocks                                         |
-| `line`            | Line and thick-line widths, dash pattern, label style (beside / inline), crossing jumps, arrowheads |
-| `font`            | Family, size and line height                                                                        |
-| `shapes`          | Minimum width and height of every block kind                                                        |
-| `decision`        | The side a decision is entered from and where its `yes` / `no` branches leave                       |
-| `preparation`     | Entry, repeat, return and exit sides of a preparation block that the flow returns to                |
+| Section           | Controls                                                                                             |
+|-------------------|------------------------------------------------------------------------------------------------------|
+| `grid`, `padding` | The drawing grid and the gap between a block's border and its text                                   |
+| `spacing`         | Distance between blocks and layers, clearance around blocks                                          |
+| `line`            | Line and thick-line widths, dash pattern, label style (beside / inline), crossing jumps, arrowheads  |
+| `font`            | Family, size and line height; site fonts (OpenGost, Inter, JetBrains Mono) are embedded into exports |
+| `shapes`          | Minimum width and height of every block kind                                                         |
+| `decision`        | The side a decision is entered from and where its `yes` / `no` branches leave                        |
+| `preparation`     | Entry, repeat, return and exit sides of a preparation block that the flow returns to                 |
 
 Validation catches impossible profiles early: a decision's entry, `yes` and `no`
 sides must be able to differ, and so must the four sides of a preparation block.
@@ -412,12 +412,14 @@ A side is `top`, `right`, `bottom` or `left`, or an open choice that Rhumb
 settles for each diagram: `side` means left or right and `vertical` means top
 or bottom, so two open choices can share a pair. A branch that returns to a
 preparation block takes the side that block receives returning lines on.
-Built-in profiles are read-only in the editor - choose **Custom** to change
-values.
+Built-in profiles are read-only in the editor. Create a **custom standard**
+from any profile to change values: you can keep as many as you like, each under
+its own name, and the saved diagrams remember which one they use. Deleting a
+custom standard moves the diagrams saved with it to a standard you choose.
 
 ```mermaid
 flowchart LR
-  B["Built-in profile<br/>(read-only)"] -->|"choose Custom"| C["Custom profile<br/>(editable)"]
+  B["Built-in profile<br/>(read-only)"] -->|"Create"| C["Custom standards<br/>(editable, any number)"]
   C -->|"Save as JSON"| F[("profile.json")]
   F -->|"Load"| C
   C --> R(["Rendered diagram"])
@@ -510,7 +512,7 @@ sequenceDiagram
 | [`@rhumb/profiles`](packages/profiles)             | Validated JSON profile schema, registry and built-in profiles                                                           |
 | [`@rhumb/layout-elk`](packages/layout-elk)         | Adapter between Rhumb's `LayoutEngine` contract and ELK's layered, orthogonal layout                                    |
 | [`@rhumb/flowchart`](packages/flowchart)           | Standard-aware shapes, text placement, port planning, edge routes, decision branches, preparation returns and crossings |
-| [`@rhumb/export`](packages/export)                 | Deterministic SVG serialization and browser PNG export primitives                                                       |
+| [`@rhumb/export`](packages/export)                 | Deterministic SVG serialization, font embedding and browser PNG export primitives                                       |
 | [`@rhumb/engine`](packages/engine)                 | The high-level `DiagramEngine` that connects all stages                                                                 |
 | [`@rhumb/agent-kit`](packages/agent-kit)           | Skills and prompts that teach AI agents to write Rhumb diagrams, built from one source and checked against the parser   |
 | [`apps/web`](apps/web)                             | React/Vite editor: persistence, profile editing, language and theme, export actions                                     |

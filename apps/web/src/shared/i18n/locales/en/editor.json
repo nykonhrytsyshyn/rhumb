@@ -6,13 +6,62 @@
     "standard": "Standard",
     "description": "Block sizes, line widths, fonts and branch sides come from the selected profile.",
     "upload": "Load profile",
-    "uploadHint": "Load a JSON profile to use your own standard.",
+    "uploadHint": "Load a JSON profile to add it as a new custom standard.",
     "download": "Download profile",
     "downloadHint": "Save the current profile as JSON to use it as a template.",
     "loadFailed": "Could not load the profile",
-    "loaded": "Profile loaded: {title}",
+    "loaded": "Standard added: {title}",
     "custom": "Custom",
-    "lockedHint": "Built-in standards are read-only. Choose Custom to change the values.",
+    "builtIn": "Built-in",
+    "noCustom": "No custom standards yet",
+    "cancel": "Cancel",
+    "copyTitle": "{title} (copy)",
+    "manage": {
+      "create": "Create a custom standard",
+      "duplicate": "Duplicate",
+      "rename": "Rename",
+      "delete": "Delete"
+    },
+    "nameDialog": {
+      "createTitle": "New custom standard",
+      "createText": "Start from an existing standard and change its values.",
+      "renameTitle": "Rename standard",
+      "renameText": "Saved diagrams keep using this standard under its new name.",
+      "nameLabel": "Name",
+      "namePlaceholder": "For example, Company standard",
+      "baseLabel": "Start from",
+      "create": "Create",
+      "rename": "Rename"
+    },
+    "nameErrors": {
+      "empty": "Enter a name",
+      "tooLong": "No more than {max} characters",
+      "taken": "A standard with this name already exists"
+    },
+    "deleteDialog": {
+      "title": "Delete “{title}”?",
+      "text": "The standard is deleted from this device. This cannot be undone.",
+      "usedText": "Saved diagrams that use it: {count}. They switch to the standard you choose below.",
+      "loading": "Saved diagrams are still loading...",
+      "replaceLabel": "Move saved diagrams to",
+      "confirm": "Delete",
+      "confirmMove": "Move and delete"
+    },
+    "notices": {
+      "created": "Created: {title}",
+      "renamed": "Renamed: {title}",
+      "deleted": "Deleted: {title}",
+      "deleteFailed": "Some saved diagrams could not be moved, so the standard was kept"
+    },
+    "fontPicker": {
+      "hint": "Pick a font the site ships with, or type any font installed on your device into the stack.",
+      "custom": "Own stack",
+      "groups": {
+        "gost": "GOST",
+        "interface": "Interface"
+      }
+    },
+    "lockedHint": "Built-in standards are read-only. Create a custom standard from this one to change the values.",
     "customHint": "Changes are drawn right away. Save them to keep them after a reload.",
     "save": "Save",
     "saved": "Saved",

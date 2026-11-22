@@ -2,6 +2,7 @@ import type { JSX } from "react";
 
 import { ProfileFormChoice } from "./profile-form-choice";
 import { ProfileFormFieldset } from "./profile-form-fieldset";
+import { ProfileFormFont } from "./profile-form-font";
 import { ProfileFormGeneralError } from "./profile-form-general-error";
 import { ProfileFormGroup } from "./profile-form-group";
 import { ProfileFormNumber } from "./profile-form-number";
@@ -21,6 +22,7 @@ interface ProfileFormComponent {
   Text: typeof ProfileFormText;
   Number: typeof ProfileFormNumber;
   Choice: typeof ProfileFormChoice;
+  Font: typeof ProfileFormFont;
 }
 
 export const ProfileForm: ProfileFormComponent = Object.assign(
@@ -33,5 +35,6 @@ export const ProfileForm: ProfileFormComponent = Object.assign(
     Text: ProfileFormText,
     Number: ProfileFormNumber,
     Choice: ProfileFormChoice,
+    Font: ProfileFormFont,
   },
 );

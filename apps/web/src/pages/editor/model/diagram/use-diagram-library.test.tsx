@@ -182,6 +182,84 @@ describe("useDiagramLibrary", () => {
     expect(result.current.error).toBe("locked");
   });
 
+  it("moves the diagrams of one standard to another and keeps their dates", async () => {
+    const { result, store } = setup(
+      new MemoryDiagramStore([
+        { ...saved("a", 1), profileId: "mine" },
+        { ...saved("b", 2), profileId: "iso" },
+        { ...saved("c", 3), profileId: "mine" },
+      ]),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toBeDefined();
+    });
+
+    let done = false;
+    await act(async () => {
+      done = await result.current.reassignProfile("mine", "gost");
+    });
+
+    expect(done).toBe(true);
+    expect(
+      result.current.items?.map((item) => [item.id, item.profileId]),
+    ).toEqual([
+      ["c", "gost"],
+      ["b", "iso"],
+      ["a", "gost"],
+    ]);
+    expect((await store.list()).map((item) => item.updatedAt)).toEqual([
+      3, 2, 1,
+    ]);
+  });
+
+  it("succeeds at once when no diagram uses the standard", async () => {
+    const { result, store } = setup();
+    const put = vi.spyOn(store, "put");
+
+    await waitFor(() => {
+      expect(result.current.items).toBeDefined();
+    });
+
+    let done = false;
+    await act(async () => {
+      done = await result.current.reassignProfile("unused", "gost");
+    });
+
+    expect(done).toBe(true);
+    expect(put).not.toHaveBeenCalled();
+  });
+
+  it("reports the diagrams that could not be moved", async () => {
+    const store = new MemoryDiagramStore([
+      { ...saved("a", 1), profileId: "mine" },
+      { ...saved("b", 2), profileId: "mine" },
+    ]);
+    const put = store.put.bind(store);
+    vi.spyOn(store, "put").mockImplementation((diagram) =>
+      diagram.id === "a" ? Promise.reject(new Error("locked")) : put(diagram),
+    );
+    const { result } = setup(store);
+
+    await waitFor(() => {
+      expect(result.current.items).toBeDefined();
+    });
+
+    let done = true;
+    await act(async () => {
+      done = await result.current.reassignProfile("mine", "gost");
+    });
+
+    expect(done).toBe(false);
+    expect(
+      result.current.items?.map((item) => [item.id, item.profileId]),
+    ).toEqual([
+      ["b", "gost"],
+      ["a", "mine"],
+    ]);
+    expect(result.current.error).toBe("locked");
+  });
+
   it("reports storage failures instead of throwing", async () => {
     const { result } = setup(
       new MemoryDiagramStore([], new Error("storage is full")),

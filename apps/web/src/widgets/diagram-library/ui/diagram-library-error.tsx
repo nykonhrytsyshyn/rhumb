@@ -1,5 +1,7 @@
 import type { JSX } from "react";
 
+import { IconAlertTriangle } from "@tabler/icons-react";
+
 import { useT } from "@shared/i18n";
 import { Alert } from "@shared/ui/alert";
 
@@ -13,7 +15,8 @@ export function DiagramLibraryError({
   const t = useT();
 
   return (
-    <Alert>
+    <Alert variant="banner-destructive">
+      <IconAlertTriangle className="size-4 shrink-0" />
       {t("editor.library.storageFailed")}
       {"\n"}
       {message}
