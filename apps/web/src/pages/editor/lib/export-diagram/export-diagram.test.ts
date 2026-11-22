@@ -2,17 +2,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type * as RhumbExport from "@rhumb/export";
 import { DEFAULT_EXPORT_SETTINGS, type ExportSettings } from "@rhumb/export";
-import { ProfileRegistry } from "@rhumb/profiles";
+import { ProfileRegistry, type StandardProfile } from "@rhumb/profiles";
 
 import { downloadBlob } from "@shared/lib/download-blob";
 
-import { copyImage, defaultExportName, downloadProfile, exportImage } from ".";
+import {
+  copyImage,
+  copySvg,
+  defaultExportName,
+  downloadProfile,
+  exportImage,
+} from ".";
 import { renderDiagram } from "../../api/render-diagram";
+import { loadEmbeddedFonts } from "./load-embedded-fonts";
 
 vi.mock("../../api/render-diagram", () => ({ renderDiagram: vi.fn() }));
 vi.mock("@shared/lib/download-blob", () => ({ downloadBlob: vi.fn() }));
+vi.mock("./load-embedded-fonts", () => ({ loadEmbeddedFonts: vi.fn() }));
 
 const rasterized: {
+  svg: string;
   matte: string | null;
   size: [number, number];
   options: unknown;
@@ -31,12 +40,17 @@ vi.mock("@rhumb/export", async (importOriginal) => {
       }
 
       public rasterize(
-        _svg: string,
+        svg: string,
         width: number,
         height: number,
         options: unknown,
       ): Promise<Blob> {
-        rasterized.push({ matte: this.matte, size: [width, height], options });
+        rasterized.push({
+          svg,
+          matte: this.matte,
+          size: [width, height],
+          options,
+        });
 
         return Promise.resolve(new Blob(["img"], { type: "image/png" }));
       }
@@ -79,6 +93,7 @@ function appearanceOf(): Record<string, unknown> {
 
 beforeEach(() => {
   rasterized.length = 0;
+  vi.mocked(loadEmbeddedFonts).mockResolvedValue([]);
   vi.mocked(renderDiagram).mockResolvedValue({
     svg: DRAWING,
     size: { width: 10, height: 5 },
@@ -115,6 +130,63 @@ describe("export-diagram", () => {
     expect(name).toMatch(/^rhumb-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.svg$/);
     expect(blob.type).toBe("image/svg+xml");
     expect(await blob.text()).toContain('fill="#778899"');
+  });
+
+  describe("fonts of the site", () => {
+    const gost: StandardProfile = {
+      ...profile,
+      font: { ...profile.font, family: "'OpenGost Type A', Arial, sans-serif" },
+    };
+
+    beforeEach(() => {
+      vi.mocked(loadEmbeddedFonts).mockImplementation((requested) =>
+        Promise.resolve(
+          requested === gost
+            ? [
+                {
+                  family: "OpenGost Type A",
+                  data: "QQ==",
+                  format: "woff2",
+                  weight: "400",
+                },
+              ]
+            : [],
+        ),
+      );
+    });
+
+    it("travel inside an exported SVG", async () => {
+      await exportImage("src", gost, settings({ format: "svg" }));
+
+      const svg = await lastDownload().blob.text();
+
+      expect(svg).toContain("@font-face{font-family:'OpenGost Type A';");
+      expect(svg).toContain("data:font/woff2;base64,QQ==");
+      expect(svg.indexOf("<defs>")).toBeLessThan(svg.indexOf("</svg>"));
+    });
+
+    it("are in the picture that is drawn into pixels too", async () => {
+      await exportImage("src", gost, settings({ format: "png" }));
+
+      expect(rasterized[0]?.svg).toContain("@font-face");
+    });
+
+    it("are in the SVG that is copied", async () => {
+      const text = vi.fn(() => Promise.resolve());
+
+      vi.stubGlobal("navigator", { clipboard: { writeText: text } });
+      await copySvg("src", gost, settings({ format: "svg" }));
+
+      expect(text).toHaveBeenCalledWith(
+        expect.stringContaining("@font-face{font-family:'OpenGost Type A';"),
+      );
+    });
+
+    it("are left out when the diagram uses other fonts", async () => {
+      await exportImage("src", profile, settings({ format: "svg" }));
+
+      expect(await lastDownload().blob.text()).not.toContain("@font-face");
+    });
   });
 
   it("makes blocks see-through when they are hollow", async () => {
@@ -162,7 +234,7 @@ describe("export-diagram", () => {
       settings({ format: "webp", scale: 3, quality: 80, transparent: true }),
     );
 
-    expect(rasterized).toEqual([
+    expect(rasterized).toMatchObject([
       {
         matte: null,
         size: [30, 15],

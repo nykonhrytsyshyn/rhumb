@@ -396,15 +396,15 @@ diagram. All lengths are in millimetres.
 | **ISO 5807**       | `iso-5807`       | The default profile |
 | **GOST 19.701-90** | `gost-19.701-90` |                     |
 
-| Section           | Controls                                                                                            |
-|-------------------|-----------------------------------------------------------------------------------------------------|
-| `grid`, `padding` | The drawing grid and the gap between a block's border and its text                                  |
-| `spacing`         | Distance between blocks and layers, clearance around blocks                                         |
-| `line`            | Line and thick-line widths, dash pattern, label style (beside / inline), crossing jumps, arrowheads |
-| `font`            | Family, size and line height                                                                        |
-| `shapes`          | Minimum width and height of every block kind                                                        |
-| `decision`        | The side a decision is entered from and where its `yes` / `no` branches leave                       |
-| `preparation`     | Entry, repeat, return and exit sides of a preparation block that the flow returns to                |
+| Section           | Controls                                                                                             |
+|-------------------|------------------------------------------------------------------------------------------------------|
+| `grid`, `padding` | The drawing grid and the gap between a block's border and its text                                   |
+| `spacing`         | Distance between blocks and layers, clearance around blocks                                          |
+| `line`            | Line and thick-line widths, dash pattern, label style (beside / inline), crossing jumps, arrowheads  |
+| `font`            | Family, size and line height; site fonts (OpenGost, Inter, JetBrains Mono) are embedded into exports |
+| `shapes`          | Minimum width and height of every block kind                                                         |
+| `decision`        | The side a decision is entered from and where its `yes` / `no` branches leave                        |
+| `preparation`     | Entry, repeat, return and exit sides of a preparation block that the flow returns to                 |
 
 Validation catches impossible profiles early: a decision's entry, `yes` and `no`
 sides must be able to differ, and so must the four sides of a preparation block.
@@ -512,7 +512,7 @@ sequenceDiagram
 | [`@rhumb/profiles`](packages/profiles)             | Validated JSON profile schema, registry and built-in profiles                                                           |
 | [`@rhumb/layout-elk`](packages/layout-elk)         | Adapter between Rhumb's `LayoutEngine` contract and ELK's layered, orthogonal layout                                    |
 | [`@rhumb/flowchart`](packages/flowchart)           | Standard-aware shapes, text placement, port planning, edge routes, decision branches, preparation returns and crossings |
-| [`@rhumb/export`](packages/export)                 | Deterministic SVG serialization and browser PNG export primitives                                                       |
+| [`@rhumb/export`](packages/export)                 | Deterministic SVG serialization, font embedding and browser PNG export primitives                                       |
 | [`@rhumb/engine`](packages/engine)                 | The high-level `DiagramEngine` that connects all stages                                                                 |
 | [`@rhumb/agent-kit`](packages/agent-kit)           | Skills and prompts that teach AI agents to write Rhumb diagrams, built from one source and checked against the parser   |
 | [`apps/web`](apps/web)                             | React/Vite editor: persistence, profile editing, language and theme, export actions                                     |
