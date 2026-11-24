@@ -1,4 +1,4 @@
 {
-  "extends": "@rhumb/tsconfig/dom.json",
+  "extends": "@rhumb/tsconfig/neutral.json",
   "include": ["src"]
 }
