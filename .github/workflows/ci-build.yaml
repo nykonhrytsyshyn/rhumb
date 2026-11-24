@@ -88,3 +88,8 @@ jobs:
 
       - name: "Run: Build"
         run: "pnpm run build"
+
+      - name: "Run: Check the npm packages"
+        run: |
+          pnpm --filter @nykon/rhumb run package:check
+          pnpm --filter @nykon/rhumb-cli run package:check

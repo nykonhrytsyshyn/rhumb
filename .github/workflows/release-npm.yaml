@@ -1,0 +1,164 @@
+# ============================================================================ #
+#                              npm Publish Workflow                            #
+# ============================================================================ #
+# Publishes the public packages to npm when a GitHub Release is published,     #
+# i.e. at the last, human step of the release flow (see RELEASING.md).         #
+#                                                                              #
+# Each package is published only when its own code changed since the version   #
+# that npm has: a release that only touches the website leaves npm alone, so   #
+# versions on npm have gaps (26.11.3, then 27.1.1) and every one of them       #
+# matches a tag of this repository. What counts as a change is decided by      #
+# .github/scripts/library-changed.ts, package by package.                      #
+#                                                                              #
+# Public packages:                                                             #
+#  - @nykon/rhumb:     the library (render SVG / images from diagram source)   #
+#  - @nykon/rhumb-cli: the command line tool (binary: rhumb), which bundles    #
+#                      the library, so it is versioned on its own              #
+#                                                                              #
+# A version that is already on npm is skipped, so a failed run can be re-run.  #
+#                                                                              #
+# Secrets:                                                                     #
+#   - NPM_TOKEN: npm automation token with publish access to the @nykon scope. #
+#                Not needed once trusted publishing is set up on npmjs.com.    #
+#                                                                              #
+# See: RELEASING.md - for more details on the release process.                 #
+# ============================================================================ #
+
+name: "Releasing: npm Publish"
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, e.g. v26.11.3"
+        required: true
+        type: "string"
+      force:
+        description: "Publish even if a package did not change"
+        required: false
+        default: false
+        type: "boolean"
+  release:
+    types: ["published"]
+
+concurrency:
+  group: "npm-publish"
+  cancel-in-progress: false
+
+permissions:
+  contents: "read"
+
+defaults:
+  run:
+    shell: "bash"
+
+env:
+  TURBO_TELEMETRY_DISABLED: "1"
+  PACKAGES: "@nykon/rhumb @nykon/rhumb-cli"
+
+jobs:
+  publish:
+    name: "Publish"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 20
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    env:
+      TAG: ${{ inputs.tag || github.event.release.tag_name }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - name: "Setup: Checkout the release tag"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.event.release.tag_name }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: "Setup: pnpm"
+        uses: pnpm/action-setup@v6
+
+      - name: "Setup: Node.js"
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: "Check: Manifests match the tag"
+        run: |
+          current="$(node .github/scripts/release.ts current)"
+          if [ "v${current}" != "${TAG}" ]; then
+            echo "::error::Manifests are at ${current}, the tag is ${TAG}"
+            exit 1
+          fi
+          echo "VERSION=${current}" >> "$GITHUB_ENV"
+
+      - name: "Check: Which packages changed?"
+        id: "decide"
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          publish=()
+
+          for package in ${PACKAGES}; do
+            published="$(npm view "${package}" version 2>/dev/null || true)"
+
+            if [ "${published}" = "${VERSION}" ]; then
+              echo "${package}@${VERSION} is already on npm - skipping."
+            elif [ -z "${published}" ]; then
+              echo "${package} is not on npm yet - first publish."
+              publish+=("${package}")
+            elif [ "${FORCE}" = "true" ]; then
+              echo "Forced: publishing ${package}@${VERSION} (npm has ${published})."
+              publish+=("${package}")
+            else
+              changed="$(node .github/scripts/library-changed.ts "v${published}" "${package}")"
+              echo "${package} changed since v${published}: ${changed}"
+              if [ "${changed}" = "true" ]; then
+                publish+=("${package}")
+              fi
+            fi
+          done
+
+          echo "packages=${publish[*]}" >> "$GITHUB_OUTPUT"
+
+      - name: "Setup: Install dependencies"
+        if: steps.decide.outputs.packages != ''
+        run: "pnpm install --frozen-lockfile"
+
+      - name: "Run: Verify"
+        if: steps.decide.outputs.packages != ''
+        run: "pnpm run check"
+
+      - name: "Run: Check the packages"
+        if: steps.decide.outputs.packages != ''
+        env:
+          TO_PUBLISH: ${{ steps.decide.outputs.packages }}
+        run: |
+          for package in ${TO_PUBLISH}; do
+            pnpm --filter "${package}" run package:check
+          done
+
+      - name: "Run: Publish"
+        if: steps.decide.outputs.packages != ''
+        env:
+          TO_PUBLISH: ${{ steps.decide.outputs.packages }}
+        run: |
+          for package in ${TO_PUBLISH}; do
+            pnpm --filter "${package}" publish --access public --provenance --no-git-checks
+          done
+
+      - name: "Report: Summary"
+        if: always()
+        env:
+          TO_PUBLISH: ${{ steps.decide.outputs.packages }}
+        run: |
+          if [ -n "${TO_PUBLISH}" ]; then
+            echo "Published ${VERSION}: ${TO_PUBLISH}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Skipped: no public package changed in ${TAG}." >> "$GITHUB_STEP_SUMMARY"
+          fi

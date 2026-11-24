@@ -26,14 +26,14 @@ and `release` (the tip of the last shipped release).
   <h2 id="overview">Overview</h2>
 </div>
 
-| Concept                  | Description                                                                                                                                                                                                              |
-|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Calendar version**     | `YY.M.N` - year, month, build number inside that month, e.g. `26.10.5`. Every `package.json` in the workspace carries the same version; the git tag is the same string with a `v` prefix - see [Versioning](#versioning) |
-| **Release PR**           | A **draft** PR `release-candidate` -> `release`, labeled `Release` and `Automated`, maintained by `release-pr.yaml`. It is `dev`'s current HEAD plus one commit that sets the next version in all manifests              |
-| **Version Gate**         | `release-readiness.yaml` fails the PR unless its version is exactly the one that would be issued right now (right month, higher than every existing tag). CI, tests, build and CodeQL run against the PR as usual        |
-| **Confirmation**         | Marking the PR **Ready for review** and merging it (merge commit). This is the human decision to ship                                                                                                                    |
-| **Tag & draft release**  | Created by `release-post.yaml` the moment the merge lands on `release`: annotated tag `vYY.M.N` and a **draft** GitHub Release with generated notes                                                                      |
-| **Publishing the draft** | The final, optional-to-automate step: after checking production, edit the notes and click **Publish** on the draft. Nothing is triggered by it - it only makes the release public                                        |
+| Concept                  | Description                                                                                                                                                                                                                                                                     |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Calendar version**     | `YY.M.N` - year, month, build number inside that month, e.g. `26.10.5`. Every `package.json` in the workspace carries the same version; the git tag is the same string with a `v` prefix - see [Versioning](#versioning)                                                        |
+| **Release PR**           | A **draft** PR `release-candidate` -> `release`, labeled `Release` and `Automated`, maintained by `release-pr.yaml`. It is `dev`'s current HEAD plus one commit that sets the next version in all manifests                                                                     |
+| **Version Gate**         | `release-readiness.yaml` fails the PR unless its version is exactly the one that would be issued right now (right month, higher than every existing tag). CI, tests, build and CodeQL run against the PR as usual                                                               |
+| **Confirmation**         | Marking the PR **Ready for review** and merging it (merge commit). This is the human decision to ship                                                                                                                                                                           |
+| **Tag & draft release**  | Created by `release-post.yaml` the moment the merge lands on `release`: annotated tag `vYY.M.N` and a **draft** GitHub Release with generated notes                                                                                                                             |
+| **Publishing the draft** | The final human step: after checking production, edit the notes and click **Publish** on the draft. This makes the release public and starts `release-npm.yaml`, which publishes the public packages to npm **if their code changed** - see [The npm library](#the-npm-library) |
 
 <div align="center">
   <h2 id="versioning">Versioning</h2>
@@ -128,12 +128,56 @@ flowchart TD
      so `dev` and `release` become identical and the cycle starts over.
 6. Run the [post-release checks](#post-release-checks) against production.
 7. Edit the draft's notes, fill in or delete *Known limitations*, and click
-   **Publish**.
+   **Publish**. This also starts `release-npm.yaml` ([details](#the-npm-library)).
 
 > [!IMPORTANT]
 > `release` must only ever move through the release PR. `release-pr.yaml` stops
 > with an error if `release` holds commits that `dev` lacks (e.g. a failed
 > `sync-dev`), because merging the candidate would silently drop them.
+
+<div align="center">
+  <h2 id="the-npm-library">The npm packages</h2>
+</div>
+
+Two packages are public; everything else in the workspace is private and is
+bundled into them at build time.
+
+| Package            | Where                            | What                                            |
+|--------------------|----------------------------------|-------------------------------------------------|
+| `@nykon/rhumb`     | [`packages/core`](packages/core) | The library: SVG and images from diagram source |
+| `@nykon/rhumb-cli` | [`apps/cli`](apps/cli)           | The `rhumb` command; bundles the library        |
+
+They have no version of their own: each carries the version of the release it is
+published with, so every version on npm has a matching git tag and a GitHub
+Release. The CLI bundles the library instead of depending on it, so a CLI
+release never points at a library version that was skipped.
+
+`release-npm.yaml` runs when a GitHub Release is **published** (or by hand, with
+the tag as input) and decides what to do:
+
+| State                                                    | Result                                                          |
+|----------------------------------------------------------|-----------------------------------------------------------------|
+| The package is not on npm yet                            | Published (first release)                                       |
+| npm already has this version                             | Skipped, so a failed run can simply be re-run                   |
+| The package's code changed since the version npm has     | Verified (`pnpm run check`, `package:check`) and published      |
+| Only the website changed                                 | Skipped; the summary of the run says so                         |
+
+Each package is judged on its own. "Its code" is the package plus every
+workspace package it is built from, found through the dependency graph by
+[`.github/scripts/library-changed.ts`](.github/scripts/library-changed.ts), so a
+change in the parser publishes both, and a change in the CLI's commands only the
+CLI.
+Test files and the `version` field of manifests (which every release bumps) are
+ignored. Run it locally to see what a release would do:
+
+```bash
+node .github/scripts/library-changed.ts v26.11.3                   # the library
+node .github/scripts/library-changed.ts v26.11.3 @nykon/rhumb-cli  # the CLI
+```
+
+Because of this, versions on npm have gaps (`26.11.3`, then `27.1.1`); that is
+expected. To publish a release that changed nothing anyway, start the workflow
+by hand and tick **force**.
 
 <div align="center">
   <h2 id="post-release-checks">Post-release checks</h2>
