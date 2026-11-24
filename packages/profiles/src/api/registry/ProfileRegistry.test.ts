@@ -189,4 +189,30 @@ describe("ProfileRegistry", () => {
       /fit on different sides/,
     );
   });
+
+  it("registers every file of the presets folder", () => {
+    const files = import.meta.glob<{ id: string }>("../../../presets/*.json", {
+      eager: true,
+      import: "default",
+    });
+    const registry = ProfileRegistry.withBuiltins();
+
+    expect(
+      registry
+        .list()
+        .map((profile) => profile.id)
+        .sort(),
+    ).toEqual(
+      Object.values(files)
+        .map((preset) => preset.id)
+        .sort(),
+    );
+  });
+
+  it("picks the profile marked as default, not the first one", () => {
+    const registry = ProfileRegistry.withBuiltins();
+
+    expect(registry.default().default).toBe(true);
+    expect(() => new ProfileRegistry().default()).toThrow(/No profile/);
+  });
 });
