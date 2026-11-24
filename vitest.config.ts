@@ -19,11 +19,11 @@ export default defineConfig({
         extends: true,
         test: {
           name: "packages",
-          include: ["packages/*/src/**/*.test.ts"],
+          include: ["packages/*/src/**/*.test.ts", "apps/cli/src/**/*.test.ts"],
           isolate: false,
         },
       },
-      "apps/*",
+      "apps/web",
     ],
 
     reporters:

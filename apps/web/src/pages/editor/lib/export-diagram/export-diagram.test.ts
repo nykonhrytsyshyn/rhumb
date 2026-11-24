@@ -1,8 +1,8 @@
+import type { FontSource, Rhumb } from "@nykon/rhumb";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type * as RhumbExport from "@rhumb/export";
 import { DEFAULT_EXPORT_SETTINGS, type ExportSettings } from "@rhumb/export";
-import { ProfileRegistry, type StandardProfile } from "@rhumb/profiles";
+import { ProfileRegistry } from "@rhumb/profiles";
 
 import { downloadBlob } from "@shared/lib/download-blob";
 
@@ -13,63 +13,20 @@ import {
   downloadProfile,
   exportImage,
 } from ".";
-import { renderDiagram } from "../../api/render-diagram";
 import { loadEmbeddedFonts } from "./load-embedded-fonts";
 
-vi.mock("../../api/render-diagram", () => ({ renderDiagram: vi.fn() }));
+const rhumb = vi.hoisted(() => ({
+  render: vi.fn<Rhumb["render"]>(),
+  renderImage: vi.fn<Rhumb["renderImage"]>(),
+}));
+
+vi.mock("../../api/rhumb", () => ({ rhumb }));
 vi.mock("@shared/lib/download-blob", () => ({ downloadBlob: vi.fn() }));
 vi.mock("./load-embedded-fonts", () => ({ loadEmbeddedFonts: vi.fn() }));
 
-const rasterized: {
-  svg: string;
-  matte: string | null;
-  size: [number, number];
-  options: unknown;
-}[] = [];
+const profile = ProfileRegistry.withBuiltins().default();
 
-vi.mock("@rhumb/export", async (importOriginal) => {
-  const original = await importOriginal<typeof RhumbExport>();
-
-  return {
-    ...original,
-    CanvasRasterizer: class {
-      private readonly matte: string | null;
-
-      public constructor(matte: string | null) {
-        this.matte = matte;
-      }
-
-      public rasterize(
-        svg: string,
-        width: number,
-        height: number,
-        options: unknown,
-      ): Promise<Blob> {
-        rasterized.push({
-          svg,
-          matte: this.matte,
-          size: [width, height],
-          options,
-        });
-
-        return Promise.resolve(new Blob(["img"], { type: "image/png" }));
-      }
-    },
-  };
-});
-
-const profile = (() => {
-  const [first] = ProfileRegistry.withBuiltins().list();
-
-  if (first === undefined) {
-    throw new Error("Missing profile");
-  }
-
-  return first;
-})();
-
-const DRAWING =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="5" viewBox="0 0 10 5"/>';
+const FONT: FontSource = { family: "OpenGost Type A", data: new Uint8Array() };
 
 function settings(patch: Partial<ExportSettings> = {}): ExportSettings {
   return { ...DEFAULT_EXPORT_SETTINGS, ...patch };
@@ -85,18 +42,20 @@ function lastDownload(): { blob: Blob; name: string } {
   return { blob: call[0], name: call[1] };
 }
 
-function appearanceOf(): Record<string, unknown> {
-  const options = vi.mocked(renderDiagram).mock.calls[0]?.[2];
-
-  return { ...options?.appearance };
-}
-
 beforeEach(() => {
-  rasterized.length = 0;
-  vi.mocked(loadEmbeddedFonts).mockResolvedValue([]);
-  vi.mocked(renderDiagram).mockResolvedValue({
-    svg: DRAWING,
+  vi.mocked(loadEmbeddedFonts).mockResolvedValue([FONT]);
+  vi.mocked(rhumb.render).mockResolvedValue({
+    svg: "<svg/>",
     size: { width: 10, height: 5 },
+    profile,
+  });
+  vi.mocked(rhumb.renderImage).mockResolvedValue({
+    blob: new Blob(["img"], { type: "image/png" }),
+    format: "png",
+    mime: "image/png",
+    width: 20,
+    height: 10,
+    bytes: () => Promise.resolve(new Uint8Array()),
   });
 });
 
@@ -106,115 +65,32 @@ afterEach(() => {
 });
 
 describe("export-diagram", () => {
-  it("draws the chosen colours and leaves the page to the frame", async () => {
-    await exportImage(
-      "src",
-      profile,
-      settings({
-        format: "svg",
-        ink: "#112233",
-        fill: "#445566",
-        background: "#778899",
-      }),
-    );
-
-    expect(appearanceOf()).toEqual({
+  it("hands the settings, the profile and the site fonts to the library", async () => {
+    const chosen = settings({
+      format: "svg",
       ink: "#112233",
       fill: "#445566",
-      background: null,
-      labelBackground: "#778899",
+      background: "#778899",
+      padding: 8,
     });
+
+    await exportImage("src", profile, chosen);
+
+    expect(rhumb.render).toHaveBeenCalledWith("src", {
+      ...chosen,
+      profile,
+      fonts: [FONT],
+    });
+  });
+
+  it("downloads an SVG under the name of the setting, then the default", async () => {
+    await exportImage("src", profile, settings({ format: "svg" }));
 
     const { blob, name } = lastDownload();
 
     expect(name).toMatch(/^rhumb-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.svg$/);
     expect(blob.type).toBe("image/svg+xml");
-    expect(await blob.text()).toContain('fill="#778899"');
-  });
-
-  describe("fonts of the site", () => {
-    const gost: StandardProfile = {
-      ...profile,
-      font: { ...profile.font, family: "'OpenGost Type A', Arial, sans-serif" },
-    };
-
-    beforeEach(() => {
-      vi.mocked(loadEmbeddedFonts).mockImplementation((requested) =>
-        Promise.resolve(
-          requested === gost
-            ? [
-                {
-                  family: "OpenGost Type A",
-                  data: "QQ==",
-                  format: "woff2",
-                  weight: "400",
-                },
-              ]
-            : [],
-        ),
-      );
-    });
-
-    it("travel inside an exported SVG", async () => {
-      await exportImage("src", gost, settings({ format: "svg" }));
-
-      const svg = await lastDownload().blob.text();
-
-      expect(svg).toContain("@font-face{font-family:'OpenGost Type A';");
-      expect(svg).toContain("data:font/woff2;base64,QQ==");
-      expect(svg.indexOf("<defs>")).toBeLessThan(svg.indexOf("</svg>"));
-    });
-
-    it("are in the picture that is drawn into pixels too", async () => {
-      await exportImage("src", gost, settings({ format: "png" }));
-
-      expect(rasterized[0]?.svg).toContain("@font-face");
-    });
-
-    it("are in the SVG that is copied", async () => {
-      const text = vi.fn(() => Promise.resolve());
-
-      vi.stubGlobal("navigator", { clipboard: { writeText: text } });
-      await copySvg("src", gost, settings({ format: "svg" }));
-
-      expect(text).toHaveBeenCalledWith(
-        expect.stringContaining("@font-face{font-family:'OpenGost Type A';"),
-      );
-    });
-
-    it("are left out when the diagram uses other fonts", async () => {
-      await exportImage("src", profile, settings({ format: "svg" }));
-
-      expect(await lastDownload().blob.text()).not.toContain("@font-face");
-    });
-  });
-
-  it("makes blocks see-through when they are hollow", async () => {
-    await exportImage(
-      "src",
-      profile,
-      settings({ format: "svg", hollow: true }),
-    );
-
-    expect(appearanceOf()).toMatchObject({ fill: "none" });
-  });
-
-  it("drops the page for transparent exports", async () => {
-    await exportImage(
-      "src",
-      profile,
-      settings({ format: "svg", transparent: true, radius: 12 }),
-    );
-
-    expect(await lastDownload().blob.text()).toBe(DRAWING);
-  });
-
-  it("adds padding around the drawing", async () => {
-    await exportImage("src", profile, settings({ format: "svg", padding: 8 }));
-
-    const text = await lastDownload().blob.text();
-
-    expect(text).toContain('viewBox="0 0 26 21"');
+    expect(await blob.text()).toBe("<svg/>");
   });
 
   it("names the file after the setting, falling back to the standard", async () => {
@@ -227,41 +103,39 @@ describe("export-diagram", () => {
     expect(lastDownload().name).toBe("my - chart.jpg");
   });
 
-  it("scales rasters and passes the quality on", async () => {
+  it("uses the saved diagram name when given and cleans unsafe characters", async () => {
     await exportImage(
       "src",
       profile,
-      settings({ format: "webp", scale: 3, quality: 80, transparent: true }),
+      settings({ format: "svg" }),
+      defaultExportName("Lab 5 / Task 1"),
     );
 
-    expect(rasterized).toMatchObject([
-      {
-        matte: null,
-        size: [30, 15],
-        options: { format: "webp", quality: 0.8 },
-      },
-    ]);
-    expect(lastDownload().name).toMatch(
-      /^rhumb-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.webp$/,
-    );
+    expect(lastDownload().name).toBe("Lab 5 - Task 1.svg");
   });
 
-  it("gives JPEG a solid page because it cannot be see-through", async () => {
-    await exportImage(
-      "src",
-      profile,
-      settings({ format: "jpeg", background: "#102030" }),
-    );
-    await exportImage(
-      "src",
-      profile,
-      settings({ format: "jpeg", transparent: true }),
-    );
+  it("asks the library for the chosen raster format and downloads it", async () => {
+    const chosen = settings({ format: "webp", scale: 3, quality: 80 });
 
-    expect(rasterized.map((item) => item.matte)).toEqual([
-      "#102030",
-      "#ffffff",
-    ]);
+    await exportImage("src", profile, chosen);
+
+    expect(rhumb.renderImage).toHaveBeenCalledWith("src", {
+      ...chosen,
+      profile,
+      fonts: [FONT],
+      format: "webp",
+    });
+    expect(rhumb.render).not.toHaveBeenCalled();
+    expect(lastDownload().name).toMatch(/\.webp$/);
+  });
+
+  it("copies the SVG text", async () => {
+    const text = vi.fn(() => Promise.resolve());
+
+    vi.stubGlobal("navigator", { clipboard: { writeText: text } });
+    await copySvg("src", profile, settings({ format: "svg" }));
+
+    expect(text).toHaveBeenCalledWith("<svg/>");
   });
 
   it("copies a PNG to the clipboard whatever the format is", async () => {
@@ -282,7 +156,10 @@ describe("export-diagram", () => {
     await copyImage("src", profile, settings({ format: "svg" }));
 
     expect(write).toHaveBeenCalledOnce();
-    expect(rasterized[0]?.options).toMatchObject({ format: "png" });
+    expect(rhumb.renderImage).toHaveBeenCalledWith(
+      "src",
+      expect.objectContaining({ format: "png" }),
+    );
   });
 
   it("saves a profile as pretty JSON", () => {
@@ -292,16 +169,5 @@ describe("export-diagram", () => {
 
     expect(name).toBe(`${profile.title}.json`);
     expect(blob.type).toBe("application/json");
-  });
-
-  it("uses the saved diagram name when given and cleans unsafe characters", async () => {
-    await exportImage(
-      "src",
-      profile,
-      settings({ format: "svg" }),
-      defaultExportName("Lab 5 / Task 1"),
-    );
-
-    expect(lastDownload().name).toBe("Lab 5 - Task 1.svg");
   });
 });

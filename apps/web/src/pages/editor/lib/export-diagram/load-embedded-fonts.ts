@@ -1,14 +1,13 @@
-import type { EmbeddedFont } from "@rhumb/export";
+import type { FontSource } from "@nykon/rhumb";
+
+import { fontFamilies } from "@rhumb/profiles";
 import type { StandardProfile } from "@rhumb/profiles";
 
 import { FONT_FILES, type FontFile } from "@shared/lib/font-files";
 
-import { fontFamilies } from "../font-families";
-import { toBase64 } from "./to-base64";
+const cache = new Map<string, Promise<FontSource | undefined>>();
 
-const cache = new Map<string, Promise<EmbeddedFont | undefined>>();
-
-async function fetchFont(font: FontFile): Promise<EmbeddedFont | undefined> {
+async function fetchFont(font: FontFile): Promise<FontSource | undefined> {
   try {
     const response = await fetch(font.url);
 
@@ -18,17 +17,16 @@ async function fetchFont(font: FontFile): Promise<EmbeddedFont | undefined> {
 
     return {
       family: font.family,
-      data: toBase64(new Uint8Array(await response.arrayBuffer())),
+      data: new Uint8Array(await response.arrayBuffer()),
       format: font.format,
       weight: font.weight,
     };
   } catch {
-    // Without the file the export is drawn with the fallback font instead
     return undefined;
   }
 }
 
-function load(font: FontFile): Promise<EmbeddedFont | undefined> {
+function load(font: FontFile): Promise<FontSource | undefined> {
   const cached = cache.get(font.family);
 
   if (cached !== undefined) {
@@ -48,10 +46,9 @@ function load(font: FontFile): Promise<EmbeddedFont | undefined> {
   return loading;
 }
 
-/** The files of the site fonts that the profile's font stack asks for. */
 export async function loadEmbeddedFonts(
   profile: StandardProfile,
-): Promise<readonly EmbeddedFont[]> {
+): Promise<readonly FontSource[]> {
   const wanted = new Set(
     fontFamilies(profile.font.family).map((family) => family.toLowerCase()),
   );
