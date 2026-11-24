@@ -15,7 +15,7 @@
     "url": "https://github.com/nykonhrytsyshyn/rhumb/issues",
     "email": "contact@nykon.me"
   },
-  "packageManager": "pnpm@12.21.0",
+  "packageManager": "pnpm@12.23.0",
   "engines": {
     "node": ">=22.16.0",
     "pnpm": ">=11.0.0"
