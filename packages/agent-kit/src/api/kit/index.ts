@@ -3,7 +3,10 @@ export {
   type AgentKitInput,
   DIAGRAMS_REFERENCES,
   DIAGRAMS_SKILL_NAME,
+  type DiagramsReference,
   buildAgentKit,
+  buildCliSkill,
+  buildReference,
 } from "./build-agent-kit";
 export {
   AGENT_KIT_BASE_PATH,

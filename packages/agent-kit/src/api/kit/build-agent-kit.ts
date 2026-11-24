@@ -111,3 +111,51 @@ export function buildAgentKit(input: AgentKitInput): readonly AgentKitFile[] {
     };
   });
 }
+
+export type DiagramsReference = (typeof DIAGRAMS_REFERENCES)[number];
+
+const REFERENCE_LINK = /\[([^\]]+)\]\(references\/(\w+)\.md\)/g;
+
+export function buildReference(
+  input: Pick<AgentKitInput, "sources" | "version">,
+  name: DiagramsReference,
+): string {
+  const text = forSkill(
+    fill(source({ ...input, validator: "" }, referencePath(name)), {
+      version: input.version,
+      homepage: AGENT_KIT_HOMEPAGE,
+    }),
+  );
+
+  return text.replace(
+    REFERENCE_LINK,
+    (_whole, label: string, topic: string) =>
+      `${label} (\`rhumb guide ${topic}\`)`,
+  );
+}
+
+/**
+ * The skill of the command line: a few lines that send the agent to
+ * `rhumb guide`, `rhumb check` and `rhumb render`. The instructions stay in
+ * the CLI, so they always match the parser that is installed, and the agent
+ * reads only the part of them it needs.
+ */
+export function buildCliSkill(version: string): string {
+  return fill(CLI_SKILL, { version });
+}
+
+const CLI_SKILL = `---
+name: ${DIAGRAMS_SKILL_NAME}
+description: "Write, fix and draw flowcharts and block diagrams in Rhumb's text syntax (GOST 19.701-90, ISO 5807; блок-схема, схема алгоритму) with the rhumb command line. Use whenever the user mentions Rhumb or asks for a flowchart, algorithm scheme or program flow by a standard. Rhumb's syntax is NOT Mermaid: read it with rhumb guide before writing."
+---
+
+# Rhumb diagrams (command line)
+
+The \`rhumb\` command carries the instructions for the version that is installed, so use them instead of what you remember about Mermaid. Install: \`npm install --global @nykon/rhumb-cli\` (written for {{version}}).
+
+1. **Learn**: \`rhumb guide --short\` is a cheat sheet. For detail, \`rhumb guide <topic>\` prints one part (\`rhumb guide --list\` names them: syntax, blocks, lines, structure, pitfalls, workflow, examples).
+2. **Write** the diagram to a file such as \`diagram.rhumb\`.
+3. **Check**: \`rhumb check diagram.rhumb\`. It names the line that is wrong; fix it and run it again, at most five times.
+4. **Draw** when a picture is wanted: \`rhumb render diagram.rhumb -o diagram.png\` (\`.svg\`, \`.png\`, \`.jpg\` or \`.webp\`). \`rhumb render --help\` lists the options; \`--profile gost-19.701-90\` draws by GOST.
+5. **Deliver** the diagram text in one fenced block tagged \`rhumb\`, the assumptions you made, and the picture.
+`;
