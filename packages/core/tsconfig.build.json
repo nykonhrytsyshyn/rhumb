@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "rootDir": ".." },
+  "include": ["src", "../*/src"],
+  "exclude": [
+    "**/*.test.ts",
+    "../*/src/**/*.test.ts",
+    "../*/src/testing",
+    "../agent-kit",
+    "../eslint-config",
+    "../eslint-plugin-fsd",
+    "../tsconfig"
+  ]
+}
