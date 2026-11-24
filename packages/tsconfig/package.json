@@ -6,6 +6,7 @@
   "exports": {
     "./base.json": "./base.json",
     "./dom.json": "./dom.json",
+    "./neutral.json": "./neutral.json",
     "./react.json": "./react.json"
   },
   "dependencies": {

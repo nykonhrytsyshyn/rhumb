@@ -3,6 +3,7 @@ import { type Appearance, FlowchartRenderer } from "@rhumb/flowchart";
 import {
   ApproximateTextMeasurer,
   DiagramSyntaxError,
+  type FlowchartDiagram,
   type LayoutEngine,
   type Size,
   type TextMeasurer,
@@ -40,14 +41,23 @@ export class DiagramEngine {
     this.layoutEngine = dependencies.layoutEngine;
   }
 
+  /**
+   * Reads the source without drawing it.
+   *
+   * @throws DiagramSyntaxError when the source is not a valid diagram.
+   */
+  public parse(source: string): FlowchartDiagram {
+    DiagramEngine.assertSupported(source);
+
+    return this.parser.parse(source);
+  }
+
   /** @throws DiagramSyntaxError when the source is not a valid diagram. */
   public async render(
     source: string,
     options: EngineRenderOptions,
   ): Promise<EngineResult> {
-    DiagramEngine.assertSupported(source);
-
-    const diagram = this.parser.parse(source);
+    const diagram = this.parse(source);
     const renderer = new FlowchartRenderer({
       profile: options.profile,
       layoutEngine: this.layoutEngine,
