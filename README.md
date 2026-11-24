@@ -155,6 +155,7 @@ engineering document.
 | **Standards as profiles** | Dimensions, line widths, typography, arrows, branch sides and routing around preparation blocks come from a validated JSON profile |
 | **Browser-first**         | The editor is a static web app; your source, current diagram and saved library never leave the browser                             |
 | **Useful exports**        | Download SVG or PNG, copy the rendered image, or download the source and a profile for reuse                                       |
+| **Library and CLI**       | The same engine is published to npm as `@nykon/rhumb` and `@nykon/rhumb-cli`, for scripts, build steps and AI agents               |
 | **Strict on purpose**     | Unsupported syntax is rejected with a line-numbered error instead of producing an approximate drawing                              |
 
 | Tab        | What it does                                                                                   |
@@ -196,42 +197,56 @@ serve) use:
 pnpm run staging
 ```
 
-<h3 id="render-from-code">
-  Render from code
+<h3 id="use-the-library">
+  Use the library
 </h3>
 
-The rendering pipeline is split into packages, so it can be embedded without the
-React application. The layout engine is injected, which keeps the core free of
-any particular layout library:
+The rendering pipeline is published as [`@nykon/rhumb`](packages/core), so it
+can be embedded without the React application. Node.js `>=22.16.0`; images are
+drawn with the optional `@resvg/resvg-js` (and `sharp` for JPEG and WebP).
 
-```ts
-import { ELK } from "elkjs";
-
-import { DiagramEngine } from "@rhumb/engine";
-import { ElkLayoutEngine } from "@rhumb/layout-elk";
-import { ProfileRegistry } from "@rhumb/profiles";
-
-const profile = ProfileRegistry.withBuiltins().get("iso-5807");
-const engine = new DiagramEngine({
-  layoutEngine: new ElkLayoutEngine(new ELK()),
-});
-
-const result = await engine.render(
-  `flowchart LR
-    start(["Start"]) --> input[/"Input x"/]
-    input --> check{"x > 0?"}
-    check -->|Yes| output[/"Output x"/]
-    check -->|No| error["Report an error"]`,
-  { profile },
-);
-
-console.log(result.size);
-console.log(result.svg);
+```bash
+npm install @nykon/rhumb
 ```
 
-`render` also accepts `scale` (pixels per millimetre of the profile, `4` by
-default) and `appearance` (colours; the print appearance is the default). It
-throws a `DiagramSyntaxError` that carries the offending line number.
+```ts
+import { render, renderImage } from "@nykon/rhumb/node";
+import { writeFile } from "node:fs/promises";
+
+const source = `flowchart LR
+  start(["Start"]) --> input[/"Input x"/]
+  input --> check{"x > 0?"}
+  check -->|Yes| output[/"Output x"/]
+  check -->|No| error["Report an error"]`;
+
+const { svg, size } = await render(source, { profile: "iso-5807" });
+const image = await renderImage(source, { format: "png", scale: 2 });
+
+await writeFile("chart.png", await image.bytes());
+```
+
+A syntax problem throws a `DiagramSyntaxError` that carries the offending line
+number. The library has no browser or DOM code; the editor plugs its own
+browser parts into the platform-free `@nykon/rhumb` entry. See the
+[library README](packages/core/README.md) for every option, fonts and custom
+environments.
+
+<h3 id="use-the-cli">
+  Use the command line
+</h3>
+
+[`@nykon/rhumb-cli`](apps/cli) puts the same engine in a command, for scripts
+and for AI agents:
+
+```bash
+npm install --global @nykon/rhumb-cli
+
+rhumb check chart.rhumb
+rhumb render chart.rhumb -o chart.png --profile gost-19.701-90
+rhumb guide --short        # instructions for an AI agent, matched to this version
+```
+
+See the [CLI README](apps/cli/README.md).
 
 <div align="center">
   <h2 id="syntax">Source Syntax</h2>
@@ -512,9 +527,11 @@ sequenceDiagram
 | [`@rhumb/profiles`](packages/profiles)             | Validated JSON profile schema, registry and built-in profiles                                                           |
 | [`@rhumb/layout-elk`](packages/layout-elk)         | Adapter between Rhumb's `LayoutEngine` contract and ELK's layered, orthogonal layout                                    |
 | [`@rhumb/flowchart`](packages/flowchart)           | Standard-aware shapes, text placement, port planning, edge routes, decision branches, preparation returns and crossings |
-| [`@rhumb/export`](packages/export)                 | Deterministic SVG serialization, font embedding and browser PNG export primitives                                       |
+| [`@rhumb/export`](packages/export)                 | Deterministic SVG serialization, font embedding, export settings and the rasterizer contract                            |
 | [`@rhumb/engine`](packages/engine)                 | The high-level `DiagramEngine` that connects all stages                                                                 |
 | [`@rhumb/agent-kit`](packages/agent-kit)           | Skills and prompts that teach AI agents to write Rhumb diagrams, built from one source and checked against the parser   |
+| [`@nykon/rhumb`](packages/core)                    | **Public library** (npm): the whole pipeline behind one call, SVG and images, font metrics; bundles the packages above  |
+| [`@nykon/rhumb-cli`](apps/cli)                     | **Public CLI** (npm): `rhumb render`, `check`, `profiles`, `guide`, `skill`; bundles the library                        |
 | [`apps/web`](apps/web)                             | React/Vite editor: persistence, profile editing, language and theme, export actions                                     |
 
 <div align="center">
