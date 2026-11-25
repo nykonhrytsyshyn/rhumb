@@ -201,7 +201,8 @@ jobs:
           flags=(--access public --userconfig "${RUNNER_TEMP}/npmrc")
           if [ "${DRY_RUN}" = "true" ]; then flags+=(--dry-run); else flags+=(--provenance); fi
 
-          for tarball in tarballs/*.tgz; do
+          # An absolute path: npm reads `tarballs/x.tgz` as a GitHub `user/repo`.
+          for tarball in "${PWD}"/tarballs/*.tgz; do
             npm publish "${tarball}" "${flags[@]}"
           done
 
@@ -213,7 +214,8 @@ jobs:
           flags=(--access public)
           if [ "${DRY_RUN}" = "true" ]; then flags+=(--dry-run); else flags+=(--provenance); fi
 
-          for tarball in tarballs/*.tgz; do
+          # An absolute path: npm reads `tarballs/x.tgz` as a GitHub `user/repo`.
+          for tarball in "${PWD}"/tarballs/*.tgz; do
             npm publish "${tarball}" "${flags[@]}"
           done
 
