@@ -1,5 +1,4 @@
-import { createHash } from "node:crypto";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -28,29 +27,49 @@ const FONT_EXTENSIONS: Readonly<Record<ResolvedFont["format"], string>> = {
   woff2: "woff2",
 };
 
-/**
- * resvg reads fonts from files only, so a font that exists as bytes is put in
- * a temporary folder once, under a name made from its content.
- */
-function fontFile(font: ResolvedFont): string {
+function assertSupportedFormat(font: ResolvedFont): void {
   if (font.format === "woff" || font.format === "woff2") {
     throw new Error(
       `Font "${font.family}" is a ${font.format.toUpperCase()} file, which ` +
         "images cannot be drawn with in Node.js: use a TTF or OTF file",
     );
   }
+}
 
-  const folder = join(tmpdir(), "rhumb-fonts");
-  const hash = createHash("sha256").update(font.bytes).digest("hex");
-  const file = join(
-    folder,
-    `${hash.slice(0, 16)}.${FONT_EXTENSIONS[font.format]}`,
-  );
+/**
+ * resvg reads fonts from files only, so bytes are placed in an exclusive
+ * temporary directory for the duration of the render and removed afterwards.
+ */
+function withFontFiles<T>(
+  fonts: readonly ResolvedFont[],
+  run: (files: string[]) => T,
+): T {
+  for (const font of fonts) {
+    assertSupportedFormat(font);
+  }
 
-  mkdirSync(folder, { recursive: true });
-  writeFileSync(file, font.bytes);
+  if (fonts.length === 0) {
+    return run([]);
+  }
 
-  return file;
+  const folder = mkdtempSync(join(tmpdir(), "rhumb-fonts-"));
+
+  try {
+    const files = fonts.map((font, index) => {
+      const file = join(
+        folder,
+        `${String(index)}.${FONT_EXTENSIONS[font.format]}`,
+      );
+
+      writeFileSync(file, font.bytes, { flag: "wx", mode: 0o600 });
+
+      return file;
+    });
+
+    return run(files);
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
 }
 
 /**
@@ -83,16 +102,18 @@ export class NodeRasterizer implements Rasterizer {
       "@resvg/resvg-js",
       "Drawing images",
     );
-    const png = new Resvg(svg, {
-      fitTo: { mode: "width", value: width },
-      font: {
-        loadSystemFonts: true,
-        fontFiles: this.fonts.map(fontFile),
-      },
-      ...(this.matte === null ? {} : { background: this.matte }),
-    })
-      .render()
-      .asPng();
+    const png = withFontFiles(this.fonts, (fontFiles) =>
+      new Resvg(svg, {
+        fitTo: { mode: "width", value: width },
+        font: {
+          loadSystemFonts: true,
+          fontFiles,
+        },
+        ...(this.matte === null ? {} : { background: this.matte }),
+      })
+        .render()
+        .asPng(),
+    );
 
     if (format === "png") {
       return new Blob([new Uint8Array(png)], { type: "image/png" });
