@@ -255,14 +255,30 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: "Run: Tag and release the published packages"
+        env:
+          WAIT_ATTEMPTS: ${{ needs.publish.result == 'success' && '30' || '1' }}
         run: |
           commit="$(git rev-parse HEAD)"
+
+          wait_for_npm() {
+            local spec="$1" attempt
+            for attempt in $(seq 1 "${WAIT_ATTEMPTS}"); do
+              if npm view "${spec}" version >/dev/null 2>&1; then
+                return 0
+              fi
+              if [ "${attempt}" -lt "${WAIT_ATTEMPTS}" ]; then
+                echo "${spec} is not visible on npm yet (${attempt}/${WAIT_ATTEMPTS}), waiting..."
+                sleep 10
+              fi
+            done
+            return 1
+          }
 
           while IFS=$'\t' read -r name version; do
             [ -z "${name}" ] && continue
             tag="${name}@${version}"
 
-            if ! npm view "${tag}" version >/dev/null 2>&1; then
+            if ! wait_for_npm "${tag}"; then
               echo "::warning::${tag} is not on npm, so it is not tagged."
               continue
             fi
