@@ -51,7 +51,7 @@ describe("loadEmbeddedFonts", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("loads the site font a stack asks for, as base64", async () => {
+  it("loads the site font a stack asks for, as bytes", async () => {
     const fetchMock = stubFetch(new Uint8Array([65, 66, 67]));
     const loadEmbeddedFonts = await freshLoader();
 
@@ -62,7 +62,7 @@ describe("loadEmbeddedFonts", () => {
     expect(fonts).toEqual([
       {
         family: "OpenGost Type B",
-        data: "QUJD",
+        data: new Uint8Array([65, 66, 67]),
         format: "woff2",
         weight: "400",
       },
@@ -110,7 +110,7 @@ describe("loadEmbeddedFonts", () => {
 
     stubFetch(new Uint8Array([65]));
     expect(await loadEmbeddedFonts(profile)).toMatchObject([
-      { family: "Inter Variable", data: "QQ==" },
+      { family: "Inter Variable", data: new Uint8Array([65]) },
     ]);
   });
 });

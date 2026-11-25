@@ -1,0 +1,291 @@
+# ============================================================================ #
+#                             NPM Publish Workflow                             #
+# ============================================================================ #
+# Publishes the public packages to npm when a GitHub Release is published,     #
+# i.e. at the last, human step of the release flow (see RELEASING.md).         #
+#                                                                              #
+# The packages are versioned with SemVer, each on its own, by changesets - NOT #
+# with the product's calendar version. A package is published when its current #
+# version has no git tag `<name>@<version>` yet (`packages.ts pending`) and    #
+# that version is not on npm. A release that only touches the website leaves   #
+# npm alone. The placeholder version 0.0.0 is never published.                 #
+#                                                                              #
+# Three jobs, each with the least privilege it needs:                          #
+#  1. prepare: checks, builds and packs the tarballs (`pnpm pack`, which       #
+#     applies publishConfig). No secrets, no id-token.                         #
+#  2. publish: runs in the `npm` environment and publishes exactly those       #
+#     tarballs - the only job that can talk to npm.                            #
+#  3. tag:     after a successful publish, tags `<name>@<version>` and opens a #
+#     GitHub Release for each package that is NOT marked "latest" (that badge  #
+#     stays with the product release `vYY.M.N`).                               #
+#                                                                              #
+# A version that is already on npm is skipped and a missing tag is created, so #
+# a failed run can simply be re-run.                                           #
+#                                                                              #
+# Authentication - trusted publishing (OIDC), no stored secret:                #
+#   npmjs.com -> package -> Settings -> Trusted Publisher -> GitHub Actions:   #
+#   workflow `release-npm.yaml`, environment `npm`, allow `npm publish`.       #
+#                                                                              #
+# Dry run: run it by hand with `dry_run`, it does everything except publish    #
+# and tag. Any ref works then (no tag needed).                                 #
+#                                                                              #
+# See: RELEASING.md - for more details on the release process.                 #
+# ============================================================================ #
+
+name: "Releasing: npm Publish"
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, e.g. v26.12.17 (any ref for a dry run)"
+        required: true
+        type: "string"
+      dry_run:
+        description: "Build and pack, run `npm publish --dry-run`, tag nothing"
+        required: false
+        default: false
+        type: "boolean"
+  release:
+    types: ["published"]
+
+concurrency:
+  group: "npm-publish"
+  cancel-in-progress: false
+
+permissions:
+  contents: "read"
+
+defaults:
+  run:
+    shell: "bash"
+
+env:
+  TURBO_TELEMETRY_DISABLED: "1"
+  TAG: ${{ inputs.tag || github.event.release.tag_name }}
+  DRY_RUN: ${{ inputs.dry_run == true }}
+
+jobs:
+  prepare:
+    name: "Prepare"
+    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v')
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 20
+
+    outputs:
+      packages: ${{ steps.decide.outputs.packages }}
+
+    steps:
+      - name: "Setup: Checkout the release tag"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.event.release.tag_name }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: "Setup: pnpm"
+        uses: pnpm/action-setup@v6
+
+      - name: "Setup: Node.js"
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: "Check: Product version matches the tag"
+        if: env.DRY_RUN != 'true'
+        run: |
+          current="$(node .github/scripts/release.ts current)"
+          if [ "v${current}" != "${TAG}" ]; then
+            echo "::error::Product manifests are at ${current}, the tag is ${TAG}"
+            exit 1
+          fi
+
+      - name: "Check: Which packages are pending?"
+        id: "decide"
+        run: |
+          publish=()
+
+          while IFS=$'\t' read -r name version; do
+            [ -z "${name}" ] && continue
+
+            if npm view "${name}@${version}" version >/dev/null 2>&1; then
+              echo "${name}@${version} is already on npm - skipping."
+            else
+              echo "${name}@${version} is not on npm - publishing."
+              publish+=("${name}")
+            fi
+          done < <(node .github/scripts/packages.ts pending | jq -r '.[] | [.name, .version] | @tsv')
+
+          echo "packages=${publish[*]}" >> "$GITHUB_OUTPUT"
+
+      - name: "Setup: Install dependencies"
+        if: steps.decide.outputs.packages != ''
+        run: "pnpm install --frozen-lockfile"
+
+      - name: "Run: Verify"
+        if: steps.decide.outputs.packages != ''
+        run: "pnpm run check"
+
+      - name: "Run: Check the packages"
+        if: steps.decide.outputs.packages != ''
+        env:
+          TO_PUBLISH: ${{ steps.decide.outputs.packages }}
+        run: |
+          for package in ${TO_PUBLISH}; do
+            pnpm --filter "${package}" run package:check
+          done
+
+      - name: "Run: Pack the tarballs"
+        if: steps.decide.outputs.packages != ''
+        env:
+          TO_PUBLISH: ${{ steps.decide.outputs.packages }}
+        run: |
+          mkdir -p tarballs
+          for package in ${TO_PUBLISH}; do
+            pnpm --filter "${package}" pack --pack-destination "${PWD}/tarballs"
+          done
+          ls -l tarballs
+
+      - name: "Run: Upload the tarballs"
+        if: steps.decide.outputs.packages != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: "npm-tarballs"
+          path: "tarballs/*.tgz"
+          if-no-files-found: "error"
+          retention-days: 14
+
+  publish:
+    name: "Publish"
+    needs: "prepare"
+    if: needs.prepare.outputs.packages != ''
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+
+    environment:
+      name: "npm"
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: "Setup: Node.js"
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: "Check: npm supports trusted publishing"
+        run: |
+          version="$(npm --version)"
+          echo "npm ${version}"
+          if [ "$(printf '%s\n' 11.5.1 "${version}" | sort -V | head -n1)" != "11.5.1" ]; then
+            echo "::error::npm ${version} is older than 11.5.1, which trusted publishing needs."
+            exit 1
+          fi
+
+      - name: "Run: Download the tarballs"
+        uses: actions/download-artifact@v8
+        with:
+          name: "npm-tarballs"
+          path: "tarballs"
+
+      - name: "Run: Publish with the bootstrap token"
+        env:
+          HAS_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        if: env.HAS_TOKEN == 'true'
+        run: |
+          printf '//registry.npmjs.org/:_authToken=%s\n' "${NODE_AUTH_TOKEN}" > "${RUNNER_TEMP}/npmrc"
+          flags=(--access public --userconfig "${RUNNER_TEMP}/npmrc")
+          if [ "${DRY_RUN}" = "true" ]; then flags+=(--dry-run); else flags+=(--provenance); fi
+
+          for tarball in tarballs/*.tgz; do
+            npm publish "${tarball}" "${flags[@]}"
+          done
+
+      - name: "Run: Publish with trusted publishing"
+        env:
+          HAS_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
+        if: env.HAS_TOKEN != 'true'
+        run: |
+          flags=(--access public)
+          if [ "${DRY_RUN}" = "true" ]; then flags+=(--dry-run); else flags+=(--provenance); fi
+
+          for tarball in tarballs/*.tgz; do
+            npm publish "${tarball}" "${flags[@]}"
+          done
+
+  tag:
+    name: "Tag & Release Packages"
+    needs: ["prepare", "publish"]
+    if: >-
+      !cancelled() &&
+      inputs.dry_run != true &&
+      needs.prepare.result == 'success' &&
+      (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+
+    permissions:
+      contents: "write"
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: "Setup: Checkout the release tag"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.event.release.tag_name }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: "Setup: Node.js"
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: "Setup: Git identity"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: "Run: Tag and release the published packages"
+        run: |
+          commit="$(git rev-parse HEAD)"
+
+          while IFS=$'\t' read -r name version; do
+            [ -z "${name}" ] && continue
+            tag="${name}@${version}"
+
+            if ! npm view "${tag}" version >/dev/null 2>&1; then
+              echo "::warning::${tag} is not on npm, so it is not tagged."
+              continue
+            fi
+
+            if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
+              echo "Tag ${tag} already exists - skipping the tag."
+            else
+              git tag --annotate "${tag}" --message "${name} ${version}" "${commit}"
+              git push origin "refs/tags/${tag}"
+            fi
+
+            if gh release view "${tag}" >/dev/null 2>&1; then
+              echo "Release ${tag} already exists - skipping."
+              continue
+            fi
+
+            {
+              node .github/scripts/packages.ts notes "${name}" "${version}"
+              echo
+              echo "[${name}@${version} on npm](https://www.npmjs.com/package/${name}/v/${version})"
+            } > /tmp/package-notes.md
+
+            gh release create "${tag}" --verify-tag --latest=false \
+              --title "${name} ${version}" \
+              --notes-file /tmp/package-notes.md
+
+            echo "Released ${tag}." >> "$GITHUB_STEP_SUMMARY"
+          done < <(node .github/scripts/packages.ts pending | jq -r '.[] | [.name, .version] | @tsv')

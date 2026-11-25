@@ -106,7 +106,7 @@ export const profileSchema = z
         decision.no.side,
       ]),
     {
-      message: "Decision entry, yes and no must fit on different sides",
+      error: "Decision entry, yes and no must fit on different sides",
       path: ["decision"],
     },
   )
@@ -119,7 +119,7 @@ export const profileSchema = z
         preparation.exit,
       ]),
     {
-      message:
+      error:
         "Preparation entry, repeat, return and exit must fit on different sides",
       path: ["preparation"],
     },

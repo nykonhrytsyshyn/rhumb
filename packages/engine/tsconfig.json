@@ -1,7 +1,4 @@
 {
-  "extends": "@rhumb/tsconfig/dom.json",
-  "compilerOptions": {
-    "types": ["vite/client"]
-  },
+  "extends": "@rhumb/tsconfig/neutral.json",
   "include": ["src"]
 }

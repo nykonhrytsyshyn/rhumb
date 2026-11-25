@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { firstFontFamily } from "./first-font-family";
+import { firstFontFamily } from "@rhumb/profiles";
+
 import { matchSiteFont } from "./match-site-font";
 
 describe("firstFontFamily", () => {

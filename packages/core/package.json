@@ -1,0 +1,100 @@
+{
+  "name": "@nykon/rhumb",
+  "version": "0.1.0",
+  "description": "Standard-conforming flowcharts: render Mermaid-style text into diagrams",
+  "author": "Nykon Hrytsyshyn (https://nykon.me)",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "flowchart",
+    "diagram",
+    "mermaid",
+    "svg",
+    "iso-5807",
+    "block-diagram",
+    "algorithm"
+  ],
+  "homepage": "https://rhumb.nykon.me",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nykonhrytsyshyn/rhumb.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/nykonhrytsyshyn/rhumb/issues",
+    "email": "security@nykon.me"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node/index.ts"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "../../LICENSE.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "./node": {
+        "types": "./dist/node.d.mts",
+        "default": "./dist/node.mjs"
+      },
+      "./package.json": "./package.json"
+    }
+  },
+  "packageManager": "pnpm@12.23.0",
+  "engines": {
+    "node": ">=22.16.0",
+    "pnpm": ">=11.0.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^22.16.0 || ^24.0.0",
+      "onFail": "warn"
+    }
+  },
+  "scripts": {
+    "build": "node --max-old-space-size=4096 ./node_modules/tsdown/dist/run.mjs",
+    "typecheck": "tsc-native --noEmit",
+    "package:check": "node scripts/package-check.ts",
+    "dev": "node --max-old-space-size=4096 ./node_modules/tsdown/dist/run.mjs --watch"
+  },
+  "dependencies": {
+    "elkjs": "^0.12.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@resvg/resvg-js": "^2.6.2",
+    "@rhumb/engine": "workspace:*",
+    "@rhumb/export": "workspace:*",
+    "@rhumb/kernel": "workspace:*",
+    "@rhumb/layout-elk": "workspace:*",
+    "@rhumb/profiles": "workspace:*",
+    "@rhumb/tsconfig": "workspace:*",
+    "publint": "^0.3.25",
+    "sharp": "^0.35.5",
+    "tsdown": "0.23.7"
+  },
+  "peerDependencies": {
+    "@resvg/resvg-js": "^2.6.0",
+    "sharp": ">=0.33.0"
+  },
+  "peerDependenciesMeta": {
+    "@resvg/resvg-js": {
+      "optional": true
+    },
+    "sharp": {
+      "optional": true
+    }
+  }
+}

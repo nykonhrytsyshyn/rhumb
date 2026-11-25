@@ -7,6 +7,7 @@ const MIME_TYPES: Readonly<Record<EmbeddedFontFormat, string>> = {
   woff2: "font/woff2",
   woff: "font/woff",
   truetype: "font/ttf",
+  opentype: "font/otf",
 };
 
 /**

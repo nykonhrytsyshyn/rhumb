@@ -1,5 +1,10 @@
 /**
- * ## Release tooling for Rhumb - CalVer (`YY.M.N`)
+ * ## Release tooling for Rhumb - product CalVer (`YY.M.N`)
+ *
+ * The CalVer here versions the PRODUCT: the repository, the website and every
+ * private workspace package. The public npm packages (`@nykon/rhumb`,
+ * `@nykon/rhumb-cli`, ...) are NOT part of it - they follow SemVer, each with
+ * its own version, driven by changesets. See `packages.ts` and RELEASING.md.
  *
  *  - `YY` - last two digits of the year   (2026 -> 26)
  *  - `M`  - month, WITHOUT a leading zero (1..12)
@@ -14,13 +19,14 @@
  *  - `next [--base <ref>] [--date <YYYY-MM-DD>]`:
  *      Print the next version (without the `v` prefix).
  *  - `current`:
- *      Print the version of the workspace; fails unless every manifest agrees
- *      on one valid calendar version.
+ *      Print the product version; fails unless every product manifest (root +
+ *      private workspace packages) agrees on one valid calendar version.
  *  - `bump <version>`:
- *      Write <version> into the root and every workspace package.json.
+ *      Write <version> into every product manifest. Public packages are left
+ *      alone.
  *  - `verify [--base <ref>] [--date <YYYY-MM-DD>]`:
- *      Fail unless every manifest carries exactly the version `next` would
- *      produce right now. This is the release-readiness gate.
+ *      Fail unless every product manifest carries exactly the version `next`
+ *      would produce right now. This is the release-readiness gate.
  *  - `previous <version>`:
  *      Print the highest released tag (`vYY.M.N`) lower than <version>, or
  *      nothing if there is none.
@@ -108,7 +114,6 @@ function nextCalVer(latest: CalVer | null, today: Date): CalVer {
 }
 
 //</editor-fold>
-
 //<editor-fold desc="Git" defaultstate="collapsed">
 
 function git(...args: string[]): string {
@@ -168,7 +173,6 @@ function latestKnownVersion(baseRef: string): CalVer | null {
 }
 
 //</editor-fold>
-
 //<editor-fold desc="Manifests" defaultstate="collapsed">
 
 function workspacePatterns(root: string): string[] {
@@ -238,11 +242,30 @@ function manifestPaths(root: string): string[] {
   return paths;
 }
 
+function isPrivateManifest(json: string): boolean {
+  const data: unknown = JSON.parse(json);
+
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "private" in data &&
+    data.private === true
+  );
+}
+
+/**
+ * The manifests that carry the PRODUCT version: the root plus every private
+ * workspace package. Public (publishable) packages version themselves with
+ * SemVer through changesets and are deliberately left out.
+ */
 function readManifests(root: string): Manifest[] {
-  return manifestPaths(root).map((path) => ({
-    path,
-    version: parseManifestVersion(readFileSync(join(root, path), "utf8"), path),
-  }));
+  return manifestPaths(root).flatMap((path) => {
+    const json = readFileSync(join(root, path), "utf8");
+
+    return path === "package.json" || isPrivateManifest(json)
+      ? [{ path, version: parseManifestVersion(json, path) }]
+      : [];
+  });
 }
 
 function writeManifestVersion(
@@ -273,7 +296,6 @@ function writeManifestVersion(
 }
 
 //</editor-fold>
-
 //<editor-fold desc="Commands" defaultstate="collapsed">
 
 function parseToday(date: string | undefined): Date {

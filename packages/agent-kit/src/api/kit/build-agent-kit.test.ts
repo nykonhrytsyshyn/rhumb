@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { loadContent } from "../../testing/load-content";
-import { DIAGRAMS_SKILL_NAME, buildAgentKit } from "./build-agent-kit";
+import {
+  DIAGRAMS_REFERENCES,
+  DIAGRAMS_SKILL_NAME,
+  buildAgentKit,
+  buildCliSkill,
+  buildReference,
+} from "./build-agent-kit";
 import { AGENT_KIT_FILES, agentKitPath } from "./manifest";
 
 const sources = loadContent();
@@ -159,5 +165,52 @@ describe("buildAgentKit", () => {
     expect(() =>
       buildAgentKit({ version: "1", sources: {}, validator: "" }),
     ).toThrow('no content file "diagrams/SKILL.md"');
+  });
+});
+
+describe("buildReference", () => {
+  it.each(DIAGRAMS_REFERENCES)(
+    "prints %s without skill-only links or markers",
+    (name) => {
+      const text = buildReference({ version: "26.10.7", sources }, name);
+
+      expect(text.length).toBeGreaterThan(100);
+      expect(text).not.toMatch(/\]\(references\//);
+      expect(text).not.toMatch(/<!-- \/?(?:skill|prompt)-only -->/);
+      expect(text).not.toContain("{{version}}");
+    },
+  );
+
+  it("turns links to other references into the command that prints them", () => {
+    const text = buildReference({ version: "1", sources }, "workflow");
+
+    expect(text).toMatch(/`rhumb guide \w+`/);
+  });
+
+  it("keeps the CLI instructions of the skill-only parts", () => {
+    expect(buildReference({ version: "1", sources }, "workflow")).toContain(
+      "rhumb check diagram.rhumb",
+    );
+  });
+});
+
+describe("buildCliSkill", () => {
+  const skill = buildCliSkill("26.10.7");
+
+  it("is a short skill with the right name and the version filled in", () => {
+    expect(skill).toMatch(/^---\nname: rhumb-diagrams\n/);
+    expect(skill).toContain("26.10.7");
+    expect(skill).not.toContain("{{");
+    expect(skill.split("\n").length).toBeLessThan(30);
+  });
+
+  it("names every command it relies on, and only real topics", () => {
+    for (const command of ["rhumb guide", "rhumb check", "rhumb render"]) {
+      expect(skill).toContain(command);
+    }
+
+    for (const name of DIAGRAMS_REFERENCES) {
+      expect(skill).toContain(name);
+    }
   });
 });

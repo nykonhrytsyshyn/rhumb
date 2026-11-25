@@ -1,0 +1,71 @@
+{
+  "name": "@nykon/rhumb-cli",
+  "version": "0.1.0",
+  "description": "Command line for Rhumb: draw standard-conforming flowcharts from text",
+  "author": "Nykon Hrytsyshyn (https://nykon.me)",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "flowchart",
+    "diagram",
+    "mermaid",
+    "svg",
+    "iso-5807",
+    "cli",
+    "ai-agents"
+  ],
+  "homepage": "https://rhumb.nykon.me",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nykonhrytsyshyn/rhumb.git",
+    "directory": "apps/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/nykonhrytsyshyn/rhumb/issues",
+    "email": "security@nykon.me"
+  },
+  "bin": {
+    "rhumb": "./dist/bin.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "../../LICENSE.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "packageManager": "pnpm@12.23.0",
+  "engines": {
+    "node": ">=22.16.0",
+    "pnpm": ">=11.0.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^22.16.0 || ^24.0.0",
+      "onFail": "warn"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc-native --noEmit",
+    "package:check": "node scripts/package-check.ts",
+    "dev": "tsdown --watch"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "elkjs": "^0.12.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@nykon/rhumb": "workspace:*",
+    "@rhumb/agent-kit": "workspace:*",
+    "@rhumb/tsconfig": "workspace:*",
+    "publint": "^0.3.25",
+    "tsdown": "0.23.7"
+  }
+}

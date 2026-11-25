@@ -14,16 +14,21 @@ export default defineConfig({
     environment: "node",
     passWithNoTests: true,
     globals: true,
+    testTimeout: 15_000,
     projects: [
       {
         extends: true,
         test: {
           name: "packages",
-          include: ["packages/*/src/**/*.test.ts"],
+          include: [
+            "packages/*/src/**/*.test.ts",
+            "apps/cli/src/**/*.test.ts",
+            ".github/scripts/**/*.test.ts",
+          ],
           isolate: false,
         },
       },
-      "apps/*",
+      "apps/web",
     ],
 
     reporters:

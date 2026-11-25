@@ -1,4 +1,4 @@
-export type EmbeddedFontFormat = "woff2" | "woff" | "truetype";
+export type EmbeddedFontFormat = "woff2" | "woff" | "truetype" | "opentype";
 
 export interface EmbeddedFont {
   /** The name the drawing uses for the font, as in `font-family`. */

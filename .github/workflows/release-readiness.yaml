@@ -5,13 +5,19 @@
 # already run against release as a PR-target branch, so this workflow adds     #
 # only what they don't cover: proof that the version is the RIGHT one.         #
 #                                                                              #
-# The gate has a single rule - every package.json in the PR must carry exactly #
-# the version `release.ts next` would produce right now:                       #
-#   - valid calendar version (YY.M.N, no leading zeros);                       #
-#   - all workspace manifests agree;                                           #
-#   - newer than every existing vYY.M.N tag and than the version on release;   #
-#   - belongs to the current UTC month, so a PR that went stale over a month   #
-#     boundary can't be merged as an old month's build.                        #
+# Two rules:                                                                   #
+#                                                                              #
+# 1. Product version - the root and every private package.json must carry      #
+#    exactly the version `release.ts next` would produce right now:            #
+#    - valid calendar version (YY.M.N, no leading zeros);                      #
+#    - all product manifests agree;                                            #
+#    - newer than every existing vYY.M.N tag and than the version on release;  #
+#    - belongs to the current UTC month, so a PR that went stale over a month  #
+#      boundary can't be merged as an old month's build.                       #
+#                                                                              #
+# 2. npm packages - `packages.ts verify`: every public package kept its        #
+#    version or moved forward to a valid SemVer with a CHANGELOG.md section,   #
+#    its tag is free, and no changeset was left unconsumed.                    #
 #                                                                              #
 # It re-runs when the PR is marked "Ready for review", i.e. at the moment of   #
 # confirmation. If it fails because the month rolled over, run                 #
@@ -48,5 +54,13 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: "Run: Verify version"
+      - name: "Setup: Node.js"
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: "Run: Verify product version"
         run: "node .github/scripts/release.ts verify --base origin/release"
+
+      - name: "Run: Verify npm packages"
+        run: "node .github/scripts/packages.ts verify --base origin/release"

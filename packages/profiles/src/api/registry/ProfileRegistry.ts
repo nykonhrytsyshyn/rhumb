@@ -48,6 +48,22 @@ export class ProfileRegistry {
     return [...this.profiles.values()];
   }
 
+  /**
+   * The profile marked as default, or the first registered one.
+   *
+   * @throws Error when nothing is registered.
+   */
+  public default(): StandardProfile {
+    const profiles = this.list();
+    const chosen = profiles.find((profile) => profile.default) ?? profiles[0];
+
+    if (chosen === undefined) {
+      throw new Error("No profile is registered");
+    }
+
+    return chosen;
+  }
+
   public static withBuiltins(): ProfileRegistry {
     const registry = new ProfileRegistry();
 

@@ -40,9 +40,10 @@ say Rhumb draws flowcharts only and offer Mermaid for that diagram.
 4. **Check** it.
 <!-- skill-only -->
    If you can run commands, save the text to a file and run
-   `node scripts/validate.mjs diagram.rhumb`; fix what it reports and run it
-   again. Otherwise, go through the checklist in
-   [workflow](references/workflow.md).
+   `rhumb check diagram.rhumb` when the Rhumb CLI is installed (`rhumb
+   --version` works), or `node scripts/validate.mjs diagram.rhumb` when it is
+   not; fix what it reports and run it again. Otherwise, go through the
+   checklist in [workflow](references/workflow.md).
 <!-- /skill-only -->
 <!-- prompt-only -->
    Go through the checklist in [workflow](references/workflow.md) before you
@@ -50,6 +51,10 @@ say Rhumb draws flowcharts only and offer Mermaid for that diagram.
 <!-- /prompt-only -->
 5. **Deliver** one fenced block tagged `rhumb`, the assumptions, and one line on
    how to open it in Rhumb.
+<!-- skill-only -->
+   If the user wants a picture and the CLI is installed, draw it with
+   `rhumb render diagram.rhumb -o diagram.png` (or `.svg`).
+<!-- /skill-only -->
 
 ## Rules that break the most diagrams
 

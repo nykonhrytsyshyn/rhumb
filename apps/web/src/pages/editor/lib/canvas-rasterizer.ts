@@ -1,14 +1,22 @@
-import { RASTER_MIME_TYPES, type RasterFormat } from "./RasterFormat";
-import type { RasterOptions, Rasterizer } from "./Rasterizer";
+import {
+  RASTER_MIME_TYPES,
+  type RasterFormat,
+  type RasterOptions,
+  type Rasterizer,
+} from "@rhumb/export";
 
 /** Browser rasterizer that draws the SVG onto a canvas. */
 export class CanvasRasterizer implements Rasterizer {
+  private readonly matte: string | null;
+
   /**
    * @param matte colour painted under the drawing before it is drawn, or null
    *              to keep transparency. Formats without an alpha channel
    *              (JPEG) need one, otherwise see-through areas turn black.
    */
-  public constructor(private readonly matte: string | null = null) {}
+  public constructor(matte: string | null = null) {
+    this.matte = matte;
+  }
 
   public async rasterize(
     svg: string,

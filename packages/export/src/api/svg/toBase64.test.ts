@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { toBase64 } from "./to-base64";
+import { toBase64 } from "./toBase64";
 
 describe("toBase64", () => {
   it("encodes bytes", () => {
@@ -8,9 +8,13 @@ describe("toBase64", () => {
     expect(toBase64(new Uint8Array())).toBe("");
   });
 
-  it("matches Node for a file larger than one chunk", () => {
+  it("round-trips a file larger than one chunk", () => {
     const bytes = Uint8Array.from({ length: 100_003 }, (_, i) => (i * 7) % 256);
 
-    expect(toBase64(bytes)).toBe(Buffer.from(bytes).toString("base64"));
+    const decoded = Uint8Array.from(atob(toBase64(bytes)), (char) =>
+      char.charCodeAt(0),
+    );
+
+    expect(decoded).toEqual(bytes);
   });
 });

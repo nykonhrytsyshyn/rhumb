@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fontFamilies } from "./font-families";
+import { fontFamilies } from "./fontFamilies";
 
 describe("fontFamilies", () => {
   it("lists the fonts of a stack in order, without quotes", () => {

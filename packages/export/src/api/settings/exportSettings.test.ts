@@ -3,9 +3,12 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_EXPORT_SETTINGS } from "./defaultExportSettings";
 import { exceedsRasterLimit, exportDimensions } from "./exportDimensions";
 import { exportFileName } from "./exportFileName";
+import { ExportOptionError } from "./exportOptionError";
 import { EXPORT_PRESETS } from "./exportPresets";
 import { matchPreset } from "./matchPreset";
 import { parseExportSettings } from "./parseExportSettings";
+import { rasterMatte } from "./rasterMatte";
+import { resolveExportSettings } from "./resolveExportSettings";
 import { toAppearance } from "./toAppearance";
 
 describe("parseExportSettings", () => {
@@ -158,5 +161,53 @@ describe("exportFileName", () => {
 
   it("falls back to the standard when the name is empty", () => {
     expect(exportFileName("gost", DEFAULT_EXPORT_SETTINGS)).toBe("gost.png");
+  });
+});
+
+describe("resolveExportSettings", () => {
+  it("starts from the defaults", () => {
+    expect(resolveExportSettings()).toEqual(DEFAULT_EXPORT_SETTINGS);
+  });
+
+  it("lets a preset supply colours and own values win over it", () => {
+    expect(
+      resolveExportSettings({ preset: "dark", ink: "#ff0000", padding: 8 }),
+    ).toEqual({
+      ...DEFAULT_EXPORT_SETTINGS,
+      ...EXPORT_PRESETS.dark,
+      ink: "#ff0000",
+      padding: 8,
+    });
+  });
+
+  it("ignores values that are left undefined", () => {
+    expect(resolveExportSettings({ ink: undefined })).toEqual(
+      DEFAULT_EXPORT_SETTINGS,
+    );
+  });
+
+  it("names the field that cannot be used", () => {
+    expect(() => resolveExportSettings({ padding: 5000 })).toThrow(/padding/);
+    expect(() => resolveExportSettings({ scale: 7 as 1 })).toThrow(/scale/);
+    expect(() => resolveExportSettings({ ink: " " })).toThrow(/ink/);
+    expect(() => resolveExportSettings({ preset: "neon" as "print" })).toThrow(
+      ExportOptionError,
+    );
+  });
+});
+
+describe("rasterMatte", () => {
+  it("only JPEG gets a solid page", () => {
+    expect(rasterMatte("png", DEFAULT_EXPORT_SETTINGS)).toBeNull();
+    expect(rasterMatte("webp", DEFAULT_EXPORT_SETTINGS)).toBeNull();
+    expect(
+      rasterMatte("jpeg", {
+        ...DEFAULT_EXPORT_SETTINGS,
+        background: "#102030",
+      }),
+    ).toBe("#102030");
+    expect(
+      rasterMatte("jpeg", { ...DEFAULT_EXPORT_SETTINGS, transparent: true }),
+    ).toBe("#ffffff");
   });
 });

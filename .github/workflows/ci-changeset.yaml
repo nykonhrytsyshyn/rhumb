@@ -1,0 +1,75 @@
+# ============================================================================ #
+#                              Changeset Workflow                              #
+# ============================================================================ #
+# Keeps the npm release honest: a pull request into dev that changes code      #
+# shipped in a public package (@nykon/rhumb, @nykon/rhumb-cli, or anything     #
+# bundled into them) must carry a changeset naming that package.               #
+#                                                                              #
+#   pnpm changeset          - write one (package, bump, a line of text)        #
+#   pnpm changeset --empty  - "this change needs no npm release"               #
+#                                                                              #
+# A package that bundles a changed package needs its own entry too: the CLI    #
+# contains the library, so a library fix reaches users only through a new CLI. #
+# Docs, tests and the website never need one. Dependabot is exempt - its       #
+# updates ship with the next release; add a changeset by hand for a security   #
+# fix that must go out on its own.                                             #
+#                                                                              #
+# The release PR (release-candidate -> release) is not checked here: by then   #
+# the changesets are consumed and Releasing: Readiness verifies the result.    #
+#                                                                              #
+# Skip tags (anywhere in commit message or PR title):                          #
+#   [ci-skip]        - skips all workflows                                     #
+#   [changeset-skip] - skips this workflow only                                #
+#                                                                              #
+# See: RELEASING.md and .changeset/README.md                                   #
+# ============================================================================ #
+
+name: "CI: Changeset"
+
+on:
+  pull_request:
+    branches: ["dev"]
+
+concurrency:
+  group: "changeset-${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: "read"
+
+jobs:
+  # Check if the commit message / PR title contains skip tags
+  check:
+    name: "Skip Check"
+    runs-on: "ubuntu-latest"
+    outputs:
+      should_skip: ${{ steps.belay.outputs.issued }}
+
+    steps:
+      - name: "Run: Check skip tags"
+        id: "belay"
+        uses: OctalMesh/belay-action@v1
+        with:
+          signal_tags: "[ci-skip],[changeset-skip]"
+
+  changeset:
+    name: "Changeset"
+    needs: "check"
+    if: needs.check.outputs.should_skip != 'true' && github.actor != 'dependabot[bot]'
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+
+    steps:
+      - name: "Setup: Checkout repository"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: "Setup: Node.js"
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: "Run: Check changesets"
+        run: 'node .github/scripts/packages.ts check --base "origin/${{ github.base_ref }}"'

@@ -1,0 +1,4 @@
+{
+  "extends": "@rhumb/tsconfig/neutral.json",
+  "include": ["src", "scripts", "tsdown.config.ts"]
+}

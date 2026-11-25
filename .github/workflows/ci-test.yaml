@@ -19,6 +19,7 @@ on:
     paths:
       - "apps/**"
       - "packages/**"
+      - ".github/scripts/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"

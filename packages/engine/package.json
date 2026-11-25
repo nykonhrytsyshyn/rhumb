@@ -1,6 +1,6 @@
 {
   "name": "@rhumb/engine",
-  "version": "26.11.3",
+  "version": "26.11.4",
   "private": true,
   "type": "module",
   "exports": {

@@ -6,7 +6,8 @@
 # Two independent jobs:                                                        #
 #  - tag-release: if the version on release has no tag yet, cuts the annotated #
 #    tag "vYY.M.N" on the pushed commit and opens a DRAFT GitHub Release with  #
-#    generated notes.                                                          #
+#    generated notes. The notes list the npm packages that this release will  #
+#    publish (the tags of the packages are made later, by release-npm.yaml).   #
 #  - sync-dev: merges release back into dev so the merge commit and the        #
 #    version-bump commit never have to be reconciled by hand. Requires dev's   #
 #    branch protection to allow this workflow's token to push directly.        #
@@ -63,6 +64,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: "Setup: Node.js"
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
       - name: "Run: Read version"
         id: "info"
         run: |
@@ -102,9 +108,19 @@ jobs:
             echo "_Release notes could not be generated - write them by hand._" > /tmp/generated.md
           fi
 
+          PACKAGES=$(node .github/scripts/packages.ts plan)
+
           {
             echo "Rhumb **$TAG** - live at <https://rhumb.nykon.me>."
             echo
+            if [ -n "$PACKAGES" ]; then
+              echo "### npm packages"
+              echo
+              echo "$PACKAGES"
+              echo
+              echo "Published to npm, and tagged \`<name>@<version>\`, when this release is published."
+              echo
+            fi
             echo "### Known limitations"
             echo
             echo "_Fill in before publishing, or delete this section._"

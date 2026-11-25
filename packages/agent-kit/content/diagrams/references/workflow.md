@@ -59,17 +59,25 @@ example: "Standard: GOST 19.701-90 or ISO 5807? Direction: tall (TD) or wide
 ## 4. Check
 
 <!-- skill-only -->
-If you can run commands, save the diagram to a file and run the checker that
-comes with this skill:
+If you can run commands, save the diagram to a file and check it. With the
+Rhumb CLI installed (`rhumb --version` works), use it:
+
+```
+rhumb check diagram.rhumb
+```
+
+Without it, run the checker that comes with this skill:
 
 ```
 node scripts/validate.mjs diagram.rhumb
 ```
 
-It prints `OK: ...` or the first problem as `Line N: message`, and exits with
-0 or 1. Fix the line it names and run it again; stop after five rounds and tell
-the user what still fails. The checker reads the diagram exactly as the app
-does, so a diagram that passes here is accepted there.
+Either prints `OK ...` or the first problem with its line number, and exits
+with 0 or 1. Fix the line it names and run it again; stop after five rounds and
+tell the user what still fails. Both read the diagram exactly as the app does,
+so a diagram that passes is accepted there. `rhumb check --json` gives the same
+result as JSON. If the user wants a picture, `rhumb render diagram.rhumb -o
+diagram.png` draws it (SVG, PNG, JPEG or WebP, by the extension).
 <!-- /skill-only -->
 
 When you cannot run anything, go through this list before you answer:
