@@ -69,8 +69,12 @@ flowchart LR
 1. Fork the repository and create a branch from `dev`
 2. Make focused changes that follow the existing style and package boundaries
 3. Add or update tests next to the affected implementation
-4. Run `pnpm check` (typecheck, lint, format, tests and build)
-5. Open a pull request **against `dev`**
+4. If the change reaches a published package (`@nykon/rhumb`,
+   `@nykon/rhumb-cli`), run `pnpm changeset` and commit the file it creates;
+   `pnpm changeset --empty` says that no release is needed. See
+   [Changesets](RELEASING.md#changesets)
+5. Run `pnpm check` (typecheck, lint, format, tests and build)
+6. Open a pull request **against `dev`**
 
 > [!IMPORTANT]
 > `release` is updated only by the automated release pull request. Never open a
