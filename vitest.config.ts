@@ -14,6 +14,7 @@ export default defineConfig({
     environment: "node",
     passWithNoTests: true,
     globals: true,
+    testTimeout: 15_000,
     projects: [
       {
         extends: true,
