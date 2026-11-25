@@ -49,12 +49,16 @@
     "format": "prettier . --write",
     "format:check": "turbo run format:check:root",
     "format:check:root": "prettier . --check",
+    "changeset": "changeset",
+    "changeset:status": "changeset status --verbose --since=dev",
+    "changeset:empty": "changeset add --empty",
     "deps": "pnpm update --latest --recursive --interactive",
     "deps:check": "pnpm outdated --recursive",
     "tree": "treee -I \"node_modules|.git|.idea|target|build|dist|dev-dist|bin|.project-structure.txt\" -a --dirs-first",
     "tree:export": "pnpm run tree --silent > .project-structure.txt"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.3",
     "@rhumb/eslint-config": "workspace:*",
     "@rhumb/tsconfig": "workspace:*",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",

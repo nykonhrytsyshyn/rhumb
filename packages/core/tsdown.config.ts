@@ -16,7 +16,9 @@ export default defineConfig({
   target: "node22",
   tsconfig: "tsconfig.build.json",
   dts: {
-    eager: true,
+    tsc: {
+      eager: true,
+    },
   },
   clean: true,
   deps: {

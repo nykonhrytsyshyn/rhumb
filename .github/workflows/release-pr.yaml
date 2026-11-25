@@ -5,9 +5,12 @@
 # release. The PR is a derived artifact - it is rebuilt from scratch, never    #
 # patched:                                                                     #
 #                                                                              #
-#   release-candidate = dev HEAD + one commit that sets the next calendar      #
-#                       version (YY.M.N) in the root and every workspace       #
-#                       package.json                                           #
+#   release-candidate = dev HEAD + one commit that                             #
+#     - sets the next calendar version (YY.M.N) in the root and every private  #
+#       workspace package.json (the PRODUCT version), and                      #
+#     - consumes the pending changesets (`changeset version`): the public npm  #
+#       packages get their own SemVer bump and CHANGELOG.md entry. No          #
+#       changesets means no package release - the site ships without npm.      #
 #                                                                              #
 # The next version is a pure function of (existing vYY.M.N tags, version on    #
 # release, today's UTC date), see .github/scripts/release.ts. It is recomputed #
@@ -107,6 +110,21 @@ jobs:
           fi
           echo "Nothing to release." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: "Setup: pnpm"
+        if: steps.state.outputs.pending == 'true'
+        uses: pnpm/action-setup@v6
+
+      - name: "Setup: Node.js"
+        if: steps.state.outputs.pending == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: "Setup: Install dependencies"
+        if: steps.state.outputs.pending == 'true'
+        run: "pnpm install --frozen-lockfile --ignore-scripts"
+
       - name: "Run: Build release candidate"
         id: "candidate"
         if: steps.state.outputs.pending == 'true'
@@ -116,7 +134,14 @@ jobs:
 
           git checkout -B "$CANDIDATE" origin/dev
           node .github/scripts/release.ts bump "$VERSION"
-          git commit --all --allow-empty --message "chore(release): v$VERSION"
+          # `changeset version` exits 1 when there is nothing to consume, and a
+          # release of the website alone has no changesets. An empty changeset
+          # (`--empty`) is consumed fine.
+          if [ -n "$(find .changeset -maxdepth 1 -name '*.md' ! -name README.md)" ]; then
+            pnpm exec changeset version
+          fi
+          git add --all
+          git commit --allow-empty --message "chore(release): v$VERSION"
 
           CHANGED=true
           if git rev-parse --verify --quiet "origin/$CANDIDATE" >/dev/null &&
@@ -140,6 +165,7 @@ jobs:
           PREVIOUS: ${{ steps.candidate.outputs.previous }}
         run: |
           TOTAL=$(git rev-list --count --no-merges origin/release..origin/dev)
+          PACKAGES=$(node .github/scripts/packages.ts plan --base origin/release)
           {
             echo "## Release v$VERSION"
             echo
@@ -160,6 +186,16 @@ jobs:
             git log --no-merges --max-count=100 --format='- %s (`%h`)' origin/release..origin/dev
             if [ "$TOTAL" -gt 100 ]; then
               echo "- _... and $((TOTAL - 100)) more_"
+            fi
+            echo
+            echo "### npm packages"
+            echo
+            if [ -n "$PACKAGES" ]; then
+              echo "$PACKAGES"
+              echo
+              echo "Published to npm when the draft GitHub Release is published."
+            else
+              echo "None - no changesets are pending, so npm is not touched."
             fi
             echo
             echo "### Before merging"
