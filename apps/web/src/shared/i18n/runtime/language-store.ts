@@ -4,6 +4,7 @@ import {
   SUPPORTED_LANGUAGES,
   isLanguage,
 } from "../constants";
+import { languageFromPath } from "./language-path";
 
 export const LANGUAGE_STORAGE_KEY = "language";
 
@@ -40,10 +41,13 @@ export class LanguageStore {
     storage: StorageLike,
     preferred: readonly string[],
     root: HTMLElement,
+    pathname = "",
   ) {
     this.storage = storage;
     this.root = root;
-    this.language = resolvePreferredLanguage(this.read(), preferred);
+    this.language =
+      languageFromPath(pathname) ??
+      resolvePreferredLanguage(this.read(), preferred);
     this.root.lang = this.language;
   }
 
@@ -89,4 +93,5 @@ export const languageStore = new LanguageStore(
   window.localStorage,
   window.navigator.languages,
   document.documentElement,
+  window.location.pathname,
 );

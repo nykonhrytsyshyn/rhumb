@@ -3,7 +3,9 @@ import type { JSX } from "react";
 import {
   LANGUAGE_OPTIONS,
   type Language,
+  isEditorPath,
   isLanguage,
+  pathForLanguage,
   useI18n,
 } from "@shared/i18n";
 import {
@@ -32,6 +34,14 @@ export function LanguageSwitcher({
         if (typeof value === "string" && isLanguage(value)) {
           onChange?.(value);
           setLanguage(value);
+
+          if (isEditorPath(window.location.pathname)) {
+            window.history.replaceState(
+              window.history.state,
+              "",
+              `${pathForLanguage(value)}${window.location.search}${window.location.hash}`,
+            );
+          }
         }
       }}
     >

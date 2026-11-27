@@ -89,3 +89,21 @@ describe("LanguageStore", () => {
     expect(store.getSnapshot()).toBe("en");
   });
 });
+
+describe("LanguageStore at a language address", () => {
+  it("follows the address over what is stored", () => {
+    const root = document.createElement("html");
+    const store = new LanguageStore(memoryStorage("en"), ["en"], root, "/uk/");
+
+    expect(store.getSnapshot()).toBe("uk");
+    expect(root.lang).toBe("uk");
+  });
+
+  it("keeps using the stored choice at the root", () => {
+    const root = document.createElement("html");
+
+    expect(
+      new LanguageStore(memoryStorage("uk"), [], root, "/").getSnapshot(),
+    ).toBe("uk");
+  });
+});

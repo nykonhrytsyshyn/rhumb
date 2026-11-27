@@ -6,7 +6,13 @@ export {
   type Language,
   type LanguageOptionItem,
 } from "./constants";
-export { type InterpolationParams, translate } from "./runtime";
+export {
+  type InterpolationParams,
+  isEditorPath,
+  languageFromPath,
+  pathForLanguage,
+  translate,
+} from "./runtime";
 export {
   LOCALES_BY_LANGUAGE,
   type Messages,
