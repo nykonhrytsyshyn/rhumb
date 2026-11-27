@@ -5,6 +5,7 @@ import { NotFoundPage } from "@pages/not-found";
 
 import { ThemeProvider } from "@features/theme";
 
+import { isEditorPath } from "@shared/i18n";
 import { TooltipProvider } from "@shared/ui/tooltip";
 
 export function App(): JSX.Element {
@@ -21,7 +22,7 @@ export function App(): JSX.Element {
     };
   }, []);
 
-  const isNotFound = pathname !== "/";
+  const isNotFound = !isEditorPath(pathname);
 
   return (
     <ThemeProvider>
