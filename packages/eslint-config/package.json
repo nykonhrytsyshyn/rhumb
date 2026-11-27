@@ -1,6 +1,6 @@
 {
   "name": "@rhumb/eslint-config",
-  "version": "26.11.6",
+  "version": "26.11.7",
   "private": true,
   "type": "module",
   "exports": {
